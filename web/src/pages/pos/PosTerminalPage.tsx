@@ -596,7 +596,7 @@ export default function PosTerminalPage() {
           <div className="flex-1 flex flex-col overflow-hidden bg-stone-950">
             {/* Filter Chips Bar */}
             <div className="p-3 border-b border-stone-800/80 bg-stone-900/40 flex items-center justify-between gap-2 shrink-0">
-              <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
+              <div className="flex flex-wrap items-center gap-1.5">
                 <button
                   onClick={() => setTableFilter("ALL")}
                   className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
@@ -798,16 +798,16 @@ export default function PosTerminalPage() {
                 />
               </div>
 
-              {/* Category horizontal scroll */}
-              <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+              {/* Category Wrap Pills (No Horizontal Scroll) */}
+              <div className="flex flex-wrap gap-1.5 pt-0.5">
                 {categories.map((cat) => (
                   <button
                     key={cat}
                     onClick={() => setSelectedCategory(cat)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                    className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all cursor-pointer ${
                       selectedCategory === cat
-                        ? "bg-orange-600 text-white shadow-md shadow-orange-600/30 font-black"
-                        : "bg-stone-900 text-stone-400 hover:bg-stone-800 hover:text-stone-200"
+                        ? "bg-orange-600 text-white shadow-sm shadow-orange-600/30 font-black"
+                        : "bg-stone-900 text-stone-400 hover:bg-stone-800 hover:text-stone-200 border border-stone-800/80"
                     }`}
                   >
                     {cat}
@@ -1277,16 +1277,16 @@ export default function PosTerminalPage() {
               </div>
             </div>
 
-            {/* Category horizontal scroll */}
-            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+            {/* Category Wrap Pills (No Horizontal Scroll) */}
+            <div className="flex flex-wrap gap-1.5 pt-0.5">
               {categories.map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                     selectedCategory === cat
-                      ? "bg-orange-600 text-white shadow-md shadow-orange-600/30"
-                      : "bg-stone-900 text-stone-400 hover:bg-stone-800 hover:text-stone-200"
+                      ? "bg-orange-600 text-white shadow-sm shadow-orange-600/30 font-black"
+                      : "bg-stone-900 text-stone-400 hover:bg-stone-800 hover:text-stone-200 border border-stone-800/80"
                   }`}
                 >
                   {cat}
