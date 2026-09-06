@@ -26,10 +26,10 @@ interface ProductFormProps {
 }
 
 const STEPS = [
-  { id: 1, name: "Basic Info", icon: FileText, desc: "Name, category & details" },
-  { id: 2, name: "Portions & Price", icon: DollarSign, desc: "Plates, pieces or weight" },
-  { id: 3, name: "Photos", icon: ImageIcon, desc: "Cover & gallery images" },
-  { id: 4, name: "Review & Save", icon: Sparkles, desc: "Preview & publish" },
+  { id: 1, name: "Basic Info", shortName: "Info", icon: FileText, desc: "Name, category & details" },
+  { id: 2, name: "Portions & Price", shortName: "Pricing", icon: DollarSign, desc: "Plates, pieces or weight" },
+  { id: 3, name: "Photos", shortName: "Photos", icon: ImageIcon, desc: "Cover & gallery images" },
+  { id: 4, name: "Review & Save", shortName: "Review", icon: Sparkles, desc: "Preview & publish" },
 ];
 
 export default function ProductForm({ product }: ProductFormProps) {
@@ -397,8 +397,8 @@ export default function ProductForm({ product }: ProductFormProps) {
       )}
 
       {/* STEPPER PROGRESS BAR */}
-      <div className="bg-white p-3 sm:p-4 rounded-2xl border border-stone-200 shadow-sm">
-        <div className="grid grid-cols-4 gap-2">
+      <div className="bg-white p-2 sm:p-4 rounded-2xl border border-stone-200/90 shadow-xs">
+        <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
           {STEPS.map((step) => {
             const isCompleted = currentStep > step.id;
             const isCurrent = currentStep === step.id;
@@ -411,34 +411,35 @@ export default function ProductForm({ product }: ProductFormProps) {
                   setError("");
                   setCurrentStep(step.id);
                 }}
-                className={`p-2 sm:p-3 rounded-xl transition-all text-left flex items-center gap-2 sm:gap-3 cursor-pointer ${
+                className={`p-1.5 sm:p-3 rounded-xl transition-all flex flex-col sm:flex-row items-center gap-1 sm:gap-2.5 cursor-pointer text-center sm:text-left ${
                   isCurrent
-                    ? "bg-orange-50 border-2 border-orange-500 shadow-sm"
+                    ? "bg-orange-50 border-2 border-orange-500 shadow-xs"
                     : isCompleted
-                    ? "bg-stone-50 border border-stone-200 hover:bg-stone-100"
-                    : "border border-transparent opacity-60 hover:opacity-90"
+                    ? "bg-emerald-50/70 border border-emerald-200 hover:bg-emerald-50"
+                    : "bg-stone-50/70 border border-stone-200/70 opacity-75 hover:opacity-100"
                 }`}
               >
                 <div
-                  className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center font-black text-xs shrink-0 ${
+                  className={`w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center font-black text-[11px] sm:text-xs shrink-0 ${
                     isCurrent
-                      ? "bg-orange-600 text-white shadow-md shadow-orange-600/30"
+                      ? "bg-orange-600 text-white shadow-xs"
                       : isCompleted
                       ? "bg-emerald-600 text-white"
                       : "bg-stone-200 text-stone-600"
                   }`}
                 >
-                  {isCompleted ? <CheckCircle2 className="w-4 h-4" /> : step.id}
+                  {isCompleted ? <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : step.id}
                 </div>
-                <div className="hidden sm:block min-w-0">
+                <div className="min-w-0 w-full">
                   <p
-                    className={`text-xs font-black truncate ${
-                      isCurrent ? "text-orange-950" : isCompleted ? "text-stone-900" : "text-stone-500"
+                    className={`text-[10px] sm:text-xs font-black truncate leading-tight ${
+                      isCurrent ? "text-orange-950" : isCompleted ? "text-emerald-950" : "text-stone-600"
                     }`}
                   >
-                    {step.name}
+                    <span className="sm:hidden">{step.shortName}</span>
+                    <span className="hidden sm:inline">{step.name}</span>
                   </p>
-                  <p className="text-[10px] text-stone-400 truncate">{step.desc}</p>
+                  <p className="text-[10px] text-stone-400 truncate hidden md:block">{step.desc}</p>
                 </div>
               </button>
             );
@@ -464,18 +465,18 @@ export default function ProductForm({ product }: ProductFormProps) {
             }
           }
         }}
-        className="bg-white p-5 sm:p-7 rounded-2xl shadow-sm border border-stone-200"
+        className="bg-white p-4 sm:p-6 rounded-2xl shadow-xs border border-stone-200"
       >
         
         {/* STEP 1: BASIC INFORMATION */}
         {currentStep === 1 && (
-          <div className="space-y-5">
-            <div className="border-b border-stone-100 pb-3">
-              <h2 className="text-lg font-black text-stone-900 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-orange-600" />
+          <div className="space-y-3.5 sm:space-y-4">
+            <div className="border-b border-stone-100 pb-2.5">
+              <h2 className="text-base sm:text-lg font-black text-stone-900 flex items-center gap-2">
+                <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
                 Step 1: Basic Information
               </h2>
-              <p className="text-xs text-stone-500 mt-0.5">Enter product title, catalog category and customer description</p>
+              <p className="text-[11px] sm:text-xs text-stone-500 mt-0.5">Enter product title, catalog category and customer description</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
