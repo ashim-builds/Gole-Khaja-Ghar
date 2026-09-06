@@ -1,8 +1,8 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { useStoreHours } from "@/lib/storeHours";
-import { Plus, Check, Clock } from "lucide-react";
+import { Plus, Check, Clock, Layers } from "lucide-react";
 
 interface Variant {
   name: string;
@@ -13,7 +13,7 @@ interface ProductCardProps {
   id: string;
   slug: string;
   name: string;
-  priceType?: 'weight' | 'variant';
+  priceType?: "weight" | "variant";
   pricePerKg?: number;
   variants?: Variant[];
   image: string;
@@ -21,214 +21,214 @@ interface ProductCardProps {
   isAvailable?: boolean;
 }
 
-export default function ProductCard({ 
-  id, 
-  slug, 
-  name, 
-  priceType = 'variant',
-  pricePerKg, 
+export default function ProductCard({
+  id,
+  slug,
+  name,
+  priceType = "variant",
+  pricePerKg,
   variants = [],
-  image, 
-  isAvailable = true 
+  image,
+  category,
+  isAvailable = true,
 }: ProductCardProps) {
   const storeStatus = useStoreHours();
-  const [selectedWeight, setSelectedWeight] = useState<number>(250);
-  
-  // Default to the first variant if available
-  const [selectedVariant, setSelectedVariant] = useState<Variant | null>(variants.length > 0 ? variants[0] : null);
-  
-  // Keep selectedVariant in sync if variants prop updates
-  useState(() => {
-    if (variants.length > 0 && !selectedVariant) {
-      setSelectedVariant(variants[0]);
-    }
-  });
-
+  const navigate = useNavigate();
+  const [selectedWeight] = useState<number>(250);
   const [isAdded, setIsAdded] = useState(false);
   const { addWeightItem, addVariantItem } = useCart();
 
-  const handleAddToCart = () => {
+  const hasMultipleVariants = variants.length > 1;
+  const firstVariant = variants.length > 0 ? variants[0] : null;
+
+  // Calculate lowest / base price
+  const displayPrice =
+    priceType === "weight" && pricePerKg
+      ? pricePerKg
+      : variants.length > 0
+      ? Math.min(...variants.map((v) => v.price))
+      : pricePerKg || 0;
+
+  const handleActionClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
     if (!storeStatus.isOpen || !isAvailable) return;
-    
-    if (priceType === 'weight') {
-      addWeightItem({ id, slug, name, priceType, pricePerKg, image }, selectedWeight, 1);
-    } else {
-      const variantToUse = selectedVariant || (variants.length > 0 ? variants[0] : { name: "Regular", price: pricePerKg || 0 });
-      addVariantItem({ id, slug, name, priceType: 'variant', image }, variantToUse.name, variantToUse.price, 1);
+
+    // If item has multiple variants or is weight-based with customization, navigate to product detail page to choose portion
+    if (hasMultipleVariants || priceType === "weight") {
+      navigate(`/product/${slug}`);
+      return;
     }
-    
+
+    // Otherwise add directly
+    const variantToUse = firstVariant || { name: "Regular", price: pricePerKg || 0 };
+    addVariantItem(
+      { id, slug, name, priceType: "variant", image },
+      variantToUse.name,
+      variantToUse.price,
+      1
+    );
+
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
   };
 
-  const displayPrice = priceType === 'weight' && pricePerKg
-    ? pricePerKg 
-    : variants.length > 0
-    ? (selectedVariant?.price || variants[0]?.price || 0)
-    : pricePerKg || 0;
-
-  const currentPortionLabel = priceType === 'variant' 
-    ? (selectedVariant?.name || (variants.length > 0 ? variants[0]?.name : '')) 
-    : '';
-
   return (
-    <div className={`bg-white md:rounded-[12px] p-4 flex flex-row md:flex-col hover:shadow-xl hover:-translate-y-1 shadow-sm transition-all duration-300 border-b md:border border-stone-100 last:border-b-0 gap-4 md:gap-0 h-full relative items-center md:items-start ${!isAvailable ? 'opacity-70' : ''}`}>
-      
-      {/* Image */}
-      <Link to={`/product/${slug}`} className="relative w-20 h-20 md:w-full md:h-auto md:aspect-square rounded-[8px] bg-[#f5f5f5] overflow-hidden flex-shrink-0 group">
-        <img 
-          src={image || "/images/logo.png"} 
-          alt={name} 
-          onError={(e) => {
-            const target = e.currentTarget;
-            if (!target.src.endsWith('/images/logo.png')) {
-              target.src = '/images/logo.png';
-            }
-          }}
-          className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${!isAvailable ? 'grayscale' : ''}`} 
-        />
-        {!isAvailable && (
-          <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-            <span className="text-[8px] md:text-xs font-bold text-white px-1.5 py-0.5 bg-red-600 rounded shadow-md transform -rotate-12">OUT OF STOCK</span>
-          </div>
-        )}
-      </Link>
-
-      {/* Content */}
-      <div className="flex-grow flex flex-col items-start text-left w-full justify-center md:justify-start md:mt-3 pl-1 md:pl-0">
-        <Link to={`/product/${slug}`} className="hover:text-primary transition-colors">
-          <h3 className="font-bold text-black text-[14px] md:text-[15px] leading-tight mb-0.5 md:mb-1">{name}</h3>
-        </Link>
-        <div className="flex items-center gap-1.5 mb-1 md:mb-2">
-          <p className="text-[13px] md:text-[15px] font-black text-stone-900">
-            Rs. {displayPrice}
-          </p>
-          {priceType === 'weight' ? (
-            <span className="text-stone-500 font-medium text-[11px] md:text-[12px]">/ kg</span>
-          ) : currentPortionLabel ? (
-            <span className="text-orange-700 bg-orange-50 border border-orange-100 px-1.5 py-0.2 rounded text-[10px] font-bold truncate max-w-[120px]">
-              /{currentPortionLabel}
+    <div
+      className={`bg-white md:rounded-2xl p-3.5 sm:p-4 flex flex-row md:flex-col justify-between hover:shadow-lg transition-all duration-300 border-b md:border border-stone-100 last:border-b-0 gap-3 md:gap-3 h-full relative group ${
+        !isAvailable ? "opacity-60" : ""
+      }`}
+    >
+      {/* Mobile: Left Text Details | Desktop: Middle Text Details */}
+      <div className="flex-1 flex flex-col justify-between min-w-0 pr-1 md:pr-0 order-1 md:order-2">
+        <div>
+          {category && (
+            <span className="text-[10px] sm:text-[11px] font-bold text-orange-600 uppercase tracking-wider block mb-1">
+              {category}
             </span>
-          ) : null}
+          )}
+          <Link
+            to={`/product/${slug}`}
+            className="hover:text-orange-600 transition-colors block"
+          >
+            <h3 className="font-extrabold text-stone-900 text-sm sm:text-base leading-snug line-clamp-2">
+              {name}
+            </h3>
+          </Link>
         </div>
 
-        {/* Mobile Portion Quick-Select Chips (when multiple portions exist) */}
-        {variants.length > 1 && priceType === 'variant' && (
-          <div className="flex md:hidden items-center gap-1 mt-1.5 flex-wrap">
-            {variants.map((v, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedVariant(v);
-                }}
-                className={`text-[10px] px-2 py-0.5 rounded-lg border transition-all cursor-pointer ${
-                  (selectedVariant?.name || variants[0].name) === v.name
-                    ? 'border-orange-600 bg-orange-600 text-white font-black shadow-sm'
-                    : 'border-stone-200 text-stone-600 bg-stone-50 font-semibold hover:border-stone-300'
-                }`}
-              >
-                {v.name}
-              </button>
-            ))}
+        <div className="mt-2.5 flex flex-wrap items-center gap-2">
+          <div className="flex items-baseline gap-1">
+            <span className="text-sm sm:text-base font-black text-stone-950">
+              Rs. {displayPrice}
+            </span>
+            {priceType === "weight" ? (
+              <span className="text-stone-500 font-bold text-[11px]">/ kg</span>
+            ) : hasMultipleVariants ? (
+              <span className="text-stone-400 font-medium text-[11px]">onwards</span>
+            ) : null}
           </div>
-        )}
+
+          {hasMultipleVariants && (
+            <span className="inline-flex items-center gap-1 bg-stone-100 border border-stone-200/80 text-stone-600 text-[10px] font-bold px-2 py-0.5 rounded-md">
+              <Layers className="w-2.5 h-2.5 text-stone-500" />
+              {variants.length} Portions
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* Selection UI (Desktop Only) */}
-      <div className="hidden md:block w-full">
-        {priceType === 'weight' ? (
-          <div className="flex items-center justify-between w-full mb-3 gap-1">
-            {[250, 500, 1000].map((w) => (
-              <button
-                key={w}
-                onClick={() => setSelectedWeight(w)}
-                className={`flex-1 py-1 text-[11px] font-bold rounded-md border transition-colors cursor-pointer ${
-                  selectedWeight === w 
-                    ? 'border-orange-600 bg-orange-600 text-white font-black shadow-sm' 
-                    : 'border-stone-200 text-stone-600 hover:border-stone-300'
-                }`}
-              >
-                {w >= 1000 ? `${w/1000}kg` : `${w}g`}
-              </button>
-            ))}
-          </div>
-        ) : variants.length > 1 ? (
-          <div className="flex items-center justify-between w-full mb-3 gap-1 flex-wrap">
-            {variants.map((v, idx) => (
-              <button
-                key={idx}
-                onClick={() => setSelectedVariant(v)}
-                className={`flex-1 py-1.5 text-[11px] rounded-lg border transition-all truncate px-2 cursor-pointer ${
-                  (selectedVariant?.name || variants[0].name) === v.name 
-                    ? 'border-orange-600 bg-orange-600 text-white font-black shadow-sm' 
-                    : 'border-stone-200 text-stone-700 bg-white hover:border-stone-300 font-semibold'
-                }`}
-              >
-                {v.name}
-              </button>
-            ))}
-          </div>
-        ) : (
-          <div className="h-1 mb-2" />
-        )}
+      {/* Mobile: Right Image Container | Desktop: Top Image */}
+      <div className="relative flex-shrink-0 order-2 md:order-1 w-24 sm:w-28 md:w-full">
+        <Link
+          to={`/product/${slug}`}
+          className="block w-24 h-24 sm:w-28 sm:h-28 md:w-full md:aspect-[4/3] rounded-2xl bg-stone-100 overflow-hidden relative shadow-sm"
+        >
+          <img
+            src={image || "/images/logo.png"}
+            alt={name}
+            loading="lazy"
+            decoding="async"
+            onError={(e) => {
+              const target = e.currentTarget;
+              if (!target.src.endsWith("/images/logo.png")) {
+                target.src = "/images/logo.png";
+              }
+            }}
+            className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
+              !isAvailable ? "grayscale" : ""
+            }`}
+          />
+          {!isAvailable && (
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center p-1">
+              <span className="text-[9px] sm:text-[10px] font-black text-white px-1.5 py-0.5 bg-red-600 rounded-md shadow uppercase tracking-wider text-center">
+                Out of Stock
+              </span>
+            </div>
+          )}
+        </Link>
+
+        {/* Mobile Floating Action Button (Overlapping Bottom Center of Image) */}
+        <div className="md:hidden absolute -bottom-2.5 left-1/2 -translate-x-1/2 z-10 w-[84%]">
+          <button
+            type="button"
+            disabled={!storeStatus.isOpen || !isAvailable || isAdded}
+            onClick={handleActionClick}
+            className={`w-full py-1.5 px-2 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1 shadow-md transition-all active:scale-95 cursor-pointer ${
+              !storeStatus.isOpen || !isAvailable
+                ? "bg-stone-200 text-stone-400 cursor-not-allowed shadow-none"
+                : isAdded
+                ? "bg-emerald-600 text-white shadow-emerald-600/30"
+                : "bg-white text-orange-600 border border-orange-200 hover:bg-orange-50 shadow-orange-600/15"
+            }`}
+          >
+            {isAdded ? (
+              <>
+                <Check className="w-3.5 h-3.5" />
+                <span>Added</span>
+              </>
+            ) : !storeStatus.isOpen ? (
+              <>
+                <Clock className="w-3 h-3" />
+                <span>Closed</span>
+              </>
+            ) : hasMultipleVariants || priceType === "weight" ? (
+              <>
+                <span>ADD</span>
+                <Plus className="w-3 h-3 stroke-[3]" />
+              </>
+            ) : (
+              <>
+                <span>ADD</span>
+                <Plus className="w-3 h-3 stroke-[3]" />
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
-      {/* Action Button */}
-      {/* Mobile Plus button */}
-      <button 
-        disabled={!storeStatus.isOpen || !isAvailable || isAdded}
-        onClick={handleAddToCart}
-        title={!storeStatus.isOpen ? storeStatus.reason : !isAvailable ? "Out of Stock" : "Add to Cart"}
-        className={`md:hidden w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors shadow-md cursor-pointer ${
-          !storeStatus.isOpen || !isAvailable
-            ? 'bg-stone-200 text-stone-400 cursor-not-allowed shadow-none' 
-            : isAdded 
-            ? 'bg-emerald-600 text-white' 
-            : 'bg-orange-600 text-white hover:bg-orange-500 shadow-orange-600/20'
-        }`}
-      >
-        {isAdded ? (
-          <Check className="w-4 h-4 text-white" />
-        ) : !storeStatus.isOpen ? (
-          <Clock className="w-4 h-4 text-stone-400" />
-        ) : (
-          <Plus className="w-4 h-4 text-white" />
-        )}
-      </button>
-
-      {/* Desktop ADD button */}
-      <button 
-        disabled={!storeStatus.isOpen || !isAvailable || isAdded}
-        onClick={handleAddToCart}
-        title={!storeStatus.isOpen ? storeStatus.reason : !isAvailable ? "Out of Stock" : "Add to Cart"}
-        className={`hidden md:flex w-full h-[38px] rounded-xl items-center justify-center gap-1.5 flex-shrink-0 transition-all shadow-md cursor-pointer ${
-          !storeStatus.isOpen || !isAvailable
-            ? 'bg-stone-200 text-stone-500 cursor-not-allowed shadow-none font-bold text-xs' 
-            : isAdded 
-            ? 'bg-emerald-600 text-white' 
-            : 'bg-orange-600 text-white hover:bg-orange-500 shadow-orange-600/20'
-        }`}
-      >
-        {isAdded ? (
-          <>
-            <Check className="w-4 h-4" />
-            <span className="font-bold text-xs uppercase tracking-wider">Added to Cart</span>
-          </>
-        ) : !storeStatus.isOpen ? (
-          <>
-            <Clock className="w-3.5 h-3.5 text-stone-500" />
-            <span className="font-bold text-[11px] uppercase tracking-wider text-stone-600">Store Closed</span>
-          </>
-        ) : (
-          <>
-            <Plus className="w-4 h-4" />
-            <span className="font-bold text-xs uppercase tracking-wider">Add to Cart</span>
-          </>
-        )}
-      </button>
-
+      {/* Desktop Action Button (Bottom of Card) */}
+      <div className="hidden md:block w-full order-3 pt-1">
+        <button
+          type="button"
+          disabled={!storeStatus.isOpen || !isAvailable || isAdded}
+          onClick={handleActionClick}
+          className={`w-full h-10 rounded-xl flex items-center justify-center gap-1.5 font-bold text-xs uppercase tracking-wider transition-all shadow-sm cursor-pointer ${
+            !storeStatus.isOpen || !isAvailable
+              ? "bg-stone-200 text-stone-400 cursor-not-allowed shadow-none"
+              : isAdded
+              ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30"
+              : "bg-orange-600 hover:bg-orange-500 text-white shadow-md shadow-orange-600/20 active:scale-[0.98]"
+          }`}
+        >
+          {isAdded ? (
+            <>
+              <Check className="w-4 h-4" />
+              <span>Added to Cart</span>
+            </>
+          ) : !storeStatus.isOpen ? (
+            <>
+              <Clock className="w-3.5 h-3.5 text-stone-400" />
+              <span>Store Closed</span>
+            </>
+          ) : hasMultipleVariants ? (
+            <>
+              <Layers className="w-3.5 h-3.5" />
+              <span>Select Portion</span>
+            </>
+          ) : priceType === "weight" ? (
+            <>
+              <span>Choose Weight</span>
+            </>
+          ) : (
+            <>
+              <Plus className="w-4 h-4" />
+              <span>Add to Cart</span>
+            </>
+          )}
+        </button>
+      </div>
     </div>
   );
 }
