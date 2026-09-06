@@ -495,43 +495,43 @@ export default function PosTerminalPage() {
       </header>
 
       {/* Mobile Segmented Sub-Navbar (Hidden on lg+ Desktop) */}
-      <div className="lg:hidden bg-stone-900/95 border-b border-stone-800 p-1.5 flex items-center justify-around gap-1 shrink-0 z-10">
+      <div className="lg:hidden bg-stone-900/95 border-b border-stone-800 p-1.5 grid grid-cols-3 gap-1.5 shrink-0 z-10">
         <button
           onClick={() => setMobileTab("TABLES")}
-          className={`flex-1 py-2 px-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+          className={`py-2 px-1.5 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer whitespace-nowrap active:scale-95 ${
             mobileTab === "TABLES"
               ? "bg-orange-600 text-white shadow-md shadow-orange-600/30"
               : "text-stone-400 hover:text-stone-200 bg-stone-950/40"
           }`}
         >
-          <UtensilsCrossed className="w-3.5 h-3.5" />
-          <span>Tables ({tables.length})</span>
+          <UtensilsCrossed className="w-3.5 h-3.5 shrink-0" />
+          <span className="truncate">Tables ({tables.length})</span>
         </button>
 
         <button
           onClick={() => setMobileTab("MENU")}
-          className={`flex-1 py-2 px-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+          className={`py-2 px-1.5 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer whitespace-nowrap active:scale-95 ${
             mobileTab === "MENU"
               ? "bg-orange-600 text-white shadow-md shadow-orange-600/30"
               : "text-stone-400 hover:text-stone-200 bg-stone-950/40"
           }`}
         >
-          <ShoppingBag className="w-3.5 h-3.5" />
-          <span>{selectedTable ? selectedTable.tableNumber : "Menu"}</span>
+          <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
+          <span className="truncate">{selectedTable ? `Menu (${selectedTable.tableNumber})` : "Menu"}</span>
         </button>
 
         <button
           onClick={() => setMobileTab("CART")}
-          className={`flex-1 py-2 px-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all relative cursor-pointer ${
+          className={`py-2 px-1.5 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all relative cursor-pointer whitespace-nowrap active:scale-95 ${
             mobileTab === "CART"
               ? "bg-orange-600 text-white shadow-md shadow-orange-600/30"
               : "text-stone-400 hover:text-stone-200 bg-stone-950/40"
           }`}
         >
-          <Send className="w-3.5 h-3.5" />
-          <span>Order Pad</span>
+          <Send className="w-3.5 h-3.5 shrink-0" />
+          <span>Pad</span>
           {cartItems.length > 0 && (
-            <span className="px-1.5 py-0.2 bg-white text-stone-950 rounded-full text-[10px] font-black animate-pulse">
+            <span className="px-1.5 py-0.2 bg-white text-stone-950 rounded-full text-[10px] font-black shrink-0 animate-pulse">
               {cartItems.length}
             </span>
           )}
