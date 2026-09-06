@@ -345,22 +345,24 @@ export default function KitchenDisplayPage() {
                 <div
                   key={ticket.id}
                   className={`bg-stone-900 rounded-3xl border-2 flex flex-col justify-between overflow-hidden shadow-2xl transition-all ${
-                    isUrgent
-                      ? "border-red-500 shadow-red-950/50 animate-pulse"
-                      : isWarning
-                      ? "border-amber-500 shadow-amber-950/30"
+                    isUrgent && ticket.status !== "READY"
+                      ? "border-red-500 ring-1 ring-red-500/30 shadow-red-950/40"
+                      : isWarning && ticket.status !== "READY"
+                      ? "border-amber-500/80 ring-1 ring-amber-500/20 shadow-amber-950/30"
                       : ticket.status === "READY"
-                      ? "border-emerald-500"
-                      : "border-stone-800"
+                      ? "border-emerald-500 ring-1 ring-emerald-500/30 shadow-emerald-950/30"
+                      : ticket.status === "PREPARING"
+                      ? "border-amber-500/80 ring-1 ring-amber-500/20 shadow-amber-950/20"
+                      : "border-stone-800 shadow-black/40 hover:border-stone-700"
                   }`}
                 >
                   {/* Ticket Header */}
                   <div
                     className={`p-4 border-b flex items-center justify-between ${
                       ticket.status === "READY"
-                        ? "bg-emerald-950/40 border-emerald-800/60"
+                        ? "bg-emerald-950/50 border-emerald-800/60"
                         : ticket.status === "PREPARING"
-                        ? "bg-amber-950/30 border-amber-800/50"
+                        ? "bg-amber-950/40 border-amber-800/50"
                         : "bg-stone-850 border-stone-800"
                     }`}
                   >
@@ -372,10 +374,10 @@ export default function KitchenDisplayPage() {
                         <span
                           className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
                             ticket.status === "READY"
-                              ? "bg-emerald-500 text-black font-black"
+                              ? "bg-emerald-500 text-stone-950 font-black shadow-sm"
                               : ticket.status === "PREPARING"
-                              ? "bg-amber-500 text-black font-black"
-                              : "bg-stone-700 text-stone-300"
+                              ? "bg-amber-500 text-stone-950 font-black shadow-sm"
+                              : "bg-blue-500/20 border border-blue-500/40 text-blue-300 font-bold"
                           }`}
                         >
                           {ticket.status}
@@ -383,23 +385,25 @@ export default function KitchenDisplayPage() {
                       </div>
                       
                       {/* Channel & Target Info */}
-                      <div className="text-xs font-bold mt-1 flex items-center gap-1.5">
+                      <div className="text-xs font-bold mt-1.5 flex flex-wrap items-center gap-1.5">
                         {isDelivery ? (
-                          <div className="flex items-center gap-1.5 text-orange-400">
-                            <Truck className="w-3.5 h-3.5 shrink-0" />
-                            <span>Online Delivery • {ticket.order?.customerName || "Customer"}</span>
+                          <div className="flex items-center gap-1.5 text-orange-300 bg-orange-950/60 border border-orange-600/40 px-2 py-0.5 rounded-lg text-[11px] font-black">
+                            <Truck className="w-3.5 h-3.5 shrink-0 text-orange-400" />
+                            <span>Delivery • {ticket.order?.customerName || "Customer"}</span>
                           </div>
                         ) : isPickup ? (
-                          <div className="flex items-center gap-1.5 text-blue-400">
-                            <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
-                            <span>Online Pickup • {ticket.order?.customerName || "Customer"}</span>
+                          <div className="flex items-center gap-1.5 text-blue-300 bg-blue-950/60 border border-blue-600/40 px-2 py-0.5 rounded-lg text-[11px] font-black">
+                            <ShoppingBag className="w-3.5 h-3.5 shrink-0 text-blue-400" />
+                            <span>Pickup • {ticket.order?.customerName || "Customer"}</span>
                           </div>
                         ) : (
-                          <div className="flex items-center gap-1.5 text-amber-400">
-                            <UtensilsCrossed className="w-3.5 h-3.5 shrink-0" />
-                            <span>Table {ticket.tableSession?.table?.tableNumber || "Dine-In"}</span>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <div className="flex items-center gap-1 text-amber-300 bg-amber-950/70 border border-amber-500/40 px-2 py-0.5 rounded-lg text-[11px] font-black">
+                              <UtensilsCrossed className="w-3.5 h-3.5 shrink-0 text-amber-400" />
+                              <span>Table {ticket.tableSession?.table?.tableNumber || "Dine-In"}</span>
+                            </div>
                             {ticket.tableSession?.waiter && (
-                              <span className="text-stone-300 font-semibold text-[11px] bg-stone-800 px-2 py-0.5 rounded-full border border-stone-700">
+                              <span className="text-stone-300 font-bold text-[10px] bg-stone-800 px-2 py-0.5 rounded-md border border-stone-700">
                                 Waiter: {ticket.tableSession.waiter.name}
                                 {ticket.tableSession.waiter.staffProfile?.employeeCode ? ` (${ticket.tableSession.waiter.staffProfile.employeeCode})` : ""}
                               </span>
@@ -409,13 +413,13 @@ export default function KitchenDisplayPage() {
                       </div>
                     </div>
 
-                    {/* Timer Badge */}
+                    {/* Timer Badge (Clean Solid High-Contrast, No Whole-Card Blinking) */}
                     <div
-                      className={`px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 border ${
+                      className={`px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 border shrink-0 ${
                         isUrgent
-                          ? "bg-red-500 text-white border-red-400"
+                          ? "bg-red-500 text-white border-red-400 shadow-md shadow-red-950/50"
                           : isWarning
-                          ? "bg-amber-500 text-black border-amber-400"
+                          ? "bg-amber-500 text-stone-950 border-amber-400 shadow-sm"
                           : "bg-stone-800 text-stone-300 border-stone-700"
                       }`}
                     >
@@ -433,10 +437,10 @@ export default function KitchenDisplayPage() {
                           <div
                             key={item.id}
                             onClick={() => handleToggleItemStatus(item.id, item.status)}
-                            className={`p-3 rounded-2xl border flex items-start justify-between gap-3 cursor-pointer transition-all ${
+                            className={`p-3 rounded-2xl border flex items-start justify-between gap-3 cursor-pointer transition-all active:scale-[0.99] ${
                               isDone
-                                ? "bg-stone-950/60 border-stone-800 text-stone-500 line-through opacity-70"
-                                : "bg-stone-850 border-stone-800 hover:border-orange-500/50 text-stone-100"
+                                ? "bg-stone-950/50 border-stone-850 text-stone-500 line-through opacity-60"
+                                : "bg-stone-850/90 border-stone-800 hover:border-orange-500/50 text-stone-100 shadow-sm"
                             }`}
                           >
                             <div className="flex items-start gap-2.5">
@@ -444,21 +448,21 @@ export default function KitchenDisplayPage() {
                                 className={`w-6 h-6 rounded-lg border flex items-center justify-center text-xs font-black shrink-0 mt-0.5 transition-colors ${
                                   isDone
                                     ? "bg-emerald-600 border-emerald-500 text-white"
-                                    : "border-stone-700 bg-stone-800 text-stone-400"
+                                    : "border-stone-700 bg-stone-800 text-stone-300"
                                 }`}
                               >
                                 {isDone ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : item.quantity}
                               </div>
                               <div>
-                                <h4 className="text-sm font-black tracking-tight">{item.itemName}</h4>
+                                <h4 className="text-sm font-black tracking-tight text-white">{item.itemName}</h4>
                                 {item.itemDetails && (
-                                  <p className="text-xs font-bold text-orange-400 mt-0.5">
+                                  <p className="text-xs font-bold text-amber-400 mt-0.5">
                                     {item.itemDetails}
                                   </p>
                                 )}
                               </div>
                             </div>
-                            <span className="text-xs font-bold text-stone-400 shrink-0">
+                            <span className="text-xs font-black text-stone-400 shrink-0">
                               {item.quantity}x
                             </span>
                           </div>
@@ -467,7 +471,7 @@ export default function KitchenDisplayPage() {
                     </div>
 
                     {ticket.notes && (
-                      <div className="p-3 bg-amber-950/40 border border-amber-800/60 rounded-xl text-xs text-amber-300 font-semibold flex items-start gap-2">
+                      <div className="p-3 bg-amber-950/40 border border-amber-800/60 rounded-xl text-xs text-amber-300 font-bold flex items-start gap-2">
                         <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                         <span>KOT Note: {ticket.notes}</span>
                       </div>
@@ -475,11 +479,11 @@ export default function KitchenDisplayPage() {
                   </div>
 
                   {/* Bottom Ticket Workflow Action Buttons */}
-                  <div className="p-4 border-t border-stone-800 bg-stone-950/50 flex gap-2">
+                  <div className="p-4 border-t border-stone-800 bg-stone-950/70 flex gap-2">
                     {ticket.status === "QUEUED" && (
                       <button
                         onClick={() => handleUpdateStatus(ticket.id, "PREPARING")}
-                        className="flex-1 py-3 bg-amber-600 hover:bg-amber-500 text-white rounded-2xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg shadow-amber-600/30"
+                        className="flex-1 py-3.5 bg-amber-600 hover:bg-amber-500 text-white rounded-2xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg shadow-amber-950/60 active:scale-95 cursor-pointer"
                       >
                         <Flame className="w-4 h-4" />
                         Start Cooking
@@ -489,7 +493,7 @@ export default function KitchenDisplayPage() {
                     {ticket.status === "PREPARING" && (
                       <button
                         onClick={() => handleUpdateStatus(ticket.id, "READY")}
-                        className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-600/30"
+                        className="flex-1 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-950/60 active:scale-95 cursor-pointer"
                       >
                         <CheckCircle2 className="w-4 h-4" />
                         Mark as Ready
@@ -499,9 +503,9 @@ export default function KitchenDisplayPage() {
                     {ticket.status === "READY" && (
                       <button
                         onClick={() => handleUpdateStatus(ticket.id, "SERVED")}
-                        className="flex-1 py-3 bg-stone-800 hover:bg-stone-700 text-emerald-400 border border-emerald-500/30 rounded-2xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all"
+                        className="flex-1 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-950/60 active:scale-95 cursor-pointer"
                       >
-                        <Check className="w-4 h-4" />
+                        <Check className="w-4 h-4 stroke-[3]" />
                         Delivered to Table (Served)
                       </button>
                     )}
