@@ -878,8 +878,8 @@ export default function PosTerminalPage() {
                           </span>
                         ) : null}
                       </div>
-                      <h3 className="font-black text-xs text-stone-100 line-clamp-1">{prod.name}</h3>
-                      <p className="text-[10px] text-stone-400 line-clamp-1">{prod.category}</p>
+                      <h3 className="font-black text-xs text-stone-100 line-clamp-2 leading-tight break-words min-h-[1.75rem]">{prod.name}</h3>
+                      <p className="text-[10px] text-stone-400 truncate">{prod.category}</p>
                     </div>
                     <div className="mt-2.5 flex items-center justify-between pt-1.5 border-t border-stone-800">
                       <div>
@@ -1357,8 +1357,8 @@ export default function PosTerminalPage() {
                         </span>
                       ) : null}
                     </div>
-                    <h3 className="font-black text-xs text-stone-100 line-clamp-1">{prod.name}</h3>
-                    <p className="text-[11px] text-stone-400 mt-0.5 line-clamp-1">{prod.category}</p>
+                    <h3 className="font-black text-xs text-stone-100 line-clamp-2 leading-tight break-words min-h-[1.75rem]">{prod.name}</h3>
+                    <p className="text-[11px] text-stone-400 mt-0.5 truncate">{prod.category}</p>
                   </div>
                   <div className="mt-3 flex items-center justify-between pt-2 border-t border-stone-800">
                     <div className="flex flex-col">
@@ -1936,7 +1936,7 @@ export default function PosTerminalPage() {
               ) : (
                 <div>
                   <label className="block text-xs font-bold text-stone-300 mb-2">Select Serving Portion</label>
-                  <div className="grid grid-cols-2 gap-2.5">
+                  <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
                     {(activeProduct.variants && activeProduct.variants.length > 0 
                       ? activeProduct.variants 
                       : [{ name: "Full Plate / Standard", price: activeProduct.pricePerKg || 0 }]
@@ -1947,17 +1947,19 @@ export default function PosTerminalPage() {
                           key={v.name}
                           type="button"
                           onClick={() => setSelectedVariant(v)}
-                          className={`p-3 rounded-2xl border text-left transition-all cursor-pointer active:scale-95 ${
+                          className={`p-3 rounded-2xl border text-left transition-all cursor-pointer active:scale-95 flex flex-col justify-between ${
                             isSelected
-                              ? "bg-orange-600/20 border-orange-500 text-white shadow-sm"
+                              ? "bg-orange-600/20 border-orange-500 text-white shadow-sm ring-1 ring-orange-500/40"
                               : "bg-stone-850 border-stone-700 hover:border-stone-600 text-stone-300"
                           }`}
                         >
-                          <div className="flex items-center justify-between">
-                            <div className="text-xs font-black line-clamp-1">{v.name}</div>
-                            {isSelected && <Check className="w-3.5 h-3.5 text-orange-400" />}
+                          <div className="flex items-start justify-between gap-1.5 w-full">
+                            <div className="text-xs font-bold text-stone-100 break-words whitespace-normal leading-snug">
+                              {v.name}
+                            </div>
+                            {isSelected && <Check className="w-3.5 h-3.5 text-orange-400 shrink-0 mt-0.5" />}
                           </div>
-                          <div className={`text-sm font-black mt-1 ${isSelected ? "text-orange-400" : "text-stone-400"}`}>
+                          <div className={`text-sm font-black mt-2 ${isSelected ? "text-orange-400" : "text-stone-400"}`}>
                             Rs. {v.price}
                           </div>
                         </button>
