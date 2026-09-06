@@ -21,6 +21,7 @@ import {
   ChevronDown,
   X,
   Check,
+  User,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { subscribeToEvent, playAudioAlert } from "@/lib/socket";
