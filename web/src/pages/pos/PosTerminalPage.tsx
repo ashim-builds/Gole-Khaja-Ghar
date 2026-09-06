@@ -422,6 +422,8 @@ export default function PosTerminalPage() {
   const userRole = (user?.role || "").toUpperCase();
   const isAdmin = userRole === "ADMIN" || userRole === "SUPER_ADMIN";
   const isChefOrAdmin = isAdmin || userRole === "CHEF" || userRole === "KITCHEN";
+  const backPath = isAdmin ? "/admin" : "/";
+  const backLabel = isAdmin ? "Admin" : "Home";
   const freeTablesCount = tables.filter((t) => t.status !== "OCCUPIED" || !t.activeSession).length;
   const occupiedTablesCount = tables.filter((t) => t.status === "OCCUPIED" && t.activeSession).length;
 
