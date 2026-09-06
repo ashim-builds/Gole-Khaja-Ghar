@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import {
   Bell,
   BellOff,
@@ -11,6 +12,16 @@ import {
   ShieldCheck,
   Store,
   Sparkles,
+  MapPin,
+  Phone,
+  Clock,
+  ExternalLink,
+  UtensilsCrossed,
+  ChefHat,
+  Receipt,
+  Database,
+  Radio,
+  Share2,
 } from "lucide-react";
 import {
   checkPushSubscription,
@@ -54,10 +65,10 @@ export default function AdminSettingsPage() {
     try {
       if (pushStatus.isSubscribed) {
         await unsubscribeFromPush();
-        setPushFeedback({ type: "success", text: "Push notifications disallowed." });
+        setPushFeedback({ type: "success", text: "Push notifications disabled." });
       } else {
         await subscribeToPush("admin");
-        setPushFeedback({ type: "success", text: "Push notifications allowed and enabled for Admin!" });
+        setPushFeedback({ type: "success", text: "Push notifications enabled for Admin device!" });
       }
       await refreshPushStatus();
     } catch (err: any) {
@@ -124,90 +135,201 @@ export default function AdminSettingsPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6 pb-20">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl md:text-3xl font-black text-black">Settings & Alerts</h1>
-        <p className="text-stone-500 text-sm mt-1">
-          Configure real-time push notifications, sound alerts, and restaurant preferences.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-black text-stone-900 tracking-tight">Settings & Alerts</h1>
+            <span className="px-2 py-0.5 bg-orange-100 text-orange-700 text-[11px] font-black rounded-full">
+              Live v2.0
+            </span>
+          </div>
+          <p className="text-xs text-stone-500 font-medium mt-0.5">
+            Real-time push alerts, kitchen sounds, store information, and system diagnostics
+          </p>
+        </div>
       </div>
 
       {/* Feedback Toast */}
       {pushFeedback && (
         <div
-          className={`p-4 rounded-xl flex items-center gap-3 border text-sm font-semibold transition-all ${
+          className={`p-3.5 rounded-2xl flex items-center gap-3 border text-xs sm:text-sm font-semibold transition-all shadow-xs ${
             pushFeedback.type === "success"
-              ? "bg-green-50 border-green-200 text-green-800"
+              ? "bg-emerald-50 border-emerald-200 text-emerald-800"
               : "bg-red-50 border-red-200 text-red-800"
           }`}
         >
           {pushFeedback.type === "success" ? (
-            <CheckCircle2 className="w-5 h-5 shrink-0 text-green-600" />
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
           ) : (
-            <AlertCircle className="w-5 h-5 shrink-0 text-red-600" />
+            <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
           )}
           <span>{pushFeedback.text}</span>
         </div>
       )}
 
-      {/* Push Notifications Card */}
-      <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-stone-200">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-100 pb-6">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shrink-0">
+      {/* 1. RESTAURANT PROFILE & QUICK TERMINALS */}
+      <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-xs border border-stone-200/90 space-y-4">
+        <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-orange-50 border border-orange-200/80 flex items-center justify-center text-orange-600 shrink-0">
+              <Store className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-sm sm:text-base font-extrabold text-stone-900">Gole Khaja Ghar Profile</h2>
+              <p className="text-[11px] text-stone-500">Official location, timings, and contact</p>
+            </div>
+          </div>
+          <a
+            href="/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs font-bold text-orange-600 hover:text-orange-700 flex items-center gap-1 bg-orange-50 px-2.5 py-1.5 rounded-xl border border-orange-200/60"
+          >
+            <span>Customer Site</span>
+            <ExternalLink className="w-3 h-3" />
+          </a>
+        </div>
+
+        {/* Info Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <div className="p-3 bg-stone-50 rounded-xl border border-stone-200/60 flex items-start gap-2.5">
+            <MapPin className="w-4 h-4 text-orange-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold text-stone-400 text-[10px] uppercase">Location</p>
+              <p className="font-extrabold text-stone-800 mt-0.5">Sisuwa, Pokhara-29, Kaski, Nepal</p>
+            </div>
+          </div>
+
+          <div className="p-3 bg-stone-50 rounded-xl border border-stone-200/60 flex items-start gap-2.5">
+            <Phone className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold text-stone-400 text-[10px] uppercase">WhatsApp & Hotline</p>
+              <a href="tel:+9779846011810" className="font-extrabold text-stone-800 mt-0.5 hover:text-emerald-600 block">
+                +977 984-6011810
+              </a>
+            </div>
+          </div>
+
+          <div className="p-3 bg-stone-50 rounded-xl border border-stone-200/60 flex items-start gap-2.5">
+            <Clock className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold text-stone-400 text-[10px] uppercase">Operating Hours</p>
+              <p className="font-extrabold text-stone-800 mt-0.5">8:00 AM – 9:00 PM</p>
+              <span className="text-[10px] font-semibold text-amber-800 bg-amber-100/70 px-1.5 py-0.2 rounded mt-0.5 inline-block">
+                Closed 1st Tuesday of month
+              </span>
+            </div>
+          </div>
+
+          <div className="p-3 bg-stone-50 rounded-xl border border-stone-200/60 flex items-start gap-2.5">
+            <Share2 className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold text-stone-400 text-[10px] uppercase">Social Media</p>
+              <a
+                href="https://www.facebook.com/raju.tamang.59406"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-extrabold text-blue-600 mt-0.5 hover:underline flex items-center gap-1"
+              >
+                <span>Raju Tamang (Facebook)</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick App Terminal Launchers */}
+        <div className="pt-2">
+          <p className="text-[11px] font-black uppercase tracking-wider text-stone-400 mb-2">
+            Quick Application Launchers
+          </p>
+          <div className="grid grid-cols-3 gap-2">
+            <Link
+              to="/pos"
+              className="p-2.5 bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-center flex flex-col items-center justify-center gap-1 transition-all active:scale-95 shadow-xs cursor-pointer"
+            >
+              <UtensilsCrossed className="w-4 h-4 text-orange-400" />
+              <span className="text-[11px] font-bold">POS Terminal</span>
+            </Link>
+
+            <Link
+              to="/kitchen"
+              className="p-2.5 bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-center flex flex-col items-center justify-center gap-1 transition-all active:scale-95 shadow-xs cursor-pointer"
+            >
+              <ChefHat className="w-4 h-4 text-amber-400" />
+              <span className="text-[11px] font-bold">Kitchen KDS</span>
+            </Link>
+
+            <Link
+              to="/admin/billing"
+              className="p-2.5 bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-center flex flex-col items-center justify-center gap-1 transition-all active:scale-95 shadow-xs cursor-pointer"
+            >
+              <Receipt className="w-4 h-4 text-emerald-400" />
+              <span className="text-[11px] font-bold">Billing Desk</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. PUSH NOTIFICATIONS */}
+      <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-xs border border-stone-200/90 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-100 pb-4">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 bg-orange-50 border border-orange-200/80 rounded-xl flex items-center justify-center text-orange-600 shrink-0">
               {pushStatus.isSubscribed ? (
-                <Bell className="w-6 h-6 text-primary" />
+                <Bell className="w-5 h-5 text-orange-600" />
               ) : (
-                <BellOff className="w-6 h-6 text-stone-400" />
+                <BellOff className="w-5 h-5 text-stone-400" />
               )}
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-black">Push Notifications</h2>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-sm sm:text-base font-extrabold text-stone-900">Real-time Push Notifications</h2>
                 <span
-                  className={`px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-wider ${
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
                     pushStatus.isSubscribed
-                      ? "bg-green-100 text-green-800 border border-green-200"
+                      ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
                       : pushStatus.permission === "denied"
                       ? "bg-red-100 text-red-800 border border-red-200"
                       : "bg-stone-100 text-stone-600"
                   }`}
                 >
                   {pushStatus.isSubscribed
-                    ? "Allowed & Active"
+                    ? "Active & Subscribed"
                     : pushStatus.permission === "denied"
                     ? "Blocked by Browser"
-                    : "Disallowed"}
+                    : "Disabled"}
                 </span>
               </div>
-              <p className="text-sm text-stone-500 mt-1">
-                Receive instant pop-up alerts on your device whenever a customer places an order.
+              <p className="text-xs text-stone-500 mt-0.5">
+                Instant pop-up notifications on this device whenever orders are placed.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:self-center">
+          <div className="flex items-center gap-2 self-start sm:self-center shrink-0">
             <button
               disabled={loadingPush}
               onClick={handleTogglePush}
-              className={`px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 ${
+              className={`px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 ${
                 pushStatus.isSubscribed
                   ? "bg-stone-100 hover:bg-red-50 text-stone-700 hover:text-red-600 border border-stone-200"
                   : "bg-orange-600 text-white hover:bg-orange-500 shadow-md shadow-orange-600/20"
               }`}
             >
               {loadingPush ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
               ) : pushStatus.isSubscribed ? (
                 <>
-                  <BellOff className="w-4 h-4" />
-                  Disallow Notification
+                  <BellOff className="w-3.5 h-3.5" />
+                  <span>Disable</span>
                 </>
               ) : (
                 <>
-                  <Bell className="w-4 h-4" />
-                  Allow Notification
+                  <Bell className="w-3.5 h-3.5" />
+                  <span>Enable Push</span>
                 </>
               )}
             </button>
@@ -215,55 +337,55 @@ export default function AdminSettingsPage() {
         </div>
 
         {/* Action Row */}
-        <div className="pt-6 flex flex-wrap items-center justify-between gap-4">
-          <div className="text-xs text-stone-500">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1 text-xs">
+          <div className="text-stone-500 text-[11px]">
             {pushStatus.permission === "denied" ? (
               <span className="text-red-600 font-semibold flex items-center gap-1.5">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                Notifications are blocked in your browser settings. Please click the padlock / tune icon near the URL bar to allow notifications.
+                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                Blocked in browser settings. Please allow notifications in site permissions.
               </span>
             ) : pushStatus.isSubscribed ? (
-              <span>Your browser is currently registered for background order pushes.</span>
+              <span>Device registered for background WebPush notifications.</span>
             ) : (
-              <span>Click "Allow Notification" to enable live order alerts on this device.</span>
+              <span>Click "Enable Push" to receive live orders on this mobile phone or PC.</span>
             )}
           </div>
 
           <button
             disabled={testingPush || !pushStatus.isSubscribed}
             onClick={handleTestPush}
-            className={`px-4 py-2 text-xs font-bold rounded-xl border transition-all flex items-center gap-2 cursor-pointer ${
+            className={`px-3.5 py-1.5 text-xs font-bold rounded-xl border transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 shrink-0 ${
               pushStatus.isSubscribed
                 ? "bg-stone-50 hover:bg-stone-100 text-stone-800 border-stone-300"
                 : "opacity-40 cursor-not-allowed bg-stone-50 text-stone-400 border-stone-200"
             }`}
           >
             {testingPush ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <Loader2 className="w-3 h-3 animate-spin" />
             ) : (
-              <Send className="w-3.5 h-3.5 text-primary" />
+              <Send className="w-3 h-3 text-orange-600" />
             )}
-            Send Test Notification
+            <span>Send Test Alert</span>
           </button>
         </div>
       </div>
 
-      {/* Audio Alerts Card */}
-      <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-stone-200">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-amber-500/10 rounded-2xl flex items-center justify-center text-amber-600 shrink-0">
+      {/* 3. AUDIO ALERTS */}
+      <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-xs border border-stone-200/90 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 bg-amber-50 border border-amber-200/80 rounded-xl flex items-center justify-center text-amber-600 shrink-0">
               {soundEnabled ? (
-                <Volume2 className="w-6 h-6 text-amber-600" />
+                <Volume2 className="w-5 h-5 text-amber-600" />
               ) : (
-                <VolumeX className="w-6 h-6 text-stone-400" />
+                <VolumeX className="w-5 h-5 text-stone-400" />
               )}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-black">New Order Sound Alert</h2>
+                <h2 className="text-sm sm:text-base font-extrabold text-stone-900">New Order Audio Chime</h2>
                 <span
-                  className={`px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-wider ${
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
                     soundEnabled
                       ? "bg-amber-100 text-amber-900 border border-amber-200"
                       : "bg-stone-100 text-stone-600"
@@ -272,63 +394,63 @@ export default function AdminSettingsPage() {
                   {soundEnabled ? "Sound ON" : "Muted"}
                 </span>
               </div>
-              <p className="text-sm text-stone-500 mt-1">
-                Play an audible chime when new orders arrive in the admin dashboard.
+              <p className="text-xs text-stone-500 mt-0.5">
+                Play an audible ding/chime when new customer or waiter orders arrive.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 sm:self-center">
+          <div className="flex items-center gap-2 self-start sm:self-center shrink-0">
             <button
               onClick={playAlertSound}
-              className="px-3.5 py-2 rounded-xl text-xs font-bold bg-stone-100 hover:bg-stone-200 text-stone-700 transition-colors cursor-pointer"
+              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-stone-100 hover:bg-stone-200 text-stone-700 transition-all active:scale-95 cursor-pointer"
             >
-              Test Chime
+              Test Sound 🔔
             </button>
             <button
               onClick={handleToggleSound}
-              className={`px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer ${
+              className={`px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider transition-all active:scale-95 cursor-pointer ${
                 soundEnabled
-                  ? "bg-amber-500 text-black hover:bg-amber-400"
+                  ? "bg-amber-500 text-black hover:bg-amber-400 shadow-xs"
                   : "bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-200"
               }`}
             >
-              {soundEnabled ? "Mute Sound" : "Enable Sound"}
+              {soundEnabled ? "Mute" : "Unmute"}
             </button>
           </div>
         </div>
       </div>
 
-      {/* System & Restaurant Profile Card */}
-      <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-stone-200">
-        <h2 className="text-lg font-bold text-black mb-4 flex items-center gap-2">
-          <Store className="w-5 h-5 text-primary" />
-          Store & System Status
+      {/* 4. SYSTEM & NETWORK DIAGNOSTICS */}
+      <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-xs border border-stone-200/90 space-y-3">
+        <h2 className="text-xs font-black text-stone-400 uppercase tracking-wider flex items-center gap-1.5">
+          <Radio className="w-3.5 h-3.5 text-stone-400" />
+          Live Architecture & Synchronization
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="p-4 bg-stone-50 rounded-xl border border-stone-100">
-            <p className="text-xs font-bold text-stone-400 uppercase tracking-wider">Restaurant</p>
-            <p className="text-base font-black text-black mt-1">Gole Khaja Ghar</p>
-            <p className="text-xs text-stone-500">Fast Food & Authentic Khaja</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+          <div className="p-3 bg-stone-50 rounded-xl border border-stone-200/60 flex items-center gap-3">
+            <Database className="w-5 h-5 text-emerald-600 shrink-0" />
+            <div>
+              <p className="font-extrabold text-stone-800">MySQL Database</p>
+              <p className="text-[10px] text-emerald-700 font-bold">Connected & Healthy</p>
+            </div>
           </div>
 
-          <div className="p-4 bg-stone-50 rounded-xl border border-stone-100">
-            <p className="text-xs font-bold text-stone-400 uppercase tracking-wider">PWA Service Worker</p>
-            <p className="text-base font-black text-green-700 flex items-center gap-1.5 mt-1">
-              <ShieldCheck className="w-4 h-4 text-green-600" />
-              Active & Ready
-            </p>
-            <p className="text-xs text-stone-500">Native push registered</p>
+          <div className="p-3 bg-stone-50 rounded-xl border border-stone-200/60 flex items-center gap-3">
+            <Sparkles className="w-5 h-5 text-orange-600 shrink-0" />
+            <div>
+              <p className="font-extrabold text-stone-800">WebSocket Live Sync</p>
+              <p className="text-[10px] text-orange-700 font-bold">Realtime Connected</p>
+            </div>
           </div>
 
-          <div className="p-4 bg-stone-50 rounded-xl border border-stone-100">
-            <p className="text-xs font-bold text-stone-400 uppercase tracking-wider">Live WebSockets / Poll</p>
-            <p className="text-base font-black text-primary flex items-center gap-1.5 mt-1">
-              <Sparkles className="w-4 h-4 text-primary" />
-              Connected
-            </p>
-            <p className="text-xs text-stone-500">Syncing live order updates</p>
+          <div className="p-3 bg-stone-50 rounded-xl border border-stone-200/60 flex items-center gap-3">
+            <ShieldCheck className="w-5 h-5 text-purple-600 shrink-0" />
+            <div>
+              <p className="font-extrabold text-stone-800">PWA Service Worker</p>
+              <p className="text-[10px] text-purple-700 font-bold">Cached & Standalone</p>
+            </div>
           </div>
         </div>
       </div>

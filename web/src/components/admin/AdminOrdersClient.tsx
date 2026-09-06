@@ -20,6 +20,7 @@ import {
   Printer,
   ChevronDown,
   X,
+  Check,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { subscribeToEvent, playAudioAlert } from "@/lib/socket";
@@ -33,6 +34,7 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
   const [orders, setOrders] = useState(initialOrders);
   const [sourceFilter, setSourceFilter] = useState<"ALL" | "ECOMMERCE" | "DINE_IN">("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [updatingPaymentId, setUpdatingPaymentId] = useState<string | null>(null);
   const [selectedReceiptOrder, setSelectedReceiptOrder] = useState<any | null>(null);
@@ -206,22 +208,71 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
           </div>
 
           {/* Status Dropdown + Refresh */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 relative">
             <div className="relative flex-1">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full appearance-none bg-stone-50 hover:bg-stone-100/80 border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold text-stone-800 pr-8 focus:outline-none focus:border-orange-500 focus:bg-white transition-all cursor-pointer truncate"
+              <button
+                type="button"
+                onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
+                className={`w-full flex items-center justify-between bg-stone-50 hover:bg-stone-100/80 border rounded-xl px-3 py-2 text-xs font-bold text-stone-800 transition-all cursor-pointer ${
+                  statusDropdownOpen ? "border-orange-500 bg-white ring-2 ring-orange-500/10" : "border-stone-200"
+                }`}
               >
-                <option value="ALL">All Statuses ({orders.length})</option>
-                <option value="PENDING">⏳ Pending Orders</option>
-                <option value="CONFIRMED">✅ Confirmed</option>
-                <option value="PREPARING">🍳 In Kitchen</option>
-                <option value="READY">🔔 Ready for Service</option>
-                <option value="COMPLETED">🎉 Completed</option>
-                <option value="CANCELLED">❌ Cancelled</option>
-              </select>
-              <ChevronDown className="w-3.5 h-3.5 text-stone-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <span className="truncate flex items-center gap-1.5">
+                  {statusFilter === "ALL" && "All Statuses"}
+                  {statusFilter === "PENDING" && "⏳ Pending"}
+                  {statusFilter === "CONFIRMED" && "✅ Confirmed"}
+                  {statusFilter === "PREPARING" && "🍳 In Kitchen"}
+                  {statusFilter === "READY" && "🔔 Ready"}
+                  {statusFilter === "COMPLETED" && "🎉 Completed"}
+                  {statusFilter === "CANCELLED" && "❌ Cancelled"}
+                </span>
+                <ChevronDown className={`w-3.5 h-3.5 text-stone-400 shrink-0 ml-1 transition-transform ${statusDropdownOpen ? "rotate-180 text-orange-600" : ""}`} />
+              </button>
+
+              {/* Floating Custom Status Menu */}
+              {statusDropdownOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setStatusDropdownOpen(false)} />
+                  <div className="absolute right-0 top-full mt-1.5 w-56 sm:w-64 bg-white rounded-2xl shadow-2xl border border-stone-200/90 py-1.5 z-50 max-h-64 overflow-y-auto custom-scrollbar">
+                    <div className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-stone-400 border-b border-stone-100">
+                      Filter by Order Status
+                    </div>
+                    {[
+                      { id: "ALL", label: "All Statuses", dot: "bg-stone-400", count: orders.length },
+                      { id: "PENDING", label: "Pending Orders", dot: "bg-amber-500", count: orders.filter((o: any) => o.status === "PENDING").length },
+                      { id: "CONFIRMED", label: "Confirmed", dot: "bg-blue-500", count: orders.filter((o: any) => o.status === "CONFIRMED").length },
+                      { id: "PREPARING", label: "In Kitchen (Preparing)", dot: "bg-orange-500", count: orders.filter((o: any) => o.status === "PREPARING").length },
+                      { id: "READY", label: "Ready for Service", dot: "bg-purple-500", count: orders.filter((o: any) => o.status === "READY").length },
+                      { id: "COMPLETED", label: "Completed", dot: "bg-emerald-500", count: orders.filter((o: any) => o.status === "COMPLETED").length },
+                      { id: "CANCELLED", label: "Cancelled", dot: "bg-red-500", count: orders.filter((o: any) => o.status === "CANCELLED").length },
+                    ].map((item) => {
+                      const isSelected = statusFilter === item.id;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => {
+                            setStatusFilter(item.id);
+                            setStatusDropdownOpen(false);
+                          }}
+                          className={`w-full px-3 py-2 text-left text-xs font-bold transition-colors flex items-center justify-between cursor-pointer ${
+                            isSelected
+                              ? "bg-orange-50 text-orange-700 font-black"
+                              : "text-stone-700 hover:bg-stone-50"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 truncate">
+                            <span className={`w-2 h-2 rounded-full shrink-0 ${item.dot}`} />
+                            <span className="truncate">{item.label}</span>
+                            <span className="text-[10px] text-stone-400 shrink-0">({item.count})</span>
+                          </div>
+                          {isSelected && <Check className="w-3.5 h-3.5 text-orange-600 shrink-0 ml-1" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
             </div>
 
             <button

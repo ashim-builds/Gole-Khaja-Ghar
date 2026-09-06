@@ -21,6 +21,7 @@ import {
   Boxes,
   RotateCcw,
   ChevronDown,
+  Check,
 } from "lucide-react";
 import StockToggle from "@/components/admin/StockToggle";
 import { api } from "@/lib/api";
@@ -35,6 +36,8 @@ export default function AdminProductsPage() {
   const [stockStatusFilter, setStockStatusFilter] = useState<
     "ALL" | "IN_STOCK" | "LOW_STOCK" | "OUT_OF_STOCK" | "UNTRACKED"
   >("ALL");
+  const [categoryOpen, setCategoryOpen] = useState(false);
+  const [stockOpen, setStockOpen] = useState(false);
 
   // Stock Adjustment Modal state
   const [adjustingProduct, setAdjustingProduct] = useState<any | null>(null);
@@ -273,38 +276,124 @@ export default function AdminProductsPage() {
           )}
         </div>
 
-        {/* 2-Column Responsive Filter Selectors (Fits 100% on all mobile screens, no horizontal scroll) */}
-        <div className="grid grid-cols-2 gap-2">
-          {/* Category Selector */}
+        {/* 2-Column Responsive Custom Dropdowns (Zero Native Browser Selects) */}
+        <div className="grid grid-cols-2 gap-2 relative">
+          {/* Category Dropdown */}
           <div className="relative">
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full appearance-none bg-stone-50 hover:bg-stone-100/80 border border-stone-200 rounded-xl px-2.5 py-2 text-xs font-bold text-stone-800 pr-7 focus:outline-none focus:border-orange-500 focus:bg-white transition-all cursor-pointer truncate"
+            <button
+              type="button"
+              onClick={() => {
+                setCategoryOpen(!categoryOpen);
+                setStockOpen(false);
+              }}
+              className={`w-full flex items-center justify-between bg-stone-50 hover:bg-stone-100/80 border rounded-xl px-2.5 py-2 text-xs font-bold text-stone-800 transition-all cursor-pointer ${
+                categoryOpen ? "border-orange-500 bg-white ring-2 ring-orange-500/10" : "border-stone-200"
+              }`}
             >
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat === "ALL" ? `All Categories (${products.length})` : cat}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="w-3.5 h-3.5 text-stone-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <span className="truncate">
+                {selectedCategory === "ALL" ? `All Categories` : selectedCategory}
+              </span>
+              <ChevronDown className={`w-3.5 h-3.5 text-stone-400 shrink-0 ml-1 transition-transform ${categoryOpen ? "rotate-180 text-orange-600" : ""}`} />
+            </button>
+
+            {/* Custom Floating Category Menu */}
+            {categoryOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setCategoryOpen(false)} />
+                <div className="absolute left-0 top-full mt-1.5 w-56 sm:w-64 bg-white rounded-2xl shadow-2xl border border-stone-200/90 py-1.5 z-50 max-h-64 overflow-y-auto custom-scrollbar">
+                  <div className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-stone-400 border-b border-stone-100">
+                    Select Category
+                  </div>
+                  {categories.map((cat) => {
+                    const isSelected = selectedCategory === cat;
+                    return (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => {
+                          setSelectedCategory(cat);
+                          setCategoryOpen(false);
+                        }}
+                        className={`w-full px-3 py-2 text-left text-xs font-bold transition-colors flex items-center justify-between cursor-pointer ${
+                          isSelected
+                            ? "bg-orange-50 text-orange-700 font-black"
+                            : "text-stone-700 hover:bg-stone-50"
+                        }`}
+                      >
+                        <span className="truncate">{cat === "ALL" ? "All Categories" : cat}</span>
+                        {isSelected && <Check className="w-3.5 h-3.5 text-orange-600 shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
           </div>
 
-          {/* Stock Status Selector */}
+          {/* Stock Status Dropdown */}
           <div className="relative">
-            <select
-              value={stockStatusFilter}
-              onChange={(e) => setStockStatusFilter(e.target.value as any)}
-              className="w-full appearance-none bg-stone-50 hover:bg-stone-100/80 border border-stone-200 rounded-xl px-2.5 py-2 text-xs font-bold text-stone-800 pr-7 focus:outline-none focus:border-orange-500 focus:bg-white transition-all cursor-pointer truncate"
+            <button
+              type="button"
+              onClick={() => {
+                setStockOpen(!stockOpen);
+                setCategoryOpen(false);
+              }}
+              className={`w-full flex items-center justify-between bg-stone-50 hover:bg-stone-100/80 border rounded-xl px-2.5 py-2 text-xs font-bold text-stone-800 transition-all cursor-pointer ${
+                stockOpen ? "border-orange-500 bg-white ring-2 ring-orange-500/10" : "border-stone-200"
+              }`}
             >
-              <option value="ALL">All Stock ({stockCounts.total})</option>
-              <option value="IN_STOCK">🟢 In Stock ({stockCounts.inStock})</option>
-              <option value="LOW_STOCK">🟡 Low Stock ({stockCounts.lowStock})</option>
-              <option value="OUT_OF_STOCK">🔴 Out of Stock ({stockCounts.outOfStock})</option>
-              <option value="UNTRACKED">⚪ Untracked ({stockCounts.untracked})</option>
-            </select>
-            <ChevronDown className="w-3.5 h-3.5 text-stone-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <span className="truncate flex items-center gap-1">
+                {stockStatusFilter === "ALL" && "All Stock"}
+                {stockStatusFilter === "IN_STOCK" && "In Stock"}
+                {stockStatusFilter === "LOW_STOCK" && "Low Stock"}
+                {stockStatusFilter === "OUT_OF_STOCK" && "Out of Stock"}
+                {stockStatusFilter === "UNTRACKED" && "Untracked"}
+              </span>
+              <ChevronDown className={`w-3.5 h-3.5 text-stone-400 shrink-0 ml-1 transition-transform ${stockOpen ? "rotate-180 text-orange-600" : ""}`} />
+            </button>
+
+            {/* Custom Floating Stock Menu */}
+            {stockOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setStockOpen(false)} />
+                <div className="absolute right-0 top-full mt-1.5 w-52 sm:w-60 bg-white rounded-2xl shadow-2xl border border-stone-200/90 py-1.5 z-50 max-h-64 overflow-y-auto custom-scrollbar">
+                  <div className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-stone-400 border-b border-stone-100">
+                    Stock Filter
+                  </div>
+                  {[
+                    { id: "ALL", label: "All Stock", count: stockCounts.total, dot: "bg-stone-400" },
+                    { id: "IN_STOCK", label: "In Stock", count: stockCounts.inStock, dot: "bg-emerald-500" },
+                    { id: "LOW_STOCK", label: "Low Stock", count: stockCounts.lowStock, dot: "bg-amber-500" },
+                    { id: "OUT_OF_STOCK", label: "Out of Stock", count: stockCounts.outOfStock, dot: "bg-red-500" },
+                    { id: "UNTRACKED", label: "Untracked", count: stockCounts.untracked, dot: "bg-stone-300" },
+                  ].map((item) => {
+                    const isSelected = stockStatusFilter === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => {
+                          setStockStatusFilter(item.id as any);
+                          setStockOpen(false);
+                        }}
+                        className={`w-full px-3 py-2 text-left text-xs font-bold transition-colors flex items-center justify-between cursor-pointer ${
+                          isSelected
+                            ? "bg-orange-50 text-orange-700 font-black"
+                            : "text-stone-700 hover:bg-stone-50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className={`w-2 h-2 rounded-full ${item.dot}`} />
+                          <span>{item.label}</span>
+                          <span className="text-[10px] text-stone-400">({item.count})</span>
+                        </div>
+                        {isSelected && <Check className="w-3.5 h-3.5 text-orange-600 shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
           </div>
         </div>
 
