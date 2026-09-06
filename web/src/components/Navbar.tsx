@@ -192,24 +192,14 @@ export default function Navbar() {
         </div>
 
         {/* Mobile / Tablet Actions (< 1024px) */}
-        <div className="lg:hidden flex items-center gap-1.5 sm:gap-2">
-          {/* Quick Admin Icon Shortcut on mobile header */}
-          {isAdmin && (
-            <Link
-              to="/admin"
-              className="flex items-center gap-1 text-white bg-gradient-to-r from-orange-600 to-amber-600 px-2.5 py-1.5 rounded-full border border-orange-400/40 text-[11px] font-black shadow-md shadow-orange-600/20 active:scale-95 transition-all"
-              title="Admin Dashboard"
-            >
-              <LayoutDashboard className="w-3.5 h-3.5" />
-              <span className="hidden xs:inline">Admin</span>
-            </Link>
-          )}
-
+        <div className="lg:hidden flex items-center gap-2">
+          {/* Notification Bell */}
           <NotificationBell type="customer" />
 
+          {/* Cart Button */}
           <button
             onClick={openCart}
-            className="relative p-2 text-white hover:text-primary transition-colors bg-white/5 hover:bg-white/10 rounded-full border border-white/10 flex items-center justify-center shrink-0 active:scale-95"
+            className="relative p-2 text-white hover:text-orange-500 transition-colors bg-white/5 hover:bg-white/10 rounded-full border border-white/10 flex items-center justify-center shrink-0 active:scale-95"
             aria-label="View Cart"
           >
             <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -220,12 +210,13 @@ export default function Navbar() {
             )}
           </button>
 
+          {/* Hamburger Menu Toggle */}
           <button
             onClick={toggleMenu}
-            className="text-white hover:text-primary p-2 focus:outline-none rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center shrink-0 active:scale-95 transition-colors"
+            className="text-white hover:text-orange-400 p-2 focus:outline-none rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center shrink-0 active:scale-95 transition-colors"
             aria-label="Toggle navigation menu"
           >
-            {isOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <Menu className="w-5 h-5 sm:w-6 sm:h-6" />}
+            {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
       </nav>
@@ -239,33 +230,33 @@ export default function Navbar() {
             exit={{ height: 0, opacity: 0, y: -6 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
             className={`pointer-events-auto lg:hidden overflow-hidden w-full ${
-              scrolled ? "max-w-5xl mt-2" : "max-w-none mt-0"
+              scrolled ? "max-w-5xl mt-2 px-2" : "max-w-none mt-0"
             }`}
           >
             <div
-              className={`p-4 space-y-3 bg-[#0c0a09]/95 backdrop-blur-2xl border-white/15 shadow-2xl ${
+              className={`p-4 space-y-3 bg-[#111111]/95 backdrop-blur-2xl border-white/10 shadow-2xl ${
                 scrolled
                   ? "rounded-3xl border ring-1 ring-white/10"
                   : "rounded-none border-b border-[#222222]"
               }`}
             >
-              {/* If Admin or Staff, show quick access hub */}
-              {isAdmin && (
-                <div className="bg-stone-900/90 border border-orange-500/30 rounded-2xl p-3 mb-3 shadow-inner">
-                  <div className="flex items-center justify-between mb-2.5 px-1">
-                    <span className="text-[11px] font-black uppercase tracking-wider text-orange-400 flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5" />
-                      Admin Control Hub
+              {/* If Admin or Staff, show sleek Quick Switcher */}
+              {(isAdmin || isWaiterOrCashier || isKitchen) && (
+                <div className="bg-stone-900/90 border border-stone-800 rounded-2xl p-3 mb-2 shadow-sm">
+                  <div className="flex items-center justify-between mb-2 px-0.5">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-orange-400 flex items-center gap-1.5">
+                      <Sparkles className="w-3 h-3" />
+                      Staff Quick Access
                     </span>
-                    <span className="text-[10px] bg-orange-500/20 text-orange-300 font-bold px-2 py-0.5 rounded-full border border-orange-500/30">
-                      ADMIN
+                    <span className="text-[9px] bg-stone-800 text-stone-300 font-bold px-2 py-0.5 rounded-full border border-stone-700">
+                      {role}
                     </span>
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-3 gap-1.5">
                     <Link
                       to="/admin"
                       onClick={() => setIsOpen(false)}
-                      className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-orange-600 text-white font-bold text-xs text-center shadow-md active:scale-95 transition-all"
+                      className="flex flex-col items-center justify-center p-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-[11px] text-center shadow-md active:scale-95 transition-all"
                     >
                       <LayoutDashboard className="w-4 h-4 mb-1" />
                       <span>Admin</span>
@@ -273,65 +264,62 @@ export default function Navbar() {
                     <Link
                       to="/pos"
                       onClick={() => setIsOpen(false)}
-                      className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold text-xs text-center border border-white/10 active:scale-95 transition-all"
+                      className="flex flex-col items-center justify-center p-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-emerald-400 font-bold text-[11px] text-center border border-stone-700 active:scale-95 transition-all"
                     >
                       <Store className="w-4 h-4 mb-1 text-emerald-400" />
                       <span>POS</span>
                     </Link>
                     <Link
-                      to="/billing"
+                      to="/kitchen"
                       onClick={() => setIsOpen(false)}
-                      className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold text-xs text-center border border-white/10 active:scale-95 transition-all"
+                      className="flex flex-col items-center justify-center p-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-amber-400 font-bold text-[11px] text-center border border-stone-700 active:scale-95 transition-all"
                     >
-                      <ReceiptText className="w-4 h-4 mb-1 text-cyan-400" />
-                      <span>Billing</span>
+                      <ChefHat className="w-4 h-4 mb-1 text-amber-400" />
+                      <span>Kitchen</span>
                     </Link>
                   </div>
                 </div>
               )}
 
-              {/* General Navigation Links */}
-              <div className="space-y-1.5">
-                {navLinks.map((link) => (
-                  <Link
-                    key={link.name}
-                    to={link.href}
-                    className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm sm:text-base font-bold transition-all border ${
-                      isActive(link.href)
-                        ? "bg-orange-600 text-white border-orange-500 shadow-lg shadow-orange-600/30 font-black"
-                        : "bg-white/5 border-white/10 text-stone-100 hover:bg-white/10"
-                    }`}
-                    onClick={() => {
-                      setIsOpen(false);
-                      if (link.onClick) link.onClick();
-                    }}
-                  >
-                    <span>{link.name}</span>
-                    {link.icon && <link.icon className="w-4 h-4 opacity-70" />}
-                  </Link>
-                ))}
+              {/* Navigation Links */}
+              <div className="space-y-1">
+                {navLinks.map((link) => {
+                  const active = isActive(link.href);
+                  return (
+                    <Link
+                      key={link.name}
+                      to={link.href}
+                      className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                        active
+                          ? "bg-orange-600/20 text-orange-400 border border-orange-500/40"
+                          : "text-stone-200 hover:bg-white/5 active:bg-white/10"
+                      }`}
+                      onClick={() => {
+                        setIsOpen(false);
+                        if (link.onClick) link.onClick();
+                      }}
+                    >
+                      <span className="flex items-center gap-2.5">
+                        {link.icon && <link.icon className="w-4 h-4 text-stone-400" />}
+                        {link.name}
+                      </span>
+                      {active && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-sm" />
+                      )}
+                    </Link>
+                  );
+                })}
               </div>
 
-              {/* Action Button: Admin Portal or Phone Call */}
-              <div className="pt-2">
-                {isAdmin ? (
-                  <Link
-                    to="/admin"
-                    onClick={() => setIsOpen(false)}
-                    className="flex items-center justify-center gap-2.5 w-full py-3 px-4 rounded-xl text-white font-black bg-gradient-to-r from-orange-600 to-amber-600 border border-orange-400/40 shadow-lg shadow-orange-600/30 active:scale-[0.98] transition-all"
-                  >
-                    <LayoutDashboard className="w-4 h-4" />
-                    <span>Open Admin Dashboard</span>
-                  </Link>
-                ) : (
-                  <a
-                    href="tel:+9779846011810"
-                    className="flex items-center justify-center gap-3 px-4 py-3 rounded-xl text-white font-bold bg-white/10 border border-white/15 hover:bg-white/20 transition-all"
-                  >
-                    <Phone className="w-4 h-4 text-primary" />
-                    <span>Call to Order (+977 984-6011810)</span>
-                  </a>
-                )}
+              {/* Bottom Quick Call */}
+              <div className="pt-2 border-t border-stone-800/80">
+                <a
+                  href="tel:+9779846011810"
+                  className="flex items-center justify-center gap-2 w-full py-2.5 px-3 rounded-xl text-stone-300 font-bold text-xs bg-white/5 border border-white/10 hover:bg-white/10 active:scale-[0.98] transition-all"
+                >
+                  <Phone className="w-3.5 h-3.5 text-orange-400" />
+                  <span>Call Us: +977 984-6011810</span>
+                </a>
               </div>
             </div>
           </motion.div>
