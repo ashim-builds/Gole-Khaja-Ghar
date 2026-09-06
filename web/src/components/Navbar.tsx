@@ -37,9 +37,9 @@ export default function Navbar() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+      setScrolled(window.scrollY > 25);
     };
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -49,7 +49,7 @@ export default function Navbar() {
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
-  // Clean, focused core navigation links
+  // Core navigation links
   const navLinks: { name: string; href: string; icon?: React.ComponentType<{ className?: string }>; onClick?: () => void }[] = [
     { name: "Home", href: "/", onClick: scrollToTop },
     { name: "Menu", href: "/shop" },
@@ -63,37 +63,55 @@ export default function Navbar() {
   }
 
   return (
-    <div
-      className={`sticky top-0 z-50 w-full flex flex-col items-center transition-all duration-300 ${
-        scrolled ? "px-2 sm:px-4 pointer-events-none" : "px-0"
-      }`}
-    >
-      <nav
-        className={`w-full transition-all duration-300 ease-in-out ${
+    <header className="sticky top-0 z-50 w-full flex flex-col items-center pointer-events-none select-none">
+      {/* Dynamic Animated Blur Navigation Bar */}
+      <motion.nav
+        layout
+        initial={false}
+        animate={{
+          y: scrolled ? 8 : 0,
+          scale: scrolled ? 0.98 : 1,
+          maxWidth: scrolled ? "1140px" : "100%",
+          borderRadius: scrolled ? "9999px" : "0px",
+        }}
+        transition={{
+          type: "spring",
+          stiffness: 280,
+          damping: 28,
+        }}
+        className={`pointer-events-auto relative w-full transition-colors duration-500 ease-out ${
           scrolled
-            ? "max-w-6xl my-2 bg-black/90 backdrop-blur-xl border border-white/15 shadow-2xl rounded-full px-3 sm:px-6 pointer-events-auto"
-            : "bg-[#111111] border-b border-[#222222] px-3 sm:px-6 lg:px-8"
+            ? "mx-auto px-3.5 sm:px-6 bg-[#0a0a0a]/85 backdrop-blur-2xl border border-white/20 shadow-[0_12px_40px_rgba(0,0,0,0.65)] ring-1 ring-white/10"
+            : "px-4 sm:px-6 lg:px-8 bg-[#111111]/95 backdrop-blur-md border-b border-[#222222]"
         }`}
       >
+        {/* Subtle Ambient Glow Effect on Scroll */}
+        {scrolled && (
+          <div className="absolute inset-0 -z-10 rounded-full bg-gradient-to-r from-orange-500/15 via-transparent to-amber-500/15 blur-xl pointer-events-none" />
+        )}
+
         <div className={`mx-auto w-full ${scrolled ? "" : "max-w-7xl"}`}>
           <div
             className={`flex justify-between items-center gap-2 sm:gap-4 transition-all duration-300 ${
               scrolled ? "h-14 sm:h-16" : "h-16 sm:h-20"
             }`}
           >
-            {/* Logo */}
+            {/* Brand Logo */}
             <div className="shrink-0 flex items-center">
               <Link to="/" onClick={scrollToTop} className="flex items-center gap-2 sm:gap-2.5 group">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 relative rounded-full overflow-hidden border border-primary/40 bg-stone-900 flex items-center justify-center shrink-0 shadow-sm">
+                <motion.div
+                  layout
+                  className="w-8 h-8 sm:w-10 sm:h-10 relative rounded-full overflow-hidden border border-primary/40 bg-stone-900 flex items-center justify-center shrink-0 shadow-md group-hover:scale-105 transition-transform"
+                >
                   <img src="/images/logo.png" alt="Gole Khaja Ghar Logo" className="w-full h-full object-cover" />
-                </div>
+                </motion.div>
                 <span className="font-extrabold text-base sm:text-xl lg:text-2xl tracking-tight text-white whitespace-nowrap">
                   Gole <span className="text-primary">Khaja Ghar</span>
                 </span>
               </Link>
             </div>
 
-            {/* Desktop Navigation (>= 1024px) */}
+            {/* Desktop Center Navigation (>= 1024px) */}
             <div className="hidden lg:flex items-center gap-4 xl:gap-8">
               <div className="flex items-center gap-3 xl:gap-6">
                 {navLinks.map((link) => (
@@ -110,7 +128,7 @@ export default function Navbar() {
                       className={`absolute -bottom-1 left-0 h-0.5 bg-primary transition-all duration-300 ${
                         isActive(link.href) ? "w-full" : "w-0 group-hover:w-full"
                       }`}
-                    ></span>
+                    />
                   </Link>
                 ))}
               </div>
@@ -121,7 +139,7 @@ export default function Navbar() {
                 {isAdmin ? (
                   <Link
                     to="/admin"
-                    className="flex items-center gap-2 text-white bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600 hover:from-orange-500 hover:to-amber-500 transition-all text-xs xl:text-sm font-black px-3.5 py-1.5 sm:py-2 rounded-full border border-orange-400/40 shadow-lg shadow-orange-600/25 tracking-wide group"
+                    className="flex items-center gap-2 text-white bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600 hover:from-orange-500 hover:to-amber-500 transition-all text-xs xl:text-sm font-black px-3.5 py-1.5 sm:py-2 rounded-full border border-orange-400/40 shadow-lg shadow-orange-600/25 tracking-wide group active:scale-95"
                     title="Open Admin Control Panel"
                   >
                     <LayoutDashboard className="w-4 h-4 text-white group-hover:rotate-6 transition-transform" />
@@ -130,7 +148,7 @@ export default function Navbar() {
                 ) : isWaiterOrCashier ? (
                   <Link
                     to="/pos"
-                    className="flex items-center gap-2 text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 transition-all text-xs xl:text-sm font-black px-3.5 py-1.5 sm:py-2 rounded-full border border-emerald-400/40 shadow-lg shadow-emerald-600/25 tracking-wide group"
+                    className="flex items-center gap-2 text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 transition-all text-xs xl:text-sm font-black px-3.5 py-1.5 sm:py-2 rounded-full border border-emerald-400/40 shadow-lg shadow-emerald-600/25 tracking-wide group active:scale-95"
                     title="Open POS Terminal"
                   >
                     <Store className="w-4 h-4 text-white group-hover:scale-110 transition-transform" />
@@ -139,7 +157,7 @@ export default function Navbar() {
                 ) : isKitchen ? (
                   <Link
                     to="/kitchen"
-                    className="flex items-center gap-2 text-white bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 transition-all text-xs xl:text-sm font-black px-3.5 py-1.5 sm:py-2 rounded-full border border-amber-400/40 shadow-lg shadow-amber-600/25 tracking-wide group"
+                    className="flex items-center gap-2 text-white bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 transition-all text-xs xl:text-sm font-black px-3.5 py-1.5 sm:py-2 rounded-full border border-amber-400/40 shadow-lg shadow-amber-600/25 tracking-wide group active:scale-95"
                     title="Open Kitchen Display System"
                   >
                     <ChefHat className="w-4 h-4 text-white group-hover:rotate-6 transition-transform" />
@@ -148,20 +166,20 @@ export default function Navbar() {
                 ) : (
                   <a
                     href="tel:+9779846011810"
-                    className="flex items-center gap-2 text-white hover:text-primary transition-colors text-xs xl:text-sm font-bold bg-white/5 hover:bg-white/10 px-3.5 py-1.5 sm:py-2 rounded-full border border-white/10"
+                    className="flex items-center gap-2 text-white hover:text-primary transition-colors text-xs xl:text-sm font-bold bg-white/5 hover:bg-white/10 px-3.5 py-1.5 sm:py-2 rounded-full border border-white/10 active:scale-95"
                   >
                     <Phone className="w-3.5 h-3.5 text-primary" />
                     <span>Order Now</span>
                   </a>
                 )}
 
-                {/* Customer push notifications bell */}
+                {/* Push Notification Bell */}
                 <NotificationBell type="customer" />
 
                 {/* Cart Button */}
                 <button
                   onClick={openCart}
-                  className="relative p-2 text-white hover:text-primary transition-colors bg-white/5 hover:bg-white/10 rounded-full border border-white/10 flex items-center justify-center shrink-0"
+                  className="relative p-2 text-white hover:text-primary transition-colors bg-white/5 hover:bg-white/10 rounded-full border border-white/10 flex items-center justify-center shrink-0 active:scale-95"
                   aria-label="View Cart"
                 >
                   <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -176,11 +194,11 @@ export default function Navbar() {
 
             {/* Mobile / Tablet Actions (< 1024px) */}
             <div className="lg:hidden flex items-center gap-1.5 sm:gap-2">
-              {/* Quick Admin Icon Shortcut on mobile header for instant access */}
+              {/* Quick Admin Icon Shortcut on mobile header */}
               {isAdmin && (
                 <Link
                   to="/admin"
-                  className="flex items-center gap-1 text-white bg-gradient-to-r from-orange-600 to-amber-600 px-2.5 py-1.5 rounded-full border border-orange-400/40 text-[11px] font-black shadow-md shadow-orange-600/20"
+                  className="flex items-center gap-1 text-white bg-gradient-to-r from-orange-600 to-amber-600 px-2.5 py-1.5 rounded-full border border-orange-400/40 text-[11px] font-black shadow-md shadow-orange-600/20 active:scale-95"
                   title="Admin Dashboard"
                 >
                   <LayoutDashboard className="w-3.5 h-3.5" />
@@ -192,7 +210,7 @@ export default function Navbar() {
 
               <button
                 onClick={openCart}
-                className="relative p-2 text-white hover:text-primary transition-colors bg-white/5 hover:bg-white/10 rounded-full border border-white/10 flex items-center justify-center shrink-0"
+                className="relative p-2 text-white hover:text-primary transition-colors bg-white/5 hover:bg-white/10 rounded-full border border-white/10 flex items-center justify-center shrink-0 active:scale-95"
                 aria-label="View Cart"
               >
                 <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -205,7 +223,7 @@ export default function Navbar() {
 
               <button
                 onClick={toggleMenu}
-                className="text-white hover:text-primary p-2 focus:outline-none rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center shrink-0"
+                className="text-white hover:text-primary p-2 focus:outline-none rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center shrink-0 active:scale-95"
                 aria-label="Toggle navigation menu"
               >
                 {isOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <Menu className="w-5 h-5 sm:w-6 sm:h-6" />}
@@ -213,23 +231,29 @@ export default function Navbar() {
             </div>
           </div>
         </div>
-      </nav>
+      </motion.nav>
 
-      {/* Mobile Menu Panel */}
+      {/* Animated Glassmorphism Mobile Menu Drawer */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: "easeInOut" }}
-            className={`lg:hidden overflow-hidden w-full ${
+            initial={{ height: 0, opacity: 0, y: -8 }}
+            animate={{ height: "auto", opacity: 1, y: 0 }}
+            exit={{ height: 0, opacity: 0, y: -8 }}
+            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+            className={`pointer-events-auto lg:hidden overflow-hidden w-full transition-all duration-300 ${
               scrolled
-                ? "bg-stone-950/95 backdrop-blur-2xl rounded-3xl mt-2 border border-white/15 shadow-2xl max-w-6xl pointer-events-auto"
-                : "bg-[#111111] border-b border-[#222222] shadow-xl"
+                ? "max-w-6xl mt-2 px-2 sm:px-4"
+                : "w-full"
             }`}
           >
-            <div className="px-4 pt-3 pb-6 space-y-3">
+            <div
+              className={`p-4 space-y-3 ${
+                scrolled
+                  ? "bg-[#0c0a09]/95 backdrop-blur-2xl rounded-3xl border border-white/15 shadow-2xl ring-1 ring-white/10"
+                  : "bg-[#111111]/95 backdrop-blur-xl border-b border-[#222222] shadow-xl"
+              }`}
+            >
               {/* If Admin or Staff, show quick access hub */}
               {isAdmin && (
                 <div className="bg-stone-900/90 border border-orange-500/30 rounded-2xl p-3 mb-3 shadow-inner">
@@ -295,7 +319,7 @@ export default function Navbar() {
                 ))}
               </div>
 
-              {/* Call to Order Button (for customers) or Admin Link */}
+              {/* Action Button: Admin Portal or Phone Call */}
               <div className="pt-2">
                 {isAdmin ? (
                   <Link
@@ -324,6 +348,6 @@ export default function Navbar() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </header>
   );
 }
