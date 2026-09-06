@@ -221,129 +221,139 @@ export default function AdminProductsPage() {
   }
 
   return (
-    <div className="space-y-5 pb-12">
+    <div className="space-y-4 pb-16 max-w-7xl mx-auto">
       {/* HEADER BAR */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+      <div className="flex items-center justify-between gap-2">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight">Products Catalog</h1>
-          <p className="text-xs text-stone-500 font-medium mt-0.5">
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-black text-stone-900 tracking-tight">Products Catalog</h1>
+            <span className="px-2 py-0.5 bg-orange-100 text-orange-700 text-xs font-black rounded-full">
+              {products.length}
+            </span>
+          </div>
+          <p className="text-xs text-stone-500 font-medium hidden sm:block mt-0.5">
             Manage food menu, pricing, categories, and live stock tracking
           </p>
         </div>
+
         <div className="flex items-center gap-2">
           <button
             onClick={fetchProducts}
-            className="p-2.5 bg-white rounded-xl border border-stone-200 text-stone-600 hover:bg-stone-50 transition-colors shadow-xs cursor-pointer"
+            className="p-2.5 bg-white rounded-xl border border-stone-200 text-stone-600 hover:bg-stone-50 active:scale-95 transition-all shadow-xs cursor-pointer"
             title="Refresh Products"
           >
             <RotateCcw className="w-4 h-4" />
           </button>
           <Link
             to="/admin/products/new"
-            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-500 text-white font-black text-xs uppercase tracking-wider px-4 py-2.5 rounded-xl transition-all shadow-md shadow-orange-600/20 cursor-pointer"
+            className="inline-flex items-center gap-1.5 bg-orange-600 hover:bg-orange-500 text-white font-black text-xs uppercase tracking-wider px-3.5 py-2.5 rounded-xl transition-all shadow-md shadow-orange-600/20 active:scale-95 cursor-pointer shrink-0"
           >
-            <Plus className="w-4 h-4 text-white" />
-            Add Product
+            <Plus className="w-4 h-4 text-white stroke-[3]" />
+            <span>Add Product</span>
           </Link>
         </div>
       </div>
 
       {/* SEARCH BAR & QUICK FILTERS CARD */}
-      <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-stone-200 shadow-sm space-y-3">
+      <div className="bg-white p-3 sm:p-4 rounded-2xl border border-stone-200/90 shadow-xs space-y-2.5">
         {/* Search Input Row */}
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search by dish name, category, ingredients..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-9 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs sm:text-sm font-semibold text-stone-900 placeholder:text-stone-400 focus:outline-none focus:bg-white focus:border-orange-500 transition-all"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 p-0.5 cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-          <div className="hidden sm:flex items-center px-3 py-2 bg-stone-100 rounded-xl text-xs font-bold text-stone-600 shrink-0">
-            {filteredProducts.length} of {products.length} Items
-          </div>
+        <div className="relative">
+          <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            placeholder="Search dishes, categories..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-9 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs sm:text-sm font-semibold text-stone-900 placeholder:text-stone-400 focus:outline-none focus:bg-white focus:border-orange-500 transition-all"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 p-0.5 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
         {/* Stock Status Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs">
-          <span className="text-[11px] font-bold text-stone-400 uppercase tracking-wider shrink-0 mr-1">
-            Stock:
-          </span>
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none text-xs">
           <button
             onClick={() => setStockStatusFilter("ALL")}
-            className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
               stockStatusFilter === "ALL"
                 ? "bg-stone-900 text-white shadow-xs"
                 : "bg-stone-100 text-stone-600 hover:bg-stone-200"
             }`}
           >
             <span>All</span>
-            <span className="px-1.5 py-0.2 bg-white/20 text-[10px] rounded-full">{stockCounts.total}</span>
+            <span className={`px-1.5 py-0.5 text-[10px] rounded-full font-black ${
+              stockStatusFilter === "ALL" ? "bg-white/20 text-white" : "bg-stone-200 text-stone-700"
+            }`}>
+              {stockCounts.total}
+            </span>
           </button>
 
           <button
             onClick={() => setStockStatusFilter("IN_STOCK")}
-            className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
               stockStatusFilter === "IN_STOCK"
                 ? "bg-emerald-600 text-white shadow-xs"
                 : "bg-emerald-50 text-emerald-800 border border-emerald-200/60 hover:bg-emerald-100"
             }`}
           >
             <span>In Stock</span>
-            <span className="px-1.5 py-0.2 bg-emerald-200/50 text-[10px] rounded-full font-black">
+            <span className={`px-1.5 py-0.5 text-[10px] rounded-full font-black ${
+              stockStatusFilter === "IN_STOCK" ? "bg-emerald-700 text-white" : "bg-emerald-200 text-emerald-800"
+            }`}>
               {stockCounts.inStock}
             </span>
           </button>
 
           <button
             onClick={() => setStockStatusFilter("LOW_STOCK")}
-            className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
               stockStatusFilter === "LOW_STOCK"
                 ? "bg-amber-600 text-white shadow-xs"
                 : "bg-amber-50 text-amber-800 border border-amber-200/60 hover:bg-amber-100"
             }`}
           >
             <span>Low Stock</span>
-            <span className="px-1.5 py-0.2 bg-amber-200/50 text-[10px] rounded-full font-black">
+            <span className={`px-1.5 py-0.5 text-[10px] rounded-full font-black ${
+              stockStatusFilter === "LOW_STOCK" ? "bg-amber-700 text-white" : "bg-amber-200 text-amber-800"
+            }`}>
               {stockCounts.lowStock}
             </span>
           </button>
 
           <button
             onClick={() => setStockStatusFilter("OUT_OF_STOCK")}
-            className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
               stockStatusFilter === "OUT_OF_STOCK"
                 ? "bg-red-600 text-white shadow-xs"
                 : "bg-red-50 text-red-800 border border-red-200/60 hover:bg-red-100"
             }`}
           >
             <span>Out of Stock</span>
-            <span className="px-1.5 py-0.2 bg-red-200/50 text-[10px] rounded-full font-black">
+            <span className={`px-1.5 py-0.5 text-[10px] rounded-full font-black ${
+              stockStatusFilter === "OUT_OF_STOCK" ? "bg-red-700 text-white" : "bg-red-200 text-red-800"
+            }`}>
               {stockCounts.outOfStock}
             </span>
           </button>
 
           <button
             onClick={() => setStockStatusFilter("UNTRACKED")}
-            className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
               stockStatusFilter === "UNTRACKED"
                 ? "bg-stone-700 text-white shadow-xs"
                 : "bg-stone-100 text-stone-600 hover:bg-stone-200"
             }`}
           >
             <span>Untracked</span>
-            <span className="px-1.5 py-0.2 bg-stone-200 text-[10px] rounded-full">
+            <span className={`px-1.5 py-0.5 text-[10px] rounded-full font-black ${
+              stockStatusFilter === "UNTRACKED" ? "bg-stone-800 text-white" : "bg-stone-200 text-stone-700"
+            }`}>
               {stockCounts.untracked}
             </span>
           </button>
@@ -351,15 +361,12 @@ export default function AdminProductsPage() {
 
         {/* Categories Scrollable Bar */}
         {categories.length > 2 && (
-          <div className="flex items-center gap-1.5 overflow-x-auto pt-1 border-t border-stone-100 scrollbar-none">
-            <span className="text-[11px] font-bold text-stone-400 uppercase tracking-wider shrink-0 mr-1">
-              Category:
-            </span>
+          <div className="flex items-center gap-1.5 overflow-x-auto pt-2 border-t border-stone-100 scrollbar-none">
             {categories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                className={`px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
                   selectedCategory === cat
                     ? "bg-orange-600 text-white shadow-xs"
                     : "bg-stone-100 text-stone-600 hover:bg-stone-200"
@@ -384,37 +391,42 @@ export default function AdminProductsPage() {
           return (
             <div
               key={product.id || product._id}
-              className="bg-white rounded-2xl border border-stone-200 p-4 shadow-sm space-y-3 relative overflow-hidden"
+              className="bg-white rounded-2xl border border-stone-200/90 p-3.5 shadow-xs space-y-3 relative overflow-hidden"
             >
-              {/* Product Header Row */}
+              {/* Product Header Row: Image + Details + Toggle */}
               <div className="flex items-start gap-3">
                 {/* Thumbnail */}
-                <div className="w-16 h-16 rounded-xl bg-stone-100 border border-stone-200 overflow-hidden shrink-0 flex items-center justify-center">
+                <div className="w-18 h-18 rounded-xl bg-stone-100 border border-stone-200 overflow-hidden shrink-0 flex items-center justify-center relative shadow-xs">
                   {product.image ? (
                     <img
                       src={product.image}
                       alt={product.name}
                       className="w-full h-full object-cover"
+                      loading="lazy"
                     />
                   ) : (
-                    <ImageIcon className="w-6 h-6 text-stone-400" />
+                    <ImageIcon className="w-7 h-7 text-stone-400" />
+                  )}
+                  {product.isFeatured && (
+                    <span className="absolute top-1 left-1 bg-purple-600 text-white p-0.5 rounded-full shadow-xs">
+                      <Sparkles className="w-2.5 h-2.5" />
+                    </span>
                   )}
                 </div>
 
-                {/* Name, Category, Featured */}
+                {/* Name, Category, Price */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider bg-stone-100 px-2 py-0.5 rounded">
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider bg-stone-100 px-2 py-0.5 rounded-md truncate max-w-[130px]">
                       {product.category || "General"}
                     </span>
-                    {product.isFeatured && (
-                      <span className="text-[10px] font-black text-purple-700 bg-purple-50 border border-purple-200 px-2 py-0.5 rounded flex items-center gap-1">
-                        <Sparkles className="w-2.5 h-2.5" />
-                        Featured
-                      </span>
-                    )}
+                    <StockToggle
+                      productId={product.id || product._id}
+                      initialAvailable={product.isAvailable ?? true}
+                    />
                   </div>
-                  <h3 className="font-black text-base text-stone-900 leading-snug mt-1 truncate">
+
+                  <h3 className="font-extrabold text-sm sm:text-base text-stone-900 leading-snug mt-1 line-clamp-2">
                     {product.name}
                   </h3>
 
@@ -423,18 +435,18 @@ export default function AdminProductsPage() {
                     {product.priceType === "weight" ? (
                       <span className="font-black text-sm text-stone-900">
                         Rs. {product.pricePerKg}{" "}
-                        <span className="text-xs font-normal text-stone-500">/kg</span>
+                        <span className="text-[11px] font-medium text-stone-500">/kg</span>
                       </span>
                     ) : product.variants && product.variants.length > 0 ? (
                       product.variants.length === 1 ? (
                         <span className="font-black text-sm text-stone-900">
                           Rs. {product.variants[0].price}{" "}
-                          <span className="text-[11px] font-semibold text-orange-700 bg-orange-50 px-1.5 py-0.5 rounded">
+                          <span className="text-[10px] font-semibold text-orange-700 bg-orange-50 px-1.5 py-0.5 rounded">
                             /{product.variants[0].name}
                           </span>
                         </span>
                       ) : (
-                        <div className="flex flex-wrap gap-1">
+                        <div className="flex flex-wrap gap-1 mt-0.5">
                           {product.variants.map((v: any, idx: number) => (
                             <span
                               key={idx}
@@ -453,11 +465,11 @@ export default function AdminProductsPage() {
               </div>
 
               {/* Stock Inventory & Availability Controls Row */}
-              <div className="pt-2.5 border-t border-stone-100 flex items-center justify-between gap-2">
-                {/* Left: Stock Status & Quick Buttons */}
+              <div className="pt-2 border-t border-stone-100 flex items-center justify-between gap-2">
+                {/* Left: Stock Status */}
                 <div className="flex items-center gap-1.5 flex-wrap">
                   {isTracked ? (
-                    <>
+                    <div className="flex items-center gap-1.5">
                       <span
                         className={`px-2 py-1 rounded-lg text-xs font-black flex items-center gap-1 border shadow-2xs ${
                           isOutOfStock
@@ -475,57 +487,49 @@ export default function AdminProductsPage() {
 
                       {/* Quick + and - buttons */}
                       <button
-                        onClick={() => openStockModal(product, "add")}
-                        className="p-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 active:bg-emerald-100 transition-colors"
-                        title="Add Stock"
+                        onClick={() => openStockModal(product, "reduce")}
+                        className="p-1.5 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 active:scale-95 transition-all cursor-pointer"
+                        title="Reduce Stock (-1)"
                       >
-                        <PlusCircle className="w-4 h-4" />
+                        <MinusCircle className="w-3.5 h-3.5" />
                       </button>
                       <button
-                        onClick={() => openStockModal(product, "reduce")}
-                        className="p-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 active:bg-amber-100 transition-colors"
-                        title="Reduce Stock"
+                        onClick={() => openStockModal(product, "add")}
+                        className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 active:scale-95 transition-all cursor-pointer"
+                        title="Add Stock (+1)"
                       >
-                        <MinusCircle className="w-4 h-4" />
+                        <PlusCircle className="w-3.5 h-3.5" />
                       </button>
-                    </>
+                    </div>
                   ) : (
                     <button
                       onClick={() => openStockModal(product, "set")}
-                      className="text-xs font-bold text-orange-600 bg-orange-50 border border-orange-200 px-2.5 py-1 rounded-lg active:bg-orange-100 flex items-center gap-1"
+                      className="text-xs font-bold text-stone-600 bg-stone-100 hover:bg-stone-200 border border-stone-200 px-2.5 py-1 rounded-lg active:scale-95 transition-all flex items-center gap-1 cursor-pointer"
                     >
-                      <Boxes className="w-3.5 h-3.5" />
+                      <Boxes className="w-3.5 h-3.5 text-stone-500" />
                       Track Stock
                     </button>
                   )}
                 </div>
 
-                {/* Right: Availability Toggle */}
-                <div className="shrink-0">
-                  <StockToggle
-                    productId={product.id || product._id}
-                    initialAvailable={product.isAvailable ?? true}
-                  />
+                {/* Right: Quick Action Buttons */}
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => openStockModal(product, "set")}
+                    className="p-2 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold rounded-xl transition-all active:scale-95 flex items-center justify-center cursor-pointer"
+                    title="Adjust Stock"
+                  >
+                    <Sliders className="w-3.5 h-3.5" />
+                  </button>
+
+                  <Link
+                    to={`/admin/products/${product.id || product._id}/edit`}
+                    className="py-1.5 px-3 bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200/80 text-xs font-bold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <Edit className="w-3.5 h-3.5 text-orange-600" />
+                    <span>Edit</span>
+                  </Link>
                 </div>
-              </div>
-
-              {/* Bottom Action Bar */}
-              <div className="pt-2 border-t border-stone-100 flex items-center justify-between gap-2">
-                <button
-                  onClick={() => openStockModal(product, "set")}
-                  className="flex-1 py-1.5 px-3 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold rounded-xl transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <Sliders className="w-3.5 h-3.5 text-stone-500" />
-                  Adjust Stock
-                </button>
-
-                <Link
-                  to={`/admin/products/${product.id || product._id}/edit`}
-                  className="flex-1 py-1.5 px-3 bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200/80 text-xs font-bold rounded-xl transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <Edit className="w-3.5 h-3.5 text-orange-600" />
-                  Edit Product
-                </Link>
               </div>
             </div>
           );
