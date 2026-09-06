@@ -68,16 +68,24 @@ export default function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full flex flex-col items-center pointer-events-none px-2 sm:px-4 lg:px-6 transition-all duration-500 ease-out">
-      {/* Floating Apple-Style Blur Capsule Navbar */}
+    <header
+      className={`sticky top-0 z-50 w-full flex flex-col items-center pointer-events-none transition-all duration-500 ease-out ${
+        scrolled ? "px-2 sm:px-4 lg:px-6" : "px-0"
+      }`}
+    >
+      {/* 
+        Navbar Container:
+        - At top: 100% full width, edge-to-edge with bottom border.
+        - When scrolled: smooth transform into floating Apple-style compact blur capsule.
+      */}
       <nav
         className={`pointer-events-auto relative w-full flex items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
           scrolled
-            ? "max-w-5xl my-2.5 h-14 sm:h-15 px-3.5 sm:px-6 rounded-full bg-[#0c0a09]/85 backdrop-blur-2xl border border-white/20 shadow-[0_12px_40px_rgba(0,0,0,0.65)] ring-1 ring-white/10"
-            : "max-w-7xl my-1 sm:my-2 h-16 sm:h-18 px-4 sm:px-7 rounded-2xl sm:rounded-3xl bg-[#111111]/90 backdrop-blur-xl border border-white/10 shadow-lg shadow-black/30"
+            ? "max-w-5xl my-2 sm:my-2.5 h-14 sm:h-15 px-3.5 sm:px-6 rounded-full bg-[#0c0a09]/85 backdrop-blur-2xl border border-white/20 shadow-[0_12px_40px_rgba(0,0,0,0.65)] ring-1 ring-white/10"
+            : "max-w-none my-0 h-16 sm:h-20 px-4 sm:px-6 lg:px-8 rounded-none bg-[#111111]/95 backdrop-blur-md border-b border-[#222222] shadow-none ring-0"
         }`}
       >
-        {/* Subtle Ambient Radial Glow when in floating pill mode */}
+        {/* Subtle Ambient Radial Glow only when in floating capsule mode */}
         {scrolled && (
           <div className="absolute inset-0 -z-10 rounded-full bg-gradient-to-r from-orange-500/10 via-amber-500/5 to-orange-500/10 blur-xl pointer-events-none" />
         )}
@@ -230,11 +238,17 @@ export default function Navbar() {
             animate={{ height: "auto", opacity: 1, y: 0 }}
             exit={{ height: 0, opacity: 0, y: -6 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className={`pointer-events-auto lg:hidden overflow-hidden w-full mt-2 ${
-              scrolled ? "max-w-5xl" : "max-w-7xl"
+            className={`pointer-events-auto lg:hidden overflow-hidden w-full ${
+              scrolled ? "max-w-5xl mt-2" : "max-w-none mt-0"
             }`}
           >
-            <div className="p-4 space-y-3 bg-[#0c0a09]/95 backdrop-blur-2xl rounded-3xl border border-white/15 shadow-2xl ring-1 ring-white/10">
+            <div
+              className={`p-4 space-y-3 bg-[#0c0a09]/95 backdrop-blur-2xl border-white/15 shadow-2xl ${
+                scrolled
+                  ? "rounded-3xl border ring-1 ring-white/10"
+                  : "rounded-none border-b border-[#222222]"
+              }`}
+            >
               {/* If Admin or Staff, show quick access hub */}
               {isAdmin && (
                 <div className="bg-stone-900/90 border border-orange-500/30 rounded-2xl p-3 mb-3 shadow-inner">
