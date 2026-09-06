@@ -18,6 +18,8 @@ import {
   Loader2,
   Receipt,
   Printer,
+  ChevronDown,
+  X,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { subscribeToEvent, playAudioAlert } from "@/lib/socket";
@@ -138,24 +140,25 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
 
   return (
     <div className="space-y-5">
-      {/* Top Segment Control: Ecommerce vs Dine-In Table Orders */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-white p-3 rounded-2xl border border-stone-200 shadow-sm">
-        <div className="flex flex-wrap sm:flex-nowrap p-1 bg-stone-100 rounded-xl gap-1">
+      {/* Top Filter & Search Card (Zero Horizontal Scroll) */}
+      <div className="bg-white p-3 sm:p-4 rounded-2xl border border-stone-200/90 shadow-xs space-y-2.5">
+        {/* Source Segmented Tabs (Fits 100% width) */}
+        <div className="grid grid-cols-3 p-1 bg-stone-100 rounded-xl gap-1">
           <button
             onClick={() => setSourceFilter("ALL")}
-            className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-[11px] sm:text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`py-2 rounded-lg text-[11px] sm:text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
               sourceFilter === "ALL"
                 ? "bg-white text-stone-900 shadow-sm"
                 : "text-stone-500 hover:text-stone-900"
             }`}
           >
-            <span>All Orders</span>
+            <span>All</span>
             <span className="px-1.5 py-0.2 text-[10px] bg-stone-200 rounded-full">{orders.length}</span>
           </button>
 
           <button
             onClick={() => setSourceFilter("ECOMMERCE")}
-            className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-[11px] sm:text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`py-2 rounded-lg text-[11px] sm:text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
               sourceFilter === "ECOMMERCE"
                 ? "bg-white text-orange-600 shadow-sm"
                 : "text-stone-500 hover:text-stone-900"
@@ -168,7 +171,7 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
 
           <button
             onClick={() => setSourceFilter("DINE_IN")}
-            className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-[11px] sm:text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`py-2 rounded-lg text-[11px] sm:text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
               sourceFilter === "DINE_IN"
                 ? "bg-white text-amber-600 shadow-sm"
                 : "text-stone-500 hover:text-stone-900"
@@ -180,51 +183,76 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
           </button>
         </div>
 
-        {/* Search & Refresh */}
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1 sm:w-64">
+        {/* Search & Status Selector Row (Fits 100% width, No Horizontal Scroll) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {/* Search Bar with clear */}
+          <div className="relative">
             <Search className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Search #, customer, phone..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs font-semibold text-stone-900 placeholder:text-stone-400 focus:outline-none focus:bg-white focus:border-orange-500"
+              className="w-full pl-9 pr-8 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs font-semibold text-stone-900 placeholder:text-stone-400 focus:outline-none focus:bg-white focus:border-orange-500 transition-all"
             />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 p-0.5 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
-          <button
-            onClick={fetchOrders}
-            className="p-2 bg-stone-100 hover:bg-stone-200 text-stone-600 rounded-xl transition-colors cursor-pointer"
-            title="Refresh"
-          >
-            <RotateCcw className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
 
-      {/* Secondary Status Filter Pills */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-        {[
-          { id: "ALL", label: "All Status" },
-          { id: "PENDING", label: "Pending" },
-          { id: "CONFIRMED", label: "Confirmed" },
-          { id: "PREPARING", label: "In Kitchen" },
-          { id: "READY", label: "Ready" },
-          { id: "COMPLETED", label: "Completed" },
-          { id: "CANCELLED", label: "Cancelled" },
-        ].map((st) => (
-          <button
-            key={st.id}
-            onClick={() => setStatusFilter(st.id)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all border cursor-pointer ${
-              statusFilter === st.id
-                ? "bg-stone-900 border-stone-900 text-white shadow-sm"
-                : "bg-white border-stone-200 text-stone-600 hover:border-stone-300"
-            }`}
-          >
-            {st.label}
-          </button>
-        ))}
+          {/* Status Dropdown + Refresh */}
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full appearance-none bg-stone-50 hover:bg-stone-100/80 border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold text-stone-800 pr-8 focus:outline-none focus:border-orange-500 focus:bg-white transition-all cursor-pointer truncate"
+              >
+                <option value="ALL">All Statuses ({orders.length})</option>
+                <option value="PENDING">⏳ Pending Orders</option>
+                <option value="CONFIRMED">✅ Confirmed</option>
+                <option value="PREPARING">🍳 In Kitchen</option>
+                <option value="READY">🔔 Ready for Service</option>
+                <option value="COMPLETED">🎉 Completed</option>
+                <option value="CANCELLED">❌ Cancelled</option>
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-stone-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+
+            <button
+              onClick={fetchOrders}
+              className="p-2 bg-stone-100 hover:bg-stone-200 text-stone-600 rounded-xl transition-all active:scale-95 cursor-pointer shrink-0"
+              title="Refresh Orders"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Active Filter Indicator */}
+        {(searchQuery || sourceFilter !== "ALL" || statusFilter !== "ALL") && (
+          <div className="flex items-center justify-between pt-1 border-t border-stone-100 text-[11px]">
+            <span className="text-stone-500 font-medium">
+              Showing <strong>{filteredOrders.length}</strong> of {orders.length} orders
+            </span>
+            <button
+              onClick={() => {
+                setSearchQuery("");
+                setSourceFilter("ALL");
+                setStatusFilter("ALL");
+              }}
+              className="text-orange-600 hover:text-orange-700 font-bold flex items-center gap-1 cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span>Reset</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* MOBILE ORDERS LIST (PURE DIV CARDS - NO SQUISHED TABLES ON MOBILE) */}

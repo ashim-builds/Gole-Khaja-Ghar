@@ -351,32 +351,24 @@ export default function AdminTablesPage() {
       {/* VIEW 2: TABLE HISTORY AUDIT LOG */}
       {activeTab === "HISTORY" && (
         <div className="space-y-4">
-          {/* Table filter bar */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none bg-white p-3 rounded-2xl border border-stone-200 shadow-sm">
-            <span className="text-xs font-black uppercase tracking-wider text-stone-500 mr-2 shrink-0">Filter Table:</span>
-            <button
-              onClick={() => setHistoryTableFilter("ALL")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all border cursor-pointer ${
-                historyTableFilter === "ALL"
-                  ? "bg-stone-900 border-stone-900 text-white shadow-sm"
-                  : "bg-stone-50 border-stone-200 text-stone-600 hover:border-stone-300"
-              }`}
-            >
-              All Tables ({historyLogs.length})
-            </button>
-            {tables.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setHistoryTableFilter(t.tableNumber)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all border cursor-pointer ${
-                  historyTableFilter === t.tableNumber
-                    ? "bg-orange-600 border-orange-600 text-white shadow-sm"
-                    : "bg-stone-50 border-stone-200 text-stone-600 hover:border-stone-300"
-                }`}
+          {/* Table filter bar (Non-scrolling, 100% responsive) */}
+          <div className="bg-white p-3 rounded-2xl border border-stone-200/90 shadow-xs flex items-center justify-between gap-3">
+            <span className="text-xs font-black uppercase tracking-wider text-stone-500 shrink-0">Filter Table:</span>
+            <div className="relative flex-1 max-w-xs">
+              <select
+                value={historyTableFilter}
+                onChange={(e) => setHistoryTableFilter(e.target.value)}
+                className="w-full appearance-none bg-stone-50 hover:bg-stone-100/80 border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold text-stone-800 pr-8 focus:outline-none focus:border-orange-500 focus:bg-white transition-all cursor-pointer truncate"
               >
-                {t.tableNumber}
-              </button>
-            ))}
+                <option value="ALL">All Tables ({historyLogs.length} sessions)</option>
+                {tables.map((t) => (
+                  <option key={t.id} value={t.tableNumber}>
+                    Table {t.tableNumber}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-stone-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
           </div>
 
           {/* History List */}
