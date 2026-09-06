@@ -1,9 +1,11 @@
 import { Link } from "react-router-dom";
 import { useCart, CartItem } from "@/context/CartContext";
-import { X, Plus, Minus, ShoppingBag, Trash2 } from "lucide-react";
+import { useStoreHours } from "@/lib/storeHours";
+import { X, Plus, Minus, ShoppingBag, Trash2, Clock, AlertTriangle } from "lucide-react";
 
 export default function CartDrawer() {
   const { items, isCartOpen, closeCart, cartTotal, removeFromCart, updateItemQty } = useCart();
+  const storeStatus = useStoreHours();
 
   return (
     <>
@@ -31,6 +33,21 @@ export default function CartDrawer() {
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {/* Store Closed Warning in Cart Drawer */}
+        {!storeStatus.isOpen && (
+          <div className="bg-amber-500/10 border-b border-amber-500/30 p-3.5 flex items-start gap-2.5 text-amber-900 text-xs">
+            <Clock className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+            <div>
+              <p className="font-extrabold text-amber-950">Store Currently Closed</p>
+              <p className="text-amber-800 leading-tight mt-0.5">
+                {storeStatus.isFirstTuesday
+                  ? "Closed today (1st Tuesday). Reopening tomorrow at 8:00 AM."
+                  : "Hours: 8:00 AM – 9:00 PM. Reopening " + storeStatus.nextOpening + "."}
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Cart Items */}
         <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
@@ -66,13 +83,29 @@ export default function CartDrawer() {
                 <span className="text-2xl font-black text-black">Rs. {cartTotal.toFixed(2)}</span>
               </div>
             </div>
-            <Link 
-              to="/checkout"
-              onClick={closeCart}
-              className="w-full flex items-center justify-center py-4 bg-orange-600 text-white font-black uppercase text-sm tracking-wider rounded-xl hover:bg-orange-500 transition-all shadow-lg shadow-orange-600/30 cursor-pointer"
-            >
-              Proceed to Checkout
-            </Link>
+
+            {storeStatus.isOpen ? (
+              <Link 
+                to="/checkout"
+                onClick={closeCart}
+                className="w-full flex items-center justify-center py-4 bg-orange-600 text-white font-black uppercase text-sm tracking-wider rounded-xl hover:bg-orange-500 transition-all shadow-lg shadow-orange-600/30 cursor-pointer"
+              >
+                Proceed to Checkout
+              </Link>
+            ) : (
+              <div className="space-y-2">
+                <button 
+                  disabled
+                  className="w-full flex items-center justify-center py-3.5 bg-stone-300 text-stone-600 font-black uppercase text-xs tracking-wider rounded-xl cursor-not-allowed shadow-none"
+                >
+                  <AlertTriangle className="w-4 h-4 mr-1.5 text-amber-700" />
+                  Checkout Closed (Opens 8:00 AM)
+                </button>
+                <p className="text-[11px] text-center text-amber-800 font-medium">
+                  Online checkout resumes at 8:00 AM.
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>

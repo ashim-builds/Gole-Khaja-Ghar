@@ -2,7 +2,9 @@ import React, { useState, useEffect, lazy, Suspense } from "react";
 import { useCart } from "@/context/CartContext";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
-import { Truck, ArrowRight, Loader2, MapPin, Edit3, QrCode, Banknote, X, Pin, CheckCircle, Phone, User } from "lucide-react";
+import { useStoreHours } from "@/lib/storeHours";
+import StoreClosedNotice from "@/components/StoreClosedNotice";
+import { Truck, ArrowRight, Loader2, MapPin, Edit3, QrCode, Banknote, X, Pin, CheckCircle, Phone, User, Clock, AlertTriangle } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 
 const MapPicker = lazy(() => import("@/components/MapPicker"));
@@ -32,6 +34,7 @@ export interface CheckoutPayload {
 export default function CheckoutPage() {
   const { items, cartTotal, clearCart } = useCart();
   const { user, isLoading: isUserLoading } = useUser();
+  const storeStatus = useStoreHours();
   const navigate = useNavigate();
 
   const [isMounted, setIsMounted] = useState(false);
@@ -213,6 +216,11 @@ export default function CheckoutPage() {
     e.preventDefault();
     setErrorMsg("");
 
+    if (!storeStatus.isOpen) {
+      setErrorMsg(`Store is currently closed (${storeStatus.reason}). Online ordering resumes at 8:00 AM.`);
+      return;
+    }
+
     if (!validateForm()) {
       setErrorMsg("Please fix the errors below before placing your order.");
       return;
@@ -258,6 +266,11 @@ export default function CheckoutPage() {
     <div className="min-h-screen bg-[#fafafa] py-8 md:py-12">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-2xl md:text-4xl font-black text-black mb-6 md:mb-8">CHECKOUT</h1>
+
+        {/* Prominent store closed card warning if closed */}
+        {!storeStatus.isOpen && (
+          <StoreClosedNotice variant="card" className="mb-6" />
+        )}
 
         {/* QR Payment Modal */}
         {showQrModal && (
@@ -634,29 +647,44 @@ export default function CheckoutPage() {
                 </div>
               )}
 
-              <button
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className={`w-full py-4 rounded-xl font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 text-sm cursor-pointer ${
-                  isSubmitting
-                    ? "bg-stone-200 text-stone-400 cursor-wait"
-                    : "bg-orange-600 text-white hover:bg-orange-500 shadow-xl shadow-orange-600/25"
-                }`}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" /> Processing...
-                  </>
-                ) : formData.paymentMethod === "qr" ? (
-                  <>
-                    <QrCode className="w-5 h-5" /> Pay & Place Order
-                  </>
-                ) : (
-                  <>
-                    Place Order <ArrowRight className="w-5 h-5" />
-                  </>
-                )}
-              </button>
+              {storeStatus.isOpen ? (
+                <button
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  className={`w-full py-4 rounded-xl font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 text-sm cursor-pointer ${
+                    isSubmitting
+                      ? "bg-stone-200 text-stone-400 cursor-wait"
+                      : "bg-orange-600 text-white hover:bg-orange-500 shadow-xl shadow-orange-600/25"
+                  }`}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" /> Processing...
+                    </>
+                  ) : formData.paymentMethod === "qr" ? (
+                    <>
+                      <QrCode className="w-5 h-5" /> Pay & Place Order
+                    </>
+                  ) : (
+                    <>
+                      Place Order <ArrowRight className="w-5 h-5" />
+                    </>
+                  )}
+                </button>
+              ) : (
+                <div className="space-y-2">
+                  <button
+                    disabled
+                    className="w-full py-4 rounded-xl font-black uppercase tracking-wider bg-stone-300 text-stone-600 flex items-center justify-center gap-2 text-xs cursor-not-allowed shadow-none"
+                  >
+                    <Clock className="w-4 h-4 text-amber-700" />
+                    Store Closed (Opens 8:00 AM)
+                  </button>
+                  <p className="text-[11px] text-center text-amber-800 font-bold">
+                    Checkout is temporarily disabled outside 8:00 AM – 9:00 PM.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
-import { Plus, Check } from "lucide-react";
+import { useStoreHours } from "@/lib/storeHours";
+import { Plus, Check, Clock } from "lucide-react";
 
 interface Variant {
   name: string;
@@ -30,6 +31,7 @@ export default function ProductCard({
   image, 
   isAvailable = true 
 }: ProductCardProps) {
+  const storeStatus = useStoreHours();
   const [selectedWeight, setSelectedWeight] = useState<number>(250);
   
   // Default to the first variant if available
@@ -46,7 +48,7 @@ export default function ProductCard({
   const { addWeightItem, addVariantItem } = useCart();
 
   const handleAddToCart = () => {
-    if (!isAvailable) return;
+    if (!storeStatus.isOpen || !isAvailable) return;
     
     if (priceType === 'weight') {
       addWeightItem({ id, slug, name, priceType, pricePerKg, image }, selectedWeight, 1);
@@ -176,10 +178,11 @@ export default function ProductCard({
       {/* Action Button */}
       {/* Mobile Plus button */}
       <button 
-        disabled={!isAvailable || isAdded}
+        disabled={!storeStatus.isOpen || !isAvailable || isAdded}
         onClick={handleAddToCart}
+        title={!storeStatus.isOpen ? storeStatus.reason : !isAvailable ? "Out of Stock" : "Add to Cart"}
         className={`md:hidden w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors shadow-md cursor-pointer ${
-          !isAvailable
+          !storeStatus.isOpen || !isAvailable
             ? 'bg-stone-200 text-stone-400 cursor-not-allowed shadow-none' 
             : isAdded 
             ? 'bg-emerald-600 text-white' 
@@ -188,6 +191,8 @@ export default function ProductCard({
       >
         {isAdded ? (
           <Check className="w-4 h-4 text-white" />
+        ) : !storeStatus.isOpen ? (
+          <Clock className="w-4 h-4 text-stone-400" />
         ) : (
           <Plus className="w-4 h-4 text-white" />
         )}
@@ -195,11 +200,12 @@ export default function ProductCard({
 
       {/* Desktop ADD button */}
       <button 
-        disabled={!isAvailable || isAdded}
+        disabled={!storeStatus.isOpen || !isAvailable || isAdded}
         onClick={handleAddToCart}
+        title={!storeStatus.isOpen ? storeStatus.reason : !isAvailable ? "Out of Stock" : "Add to Cart"}
         className={`hidden md:flex w-full h-[38px] rounded-xl items-center justify-center gap-1.5 flex-shrink-0 transition-all shadow-md cursor-pointer ${
-          !isAvailable
-            ? 'bg-stone-200 cursor-not-allowed shadow-none' 
+          !storeStatus.isOpen || !isAvailable
+            ? 'bg-stone-200 text-stone-500 cursor-not-allowed shadow-none font-bold text-xs' 
             : isAdded 
             ? 'bg-emerald-600 text-white' 
             : 'bg-orange-600 text-white hover:bg-orange-500 shadow-orange-600/20'
@@ -209,6 +215,11 @@ export default function ProductCard({
           <>
             <Check className="w-4 h-4" />
             <span className="font-bold text-xs uppercase tracking-wider">Added to Cart</span>
+          </>
+        ) : !storeStatus.isOpen ? (
+          <>
+            <Clock className="w-3.5 h-3.5 text-stone-500" />
+            <span className="font-bold text-[11px] uppercase tracking-wider text-stone-600">Store Closed</span>
           </>
         ) : (
           <>

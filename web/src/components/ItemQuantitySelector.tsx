@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Minus, CheckCircle2 } from "lucide-react";
+import { Plus, Minus, CheckCircle2, Clock } from "lucide-react";
 import { useCart, CartProduct } from "@/context/CartContext";
+import { useStoreHours } from "@/lib/storeHours";
 
 interface Variant {
   name: string;
@@ -22,6 +23,7 @@ interface ItemQuantitySelectorProps {
 
 export default function ItemQuantitySelector({ product, isAvailable }: ItemQuantitySelectorProps) {
   const { addVariantItem, addWeightItem } = useCart();
+  const storeStatus = useStoreHours();
   
   const hasVariants = product.variants && product.variants.length > 0;
   
@@ -55,7 +57,7 @@ export default function ItemQuantitySelector({ product, isAvailable }: ItemQuant
   const decreaseQty = () => setQty((prev) => (prev > 1 ? prev - 1 : 1));
 
   const handleAddToCart = () => {
-    if (!isAvailable) return;
+    if (!storeStatus.isOpen || !isAvailable) return;
 
     if (hasVariants && selectedVariant) {
       addVariantItem(product, selectedVariant.name, selectedVariant.price, qty);
@@ -125,13 +127,24 @@ export default function ItemQuantitySelector({ product, isAvailable }: ItemQuant
         </div>
       </div>
 
+      {/* Store Closed Banner Notice inside product details if closed */}
+      {!storeStatus.isOpen && (
+        <div className="mb-4 bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 flex items-start gap-2.5 text-amber-950 text-xs">
+          <Clock className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+          <div>
+            <p className="font-black text-amber-950">Online Ordering Closed</p>
+            <p className="text-amber-800 leading-tight mt-0.5">{storeStatus.reason} ({storeStatus.nextOpening})</p>
+          </div>
+        </div>
+      )}
+
       {/* Add to Cart Button */}
       <button
         onClick={handleAddToCart}
-        disabled={!isAvailable || isAdded}
+        disabled={!storeStatus.isOpen || !isAvailable || isAdded}
         className={`w-full h-[52px] rounded-xl flex items-center justify-center transition-all cursor-pointer font-black uppercase text-sm tracking-wider shadow-lg ${
-          !isAvailable
-            ? "bg-stone-200 text-stone-400 cursor-not-allowed shadow-none"
+          !storeStatus.isOpen || !isAvailable
+            ? "bg-stone-200 text-stone-500 cursor-not-allowed shadow-none"
             : isAdded
             ? "bg-emerald-600 text-white shadow-emerald-600/20"
             : "bg-orange-600 text-white hover:bg-orange-500 shadow-orange-600/30 active:scale-[0.99]"
@@ -140,6 +153,11 @@ export default function ItemQuantitySelector({ product, isAvailable }: ItemQuant
         {isAdded ? (
           <span className="flex items-center">
             <CheckCircle2 className="w-5 h-5 mr-2" /> ADDED TO ORDER
+          </span>
+        ) : !storeStatus.isOpen ? (
+          <span className="flex items-center">
+            <Clock className="w-4 h-4 mr-2 text-stone-500" />
+            {storeStatus.isFirstTuesday ? "STORE CLOSED TODAY" : "STORE CLOSED (OPENS 8 AM)"}
           </span>
         ) : !isAvailable ? (
           "SOLD OUT"
