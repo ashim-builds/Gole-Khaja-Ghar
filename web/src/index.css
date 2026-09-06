@@ -22,17 +22,48 @@
   --font-heading: 'Inter', 'Outfit', ui-sans-serif, system-ui, sans-serif;
 }
 
-/* Ensure crisp, high-contrast light theme by default */
+/* Ensure crisp, high-contrast light theme by default & disable auto zoom */
+html, body {
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   background-color: #fbfbfb;
   color: #111827;
   font-family: var(--font-sans);
+  overscroll-behavior-y: none;
 }
 
 /* Global Form Controls & Inputs - High Contrast & Crisp Visibility */
 input, textarea, select {
   background-color: #ffffff;
   color: #111827;
+  touch-action: manipulation;
+}
+
+/* 
+ * CRITICAL: Prevent iOS Safari & Android Chrome auto-zooming into inputs when typing or focusing.
+ * iOS zooms in automatically if the input font-size is below 16px.
+ */
+@media screen and (max-width: 768px) {
+  input,
+  textarea,
+  select,
+  input[type="text"],
+  input[type="password"],
+  input[type="email"],
+  input[type="number"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  [contenteditable="true"] {
+    font-size: 16px !important;
+    line-height: normal;
+  }
 }
 
 input::placeholder,
