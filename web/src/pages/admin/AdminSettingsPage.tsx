@@ -273,163 +273,119 @@ export default function AdminSettingsPage() {
       )}
 
       {/* 1. STORE OPEN / CLOSE OPERATIONAL CONTROLS */}
-      <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-xs border border-stone-200/90 space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-100 pb-4">
-          <div className="flex items-start gap-3">
+      <div className="bg-white rounded-2xl p-3.5 sm:p-5 shadow-xs border border-stone-200/90 space-y-3.5">
+        <div className="flex items-center justify-between gap-2 border-b border-stone-100 pb-3">
+          <div className="flex items-center gap-2.5 min-w-0">
             <div
-              className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
+              className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 border ${
                 storeStatus.isOpen
                   ? "bg-emerald-50 text-emerald-600 border-emerald-200"
                   : "bg-red-50 text-red-600 border-red-200"
               }`}
             >
-              <Power className="w-5 h-5" />
+              <Power className="w-4 h-4" />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-sm sm:text-base font-extrabold text-stone-900">
-                  Store Status & Online Ordering
+                <h2 className="text-xs sm:text-sm font-extrabold text-stone-900 truncate">
+                  Store Status & Orders
                 </h2>
                 <span
-                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${
+                  className={`px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-wider border shrink-0 ${
                     storeStatus.isOpen
                       ? "bg-emerald-100 text-emerald-900 border-emerald-300"
                       : "bg-red-100 text-red-900 border-red-300"
                   }`}
                 >
-                  {storeStatus.isOpen ? "🟢 ACCEPTING ORDERS" : "🔴 STORE CLOSED"}
+                  {storeStatus.isOpen ? "🟢 OPEN" : "🔴 CLOSED"}
                 </span>
               </div>
-              <p className="text-xs text-stone-500 mt-0.5">
+              <p className="text-[11px] text-stone-500 truncate hidden xs:block">
                 {storeStatus.reason}
               </p>
             </div>
           </div>
 
           <div className="text-right shrink-0">
-            <span className="text-[11px] font-bold text-stone-400 block uppercase">
-              Current Mode
+            <span className="text-[9px] font-bold text-stone-400 block uppercase">
+              Mode
             </span>
-            <span className="text-xs font-black text-stone-800">
+            <span className="text-[11px] font-extrabold text-stone-800">
               {storeStatus.mode === "MANUAL_OPEN"
-                ? "Forced Open"
+                ? "Open (Manual)"
                 : storeStatus.mode === "MANUAL_CLOSED"
-                ? "Forced Closed"
-                : "Automatic Schedule"}
+                ? "Closed (Manual)"
+                : "Auto (8AM–9PM)"}
             </span>
           </div>
         </div>
 
-        {/* 3 Quick Action Controls */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {/* Option A: Auto Schedule */}
+        {/* Compact Horizontal 3-Way Segmented Switcher */}
+        <div className="grid grid-cols-3 gap-1.5 p-1 bg-stone-100 rounded-xl border border-stone-200/80">
+          {/* Option A: Auto */}
           <button
+            type="button"
             onClick={() => handleUpdateStoreMode("AUTO")}
             disabled={updatingStore}
-            className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer flex flex-col justify-between gap-3 ${
+            className={`py-2 px-1 rounded-lg text-center transition-all cursor-pointer flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 active:scale-95 ${
               storeStatus.mode === "AUTO"
-                ? "border-orange-500 bg-orange-50/50 shadow-sm"
-                : "border-stone-200 hover:border-stone-300 bg-stone-50/50"
+                ? "bg-white text-orange-600 font-black shadow-xs border border-orange-200"
+                : "text-stone-600 hover:text-stone-900 font-bold hover:bg-white/60"
             }`}
           >
-            <div className="flex items-center justify-between">
-              <span className="w-8 h-8 rounded-xl bg-orange-100 flex items-center justify-center text-orange-700">
-                <Clock className="w-4 h-4" />
-              </span>
-              {storeStatus.mode === "AUTO" && (
-                <span className="text-[10px] font-black uppercase bg-orange-600 text-white px-2 py-0.5 rounded-md">
-                  Active
-                </span>
-              )}
-            </div>
-            <div>
-              <p className="font-extrabold text-sm text-stone-900">Auto Schedule</p>
-              <p className="text-[11px] text-stone-500 mt-0.5 leading-tight">
-                8:00 AM – 9:00 PM daily. Closed 1st Tuesday of month.
-              </p>
-            </div>
+            <Clock className={`w-3.5 h-3.5 ${storeStatus.mode === "AUTO" ? "text-orange-600" : "text-stone-400"}`} />
+            <span className="text-[11px] leading-tight">Auto Schedule</span>
           </button>
 
           {/* Option B: Force Open */}
           <button
+            type="button"
             onClick={() => handleUpdateStoreMode("MANUAL_OPEN")}
             disabled={updatingStore}
-            className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer flex flex-col justify-between gap-3 ${
+            className={`py-2 px-1 rounded-lg text-center transition-all cursor-pointer flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 active:scale-95 ${
               storeStatus.mode === "MANUAL_OPEN"
-                ? "border-emerald-500 bg-emerald-50/50 shadow-sm"
-                : "border-stone-200 hover:border-stone-300 bg-stone-50/50"
+                ? "bg-emerald-600 text-white font-black shadow-xs"
+                : "text-stone-600 hover:text-emerald-700 font-bold hover:bg-white/60"
             }`}
           >
-            <div className="flex items-center justify-between">
-              <span className="w-8 h-8 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700">
-                <Unlock className="w-4 h-4" />
-              </span>
-              {storeStatus.mode === "MANUAL_OPEN" && (
-                <span className="text-[10px] font-black uppercase bg-emerald-600 text-white px-2 py-0.5 rounded-md">
-                  Active
-                </span>
-              )}
-            </div>
-            <div>
-              <p className="font-extrabold text-sm text-stone-900">Force OPEN Now</p>
-              <p className="text-[11px] text-stone-500 mt-0.5 leading-tight">
-                Keep store open & accept orders regardless of hours.
-              </p>
-            </div>
+            <Unlock className={`w-3.5 h-3.5 ${storeStatus.mode === "MANUAL_OPEN" ? "text-white" : "text-emerald-600"}`} />
+            <span className="text-[11px] leading-tight">Force Open</span>
           </button>
 
           {/* Option C: Force Closed */}
           <button
+            type="button"
             onClick={() => handleUpdateStoreMode("MANUAL_CLOSED")}
             disabled={updatingStore}
-            className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer flex flex-col justify-between gap-3 ${
+            className={`py-2 px-1 rounded-lg text-center transition-all cursor-pointer flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 active:scale-95 ${
               storeStatus.mode === "MANUAL_CLOSED"
-                ? "border-red-500 bg-red-50/50 shadow-sm"
-                : "border-stone-200 hover:border-stone-300 bg-stone-50/50"
+                ? "bg-red-600 text-white font-black shadow-xs"
+                : "text-stone-600 hover:text-red-700 font-bold hover:bg-white/60"
             }`}
           >
-            <div className="flex items-center justify-between">
-              <span className="w-8 h-8 rounded-xl bg-red-100 flex items-center justify-center text-red-700">
-                <Lock className="w-4 h-4" />
-              </span>
-              {storeStatus.mode === "MANUAL_CLOSED" && (
-                <span className="text-[10px] font-black uppercase bg-red-600 text-white px-2 py-0.5 rounded-md">
-                  Active
-                </span>
-              )}
-            </div>
-            <div>
-              <p className="font-extrabold text-sm text-stone-900">Force CLOSE Now</p>
-              <p className="text-[11px] text-stone-500 mt-0.5 leading-tight">
-                Pause all online checkout & show closed notice.
-              </p>
-            </div>
+            <Lock className={`w-3.5 h-3.5 ${storeStatus.mode === "MANUAL_CLOSED" ? "text-white" : "text-red-600"}`} />
+            <span className="text-[11px] leading-tight">Force Close</span>
           </button>
         </div>
 
-        {/* Optional Custom Reason Input for closure */}
-        <div className="pt-2">
-          <label className="text-[11px] font-bold text-stone-600 uppercase tracking-wider block mb-1">
-            Custom Closure Note / Reason (Optional)
-          </label>
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={customReasonInput}
-              onChange={(e) => setCustomReasonInput(e.target.value)}
-              placeholder="e.g. Closed early today for private staff gathering / holiday"
-              className="flex-1 px-3.5 py-2.5 rounded-xl border border-stone-200 bg-stone-50 text-xs text-stone-900 focus:outline-none focus:border-orange-500 font-medium"
-            />
-            {customReasonInput && (
-              <button
-                onClick={() => handleUpdateStoreMode(storeStatus.mode)}
-                disabled={updatingStore}
-                className="px-4 py-2.5 bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs rounded-xl transition-all cursor-pointer shrink-0"
-              >
-                Save Note
-              </button>
-            )}
-          </div>
+        {/* Compact custom note input */}
+        <div className="flex items-center gap-1.5 pt-0.5">
+          <input
+            type="text"
+            value={customReasonInput}
+            onChange={(e) => setCustomReasonInput(e.target.value)}
+            placeholder="Custom closure note (e.g. Closed early for festival / event)"
+            className="flex-1 px-3 py-1.5 rounded-lg border border-stone-200 bg-stone-50 text-[11px] text-stone-900 focus:outline-none focus:border-orange-500 font-medium"
+          />
+          {customReasonInput && (
+            <button
+              onClick={() => handleUpdateStoreMode(storeStatus.mode)}
+              disabled={updatingStore}
+              className="px-3 py-1.5 bg-orange-600 hover:bg-orange-500 text-white font-bold text-[11px] rounded-lg transition-all cursor-pointer shrink-0 active:scale-95"
+            >
+              Save
+            </button>
+          )}
         </div>
       </div>
 
