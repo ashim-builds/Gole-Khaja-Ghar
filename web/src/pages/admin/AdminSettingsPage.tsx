@@ -19,6 +19,10 @@ import {
   ChefHat,
   Receipt,
   Share2,
+  Power,
+  Calendar,
+  Lock,
+  Unlock,
 } from "lucide-react";
 import {
   checkPushSubscription,
@@ -26,6 +30,7 @@ import {
   unsubscribeFromPush,
 } from "@/lib/pushManager";
 import { api } from "@/lib/api";
+import { StoreOperationalMode } from "@/lib/storeHours";
 
 export default function AdminSettingsPage() {
   const [pushStatus, setPushStatus] = useState<{
@@ -40,21 +45,112 @@ export default function AdminSettingsPage() {
 
   const [loadingPush, setLoadingPush] = useState(false);
   const [testingPush, setTestingPush] = useState(false);
-  const [pushFeedback, setPushFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [pushFeedback, setPushFeedback] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
 
   // Audio Alerts State
   const [soundEnabled, setSoundEnabled] = useState(() => {
     return localStorage.getItem("gole_sound_alerts_enabled") !== "false";
   });
 
+  // Store Operational Status State
+  const [storeStatus, setStoreStatus] = useState<{
+    isOpen: boolean;
+    mode: StoreOperationalMode;
+    statusText: string;
+    badgeLabel: string;
+    reason: string;
+    nextOpening: string;
+    nepalTimeFormatted: string;
+    updatedAt?: string;
+  }>({
+    isOpen: true,
+    mode: "AUTO",
+    statusText: "Open Now",
+    badgeLabel: "Open (8:00 AM – 9:00 PM)",
+    reason: "Store operating normally on schedule.",
+    nextOpening: "Open until 9:00 PM tonight",
+    nepalTimeFormatted: "",
+  });
+
+  const [customReasonInput, setCustomReasonInput] = useState("");
+  const [updatingStore, setUpdatingStore] = useState(false);
+  const [storeFeedback, setStoreFeedback] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+
   const refreshPushStatus = async () => {
     const status = await checkPushSubscription();
     setPushStatus(status);
   };
 
+  const fetchStoreStatus = async () => {
+    try {
+      const res = await api.store.getAdminStatus();
+      if (res.success) {
+        setStoreStatus({
+          isOpen: res.isOpen,
+          mode: res.mode || "AUTO",
+          statusText: res.statusText,
+          badgeLabel: res.badgeLabel,
+          reason: res.reason,
+          nextOpening: res.nextOpening,
+          nepalTimeFormatted: res.nepalTimeFormatted,
+          updatedAt: res.updatedAt,
+        });
+      }
+    } catch (err) {
+      console.warn("Could not fetch store status:", err);
+    }
+  };
+
   useEffect(() => {
     refreshPushStatus();
+    fetchStoreStatus();
   }, []);
+
+  const handleUpdateStoreMode = async (mode: StoreOperationalMode) => {
+    setUpdatingStore(true);
+    setStoreFeedback(null);
+    try {
+      const res = await api.store.updateStatus({
+        mode,
+        customReason: customReasonInput,
+      });
+
+      if (res.success) {
+        setStoreStatus((prev) => ({
+          ...prev,
+          isOpen: res.isOpen,
+          mode: res.mode,
+          statusText: res.statusText,
+          badgeLabel: res.badgeLabel,
+          reason: res.reason,
+          nextOpening: res.nextOpening,
+        }));
+        setStoreFeedback({
+          type: "success",
+          text: `Store mode successfully updated to: ${
+            mode === "MANUAL_OPEN"
+              ? "FORCED OPEN"
+              : mode === "MANUAL_CLOSED"
+              ? "FORCED CLOSED"
+              : "AUTOMATIC SCHEDULE (8 AM – 9 PM)"
+          }`,
+        });
+      }
+    } catch (err: any) {
+      setStoreFeedback({
+        type: "error",
+        text: err?.message || "Failed to update store status.",
+      });
+    } finally {
+      setUpdatingStore(false);
+    }
+  };
 
   const handleTogglePush = async () => {
     setLoadingPush(true);
@@ -62,10 +158,16 @@ export default function AdminSettingsPage() {
     try {
       if (pushStatus.isSubscribed) {
         await unsubscribeFromPush();
-        setPushFeedback({ type: "success", text: "Push notifications disabled." });
+        setPushFeedback({
+          type: "success",
+          text: "Push notifications disabled.",
+        });
       } else {
         await subscribeToPush("admin");
-        setPushFeedback({ type: "success", text: "Push notifications enabled for Admin device!" });
+        setPushFeedback({
+          type: "success",
+          text: "Push notifications enabled for Admin device!",
+        });
       }
       await refreshPushStatus();
     } catch (err: any) {
@@ -114,12 +216,17 @@ export default function AdminSettingsPage() {
 
   const playAlertSound = () => {
     try {
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const audioCtx = new (
+        window.AudioContext || (window as any).webkitAudioContext
+      )();
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = "sine";
       osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
-      osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15); // A5
+      osc.frequency.exponentialRampToValueAtTime(
+        880,
+        audioCtx.currentTime + 0.15,
+      ); // A5
       gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
       osc.connect(gain);
@@ -137,36 +244,196 @@ export default function AdminSettingsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-black text-stone-900 tracking-tight">Settings & Alerts</h1>
-            <span className="px-2 py-0.5 bg-orange-100 text-orange-700 text-[11px] font-black rounded-full">
-              Live v2.0
-            </span>
+            <h1 className="text-xl sm:text-2xl font-black text-stone-900 tracking-tight">
+              Settings & Store Control
+            </h1>
           </div>
           <p className="text-xs text-stone-500 font-medium mt-0.5">
-            Real-time push alerts, kitchen sounds, store information, and system diagnostics
+            Store open/close controls, live push alerts, kitchen chime, and business info
           </p>
         </div>
       </div>
 
-      {/* Feedback Toast */}
-      {pushFeedback && (
+      {/* Global Feedback Toast */}
+      {(pushFeedback || storeFeedback) && (
         <div
           className={`p-3.5 rounded-2xl flex items-center gap-3 border text-xs sm:text-sm font-semibold transition-all shadow-xs ${
-            pushFeedback.type === "success"
+            (storeFeedback || pushFeedback)?.type === "success"
               ? "bg-emerald-50 border-emerald-200 text-emerald-800"
               : "bg-red-50 border-red-200 text-red-800"
           }`}
         >
-          {pushFeedback.type === "success" ? (
+          {(storeFeedback || pushFeedback)?.type === "success" ? (
             <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
           ) : (
             <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
           )}
-          <span>{pushFeedback.text}</span>
+          <span>{(storeFeedback || pushFeedback)?.text}</span>
         </div>
       )}
 
-      {/* 1. RESTAURANT PROFILE & QUICK TERMINALS */}
+      {/* 1. STORE OPEN / CLOSE OPERATIONAL CONTROLS */}
+      <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-xs border border-stone-200/90 space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-100 pb-4">
+          <div className="flex items-start gap-3">
+            <div
+              className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
+                storeStatus.isOpen
+                  ? "bg-emerald-50 text-emerald-600 border-emerald-200"
+                  : "bg-red-50 text-red-600 border-red-200"
+              }`}
+            >
+              <Power className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-sm sm:text-base font-extrabold text-stone-900">
+                  Store Status & Online Ordering
+                </h2>
+                <span
+                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${
+                    storeStatus.isOpen
+                      ? "bg-emerald-100 text-emerald-900 border-emerald-300"
+                      : "bg-red-100 text-red-900 border-red-300"
+                  }`}
+                >
+                  {storeStatus.isOpen ? "🟢 ACCEPTING ORDERS" : "🔴 STORE CLOSED"}
+                </span>
+              </div>
+              <p className="text-xs text-stone-500 mt-0.5">
+                {storeStatus.reason}
+              </p>
+            </div>
+          </div>
+
+          <div className="text-right shrink-0">
+            <span className="text-[11px] font-bold text-stone-400 block uppercase">
+              Current Mode
+            </span>
+            <span className="text-xs font-black text-stone-800">
+              {storeStatus.mode === "MANUAL_OPEN"
+                ? "Forced Open"
+                : storeStatus.mode === "MANUAL_CLOSED"
+                ? "Forced Closed"
+                : "Automatic Schedule"}
+            </span>
+          </div>
+        </div>
+
+        {/* 3 Quick Action Controls */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* Option A: Auto Schedule */}
+          <button
+            onClick={() => handleUpdateStoreMode("AUTO")}
+            disabled={updatingStore}
+            className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer flex flex-col justify-between gap-3 ${
+              storeStatus.mode === "AUTO"
+                ? "border-orange-500 bg-orange-50/50 shadow-sm"
+                : "border-stone-200 hover:border-stone-300 bg-stone-50/50"
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="w-8 h-8 rounded-xl bg-orange-100 flex items-center justify-center text-orange-700">
+                <Clock className="w-4 h-4" />
+              </span>
+              {storeStatus.mode === "AUTO" && (
+                <span className="text-[10px] font-black uppercase bg-orange-600 text-white px-2 py-0.5 rounded-md">
+                  Active
+                </span>
+              )}
+            </div>
+            <div>
+              <p className="font-extrabold text-sm text-stone-900">Auto Schedule</p>
+              <p className="text-[11px] text-stone-500 mt-0.5 leading-tight">
+                8:00 AM – 9:00 PM daily. Closed 1st Tuesday of month.
+              </p>
+            </div>
+          </button>
+
+          {/* Option B: Force Open */}
+          <button
+            onClick={() => handleUpdateStoreMode("MANUAL_OPEN")}
+            disabled={updatingStore}
+            className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer flex flex-col justify-between gap-3 ${
+              storeStatus.mode === "MANUAL_OPEN"
+                ? "border-emerald-500 bg-emerald-50/50 shadow-sm"
+                : "border-stone-200 hover:border-stone-300 bg-stone-50/50"
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="w-8 h-8 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700">
+                <Unlock className="w-4 h-4" />
+              </span>
+              {storeStatus.mode === "MANUAL_OPEN" && (
+                <span className="text-[10px] font-black uppercase bg-emerald-600 text-white px-2 py-0.5 rounded-md">
+                  Active
+                </span>
+              )}
+            </div>
+            <div>
+              <p className="font-extrabold text-sm text-stone-900">Force OPEN Now</p>
+              <p className="text-[11px] text-stone-500 mt-0.5 leading-tight">
+                Keep store open & accept orders regardless of hours.
+              </p>
+            </div>
+          </button>
+
+          {/* Option C: Force Closed */}
+          <button
+            onClick={() => handleUpdateStoreMode("MANUAL_CLOSED")}
+            disabled={updatingStore}
+            className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer flex flex-col justify-between gap-3 ${
+              storeStatus.mode === "MANUAL_CLOSED"
+                ? "border-red-500 bg-red-50/50 shadow-sm"
+                : "border-stone-200 hover:border-stone-300 bg-stone-50/50"
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="w-8 h-8 rounded-xl bg-red-100 flex items-center justify-center text-red-700">
+                <Lock className="w-4 h-4" />
+              </span>
+              {storeStatus.mode === "MANUAL_CLOSED" && (
+                <span className="text-[10px] font-black uppercase bg-red-600 text-white px-2 py-0.5 rounded-md">
+                  Active
+                </span>
+              )}
+            </div>
+            <div>
+              <p className="font-extrabold text-sm text-stone-900">Force CLOSE Now</p>
+              <p className="text-[11px] text-stone-500 mt-0.5 leading-tight">
+                Pause all online checkout & show closed notice.
+              </p>
+            </div>
+          </button>
+        </div>
+
+        {/* Optional Custom Reason Input for closure */}
+        <div className="pt-2">
+          <label className="text-[11px] font-bold text-stone-600 uppercase tracking-wider block mb-1">
+            Custom Closure Note / Reason (Optional)
+          </label>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={customReasonInput}
+              onChange={(e) => setCustomReasonInput(e.target.value)}
+              placeholder="e.g. Closed early today for private staff gathering / holiday"
+              className="flex-1 px-3.5 py-2.5 rounded-xl border border-stone-200 bg-stone-50 text-xs text-stone-900 focus:outline-none focus:border-orange-500 font-medium"
+            />
+            {customReasonInput && (
+              <button
+                onClick={() => handleUpdateStoreMode(storeStatus.mode)}
+                disabled={updatingStore}
+                className="px-4 py-2.5 bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs rounded-xl transition-all cursor-pointer shrink-0"
+              >
+                Save Note
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* 2. RESTAURANT PROFILE & QUICK TERMINALS */}
       <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-xs border border-stone-200/90 space-y-4">
         <div className="flex items-center justify-between border-b border-stone-100 pb-3">
           <div className="flex items-center gap-2.5">
@@ -174,8 +441,12 @@ export default function AdminSettingsPage() {
               <Store className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-sm sm:text-base font-extrabold text-stone-900">Gole Khaja Ghar Profile</h2>
-              <p className="text-[11px] text-stone-500">Official location, timings, and contact</p>
+              <h2 className="text-sm sm:text-base font-extrabold text-stone-900">
+                Gole Khaja Ghar Profile
+              </h2>
+              <p className="text-[11px] text-stone-500">
+                Official location, timings, and contact
+              </p>
             </div>
           </div>
           <a
@@ -194,16 +465,25 @@ export default function AdminSettingsPage() {
           <div className="p-3 bg-stone-50 rounded-xl border border-stone-200/60 flex items-start gap-2.5">
             <MapPin className="w-4 h-4 text-orange-600 shrink-0 mt-0.5" />
             <div>
-              <p className="font-bold text-stone-400 text-[10px] uppercase">Location</p>
-              <p className="font-extrabold text-stone-800 mt-0.5">Sisuwa, Pokhara-29, Kaski, Nepal</p>
+              <p className="font-bold text-stone-400 text-[10px] uppercase">
+                Location
+              </p>
+              <p className="font-extrabold text-stone-800 mt-0.5">
+                Sisuwa, Pokhara-29, Kaski, Nepal
+              </p>
             </div>
           </div>
 
           <div className="p-3 bg-stone-50 rounded-xl border border-stone-200/60 flex items-start gap-2.5">
             <Phone className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
             <div>
-              <p className="font-bold text-stone-400 text-[10px] uppercase">WhatsApp & Hotline</p>
-              <a href="tel:+9779846011810" className="font-extrabold text-stone-800 mt-0.5 hover:text-emerald-600 block">
+              <p className="font-bold text-stone-400 text-[10px] uppercase">
+                WhatsApp & Hotline
+              </p>
+              <a
+                href="tel:+9779846011810"
+                className="font-extrabold text-stone-800 mt-0.5 hover:text-emerald-600 block"
+              >
                 +977 984-6011810
               </a>
             </div>
@@ -212,8 +492,12 @@ export default function AdminSettingsPage() {
           <div className="p-3 bg-stone-50 rounded-xl border border-stone-200/60 flex items-start gap-2.5">
             <Clock className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" />
             <div>
-              <p className="font-bold text-stone-400 text-[10px] uppercase">Operating Hours</p>
-              <p className="font-extrabold text-stone-800 mt-0.5">8:00 AM – 9:00 PM</p>
+              <p className="font-bold text-stone-400 text-[10px] uppercase">
+                Operating Hours
+              </p>
+              <p className="font-extrabold text-stone-800 mt-0.5">
+                8:00 AM – 9:00 PM
+              </p>
               <span className="text-[10px] font-semibold text-amber-800 bg-amber-100/70 px-1.5 py-0.2 rounded mt-0.5 inline-block">
                 Closed 1st Tuesday of month
               </span>
@@ -223,7 +507,9 @@ export default function AdminSettingsPage() {
           <div className="p-3 bg-stone-50 rounded-xl border border-stone-200/60 flex items-start gap-2.5">
             <Share2 className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
             <div>
-              <p className="font-bold text-stone-400 text-[10px] uppercase">Social Media</p>
+              <p className="font-bold text-stone-400 text-[10px] uppercase">
+                Social Media
+              </p>
               <a
                 href="https://www.facebook.com/raju.tamang.59406"
                 target="_blank"
@@ -270,7 +556,7 @@ export default function AdminSettingsPage() {
         </div>
       </div>
 
-      {/* 2. PUSH NOTIFICATIONS */}
+      {/* 3. PUSH NOTIFICATIONS */}
       <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-xs border border-stone-200/90 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-100 pb-4">
           <div className="flex items-start gap-3">
@@ -283,25 +569,28 @@ export default function AdminSettingsPage() {
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-sm sm:text-base font-extrabold text-stone-900">Real-time Push Notifications</h2>
+                <h2 className="text-sm sm:text-base font-extrabold text-stone-900">
+                  Real-time Push Notifications
+                </h2>
                 <span
                   className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
                     pushStatus.isSubscribed
                       ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
                       : pushStatus.permission === "denied"
-                      ? "bg-red-100 text-red-800 border border-red-200"
-                      : "bg-stone-100 text-stone-600"
+                        ? "bg-red-100 text-red-800 border border-red-200"
+                        : "bg-stone-100 text-stone-600"
                   }`}
                 >
                   {pushStatus.isSubscribed
                     ? "Active & Subscribed"
                     : pushStatus.permission === "denied"
-                    ? "Blocked by Browser"
-                    : "Disabled"}
+                      ? "Blocked by Browser"
+                      : "Disabled"}
                 </span>
               </div>
               <p className="text-xs text-stone-500 mt-0.5">
-                Instant pop-up notifications on this device whenever orders are placed.
+                Instant pop-up notifications on this device whenever orders are
+                placed.
               </p>
             </div>
           </div>
@@ -339,12 +628,18 @@ export default function AdminSettingsPage() {
             {pushStatus.permission === "denied" ? (
               <span className="text-red-600 font-semibold flex items-center gap-1.5">
                 <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                Blocked in browser settings. Please allow notifications in site permissions.
+                Blocked in browser settings. Please allow notifications in site
+                permissions.
               </span>
             ) : pushStatus.isSubscribed ? (
-              <span>Device registered for background WebPush notifications.</span>
+              <span>
+                Device registered for background WebPush notifications.
+              </span>
             ) : (
-              <span>Click "Enable Push" to receive live orders on this mobile phone or PC.</span>
+              <span>
+                Click "Enable Push" to receive live orders on this mobile phone
+                or PC.
+              </span>
             )}
           </div>
 
@@ -367,7 +662,7 @@ export default function AdminSettingsPage() {
         </div>
       </div>
 
-      {/* 3. AUDIO ALERTS */}
+      {/* 4. AUDIO ALERTS */}
       <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-xs border border-stone-200/90 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-start gap-3">
@@ -380,7 +675,9 @@ export default function AdminSettingsPage() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-sm sm:text-base font-extrabold text-stone-900">New Order Audio Chime</h2>
+                <h2 className="text-sm sm:text-base font-extrabold text-stone-900">
+                  New Order Audio Chime
+                </h2>
                 <span
                   className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
                     soundEnabled
@@ -392,7 +689,8 @@ export default function AdminSettingsPage() {
                 </span>
               </div>
               <p className="text-xs text-stone-500 mt-0.5">
-                Play an audible ding/chime when new customer or waiter orders arrive.
+                Play an audible ding/chime when new customer or waiter orders
+                arrive.
               </p>
             </div>
           </div>

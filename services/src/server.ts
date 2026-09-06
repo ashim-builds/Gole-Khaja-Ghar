@@ -48,10 +48,15 @@ app.use('/uploads', express.static(uploadsDir));
 
 import prisma from './lib/prisma.js';
 
+import { getStoreStatusHandler } from './controllers/storeConfigController.js';
+
 // Health Check
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', service: 'golu-khaja-ghar-services', timestamp: new Date().toISOString() });
 });
+
+// Public Store Operational Status (for customer site & live check)
+app.get('/api/store-status', getStoreStatusHandler);
 
 // API Routes
 app.use('/api/auth', authRoutes);

@@ -608,6 +608,55 @@ export const api = {
     },
   },
 
+  // ── Store Operational Status & Admin Overrides ──
+  store: {
+    async getStatus() {
+      return request<{
+        success: boolean;
+        isOpen: boolean;
+        mode: 'AUTO' | 'MANUAL_OPEN' | 'MANUAL_CLOSED';
+        isFirstTuesday: boolean;
+        isOutsideHours: boolean;
+        statusText: string;
+        badgeLabel: string;
+        reason: string;
+        nextOpening: string;
+        nepalTimeFormatted: string;
+        updatedAt?: string;
+      }>('/store-status', { cache: 'no-store' });
+    },
+    async getAdminStatus() {
+      return request<{
+        success: boolean;
+        isOpen: boolean;
+        mode: 'AUTO' | 'MANUAL_OPEN' | 'MANUAL_CLOSED';
+        isFirstTuesday: boolean;
+        isOutsideHours: boolean;
+        statusText: string;
+        badgeLabel: string;
+        reason: string;
+        nextOpening: string;
+        nepalTimeFormatted: string;
+        updatedAt?: string;
+      }>('/admin/store-status', { cache: 'no-store' });
+    },
+    async updateStatus(data: { mode: 'AUTO' | 'MANUAL_OPEN' | 'MANUAL_CLOSED'; customReason?: string }) {
+      return request<{
+        success: boolean;
+        message: string;
+        isOpen: boolean;
+        mode: 'AUTO' | 'MANUAL_OPEN' | 'MANUAL_CLOSED';
+        statusText: string;
+        badgeLabel: string;
+        reason: string;
+        nextOpening: string;
+      }>('/admin/store-status', {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      });
+    },
+  },
+
   // ── Push Subscriptions ──
   push: {
     async subscribe(subscription: any, type: 'customer' | 'admin' = 'customer') {

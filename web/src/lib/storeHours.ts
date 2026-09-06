@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
+import api from "@/lib/api";
+
+export type StoreOperationalMode = "AUTO" | "MANUAL_OPEN" | "MANUAL_CLOSED";
 
 export interface StoreStatus {
   isOpen: boolean;
+  mode?: StoreOperationalMode;
   isFirstTuesday: boolean;
   isOutsideHours: boolean;
   statusText: string;
@@ -22,26 +26,20 @@ export function getNepalDate(): Date {
 }
 
 /**
- * Evaluates whether Gole Khaja Ghar is currently open.
- * Rules:
- * 1. Open daily from 8:00 AM to 9:00 PM (08:00 to 21:00).
- * 2. Closed on the 1st Tuesday of every month (all day).
+ * Local fallback calculation (Follows standard 8 AM - 9 PM, 1st Tuesday closed rule)
  */
-export function getStoreStatus(): StoreStatus {
+export function getLocalStoreStatus(): StoreStatus {
   const nepalDate = getNepalDate();
-  const dayOfWeek = nepalDate.getDay(); // 0 = Sunday, 1 = Monday, 2 = Tuesday, ...
+  const dayOfWeek = nepalDate.getDay(); // 0 = Sunday, 2 = Tuesday
   const dayOfMonth = nepalDate.getDate();
   const hours = nepalDate.getHours();
   const minutes = nepalDate.getMinutes();
 
   const currentTimeInMinutes = hours * 60 + minutes;
-  const openTimeInMinutes = 8 * 60; // 08:00 AM (480 mins)
-  const closeTimeInMinutes = 21 * 60; // 09:00 PM (1260 mins)
+  const openTimeInMinutes = 8 * 60; // 08:00 AM
+  const closeTimeInMinutes = 21 * 60; // 09:00 PM
 
-  // 1st Tuesday of month check: Tuesday (2) and date between 1 and 7
   const isFirstTuesday = dayOfWeek === 2 && dayOfMonth <= 7;
-
-  // Operating hours check (8:00 AM to 9:00 PM)
   const isOutsideHours = currentTimeInMinutes < openTimeInMinutes || currentTimeInMinutes >= closeTimeInMinutes;
 
   const timeFormatter = new Intl.DateTimeFormat("en-US", {
@@ -54,6 +52,7 @@ export function getStoreStatus(): StoreStatus {
   if (isFirstTuesday) {
     return {
       isOpen: false,
+      mode: "AUTO",
       isFirstTuesday: true,
       isOutsideHours: false,
       statusText: "Closed Today",
@@ -68,6 +67,7 @@ export function getStoreStatus(): StoreStatus {
     const willOpenToday = currentTimeInMinutes < openTimeInMinutes;
     return {
       isOpen: false,
+      mode: "AUTO",
       isFirstTuesday: false,
       isOutsideHours: true,
       statusText: "Currently Closed",
@@ -80,6 +80,7 @@ export function getStoreStatus(): StoreStatus {
 
   return {
     isOpen: true,
+    mode: "AUTO",
     isFirstTuesday: false,
     isOutsideHours: false,
     statusText: "Open Now",
@@ -91,29 +92,54 @@ export function getStoreStatus(): StoreStatus {
 }
 
 /**
- * React hook to subscribe to live store hours status with auto-update every 30 seconds
+ * React hook to subscribe to live store hours status with server sync and local fallback
  */
 export function useStoreHours(): StoreStatus {
-  const [status, setStatus] = useState<StoreStatus>(getStoreStatus);
+  const [status, setStatus] = useState<StoreStatus>(getLocalStoreStatus);
 
   useEffect(() => {
-    // Initial check
-    setStatus(getStoreStatus());
+    let mounted = true;
 
-    // Auto-update periodically
-    const interval = setInterval(() => {
-      setStatus(getStoreStatus());
-    }, 30000);
+    async function syncServerStatus() {
+      try {
+        const res = await api.store.getStatus();
+        if (mounted && res && res.success) {
+          setStatus({
+            isOpen: res.isOpen,
+            mode: res.mode || "AUTO",
+            isFirstTuesday: res.isFirstTuesday,
+            isOutsideHours: res.isOutsideHours,
+            statusText: res.statusText,
+            badgeLabel: res.badgeLabel,
+            reason: res.reason,
+            nextOpening: res.nextOpening,
+            nepalTimeFormatted: res.nepalTimeFormatted,
+          });
+          return;
+        }
+      } catch {
+        // Fallback to local evaluation silently
+      }
 
-    // Re-check on tab focus / visibility change
+      if (mounted) {
+        setStatus(getLocalStoreStatus());
+      }
+    }
+
+    syncServerStatus();
+
+    // Auto-poll every 20 seconds to catch live admin open/close changes
+    const interval = setInterval(syncServerStatus, 20000);
+
     const handleVisibility = () => {
       if (document.visibilityState === "visible") {
-        setStatus(getStoreStatus());
+        syncServerStatus();
       }
     };
     document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
+      mounted = false;
       clearInterval(interval);
       document.removeEventListener("visibilitychange", handleVisibility);
     };

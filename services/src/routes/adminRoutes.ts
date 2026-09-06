@@ -25,6 +25,11 @@ import {
   testAdminPush,
 } from '../controllers/waiterController.js';
 
+import {
+  getStoreStatusHandler,
+  updateStoreStatusHandler,
+} from '../controllers/storeConfigController.js';
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
@@ -43,6 +48,10 @@ router.use(authenticateAdmin);
 router.get('/check-auth', (_req, res) => {
   res.json({ success: true, authenticated: true, isAdmin: true });
 });
+
+// Admin Store Open/Close Controls
+router.get('/store-status', getStoreStatusHandler);
+router.patch('/store-status', updateStoreStatusHandler);
 
 // Admin Product Management
 router.post(
