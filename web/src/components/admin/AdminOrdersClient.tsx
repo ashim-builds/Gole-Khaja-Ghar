@@ -227,8 +227,180 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
         ))}
       </div>
 
-      {/* Orders Table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+      {/* MOBILE ORDERS LIST (PURE DIV CARDS - NO SQUISHED TABLES ON MOBILE) */}
+      <div className="block md:hidden space-y-3.5">
+        {filteredOrders.map((order: any) => {
+          const orderId = order._id?.toString() || order.id;
+          const orderType = (order.orderType || "").toLowerCase();
+          const isDineIn = orderType === "dine_in" || orderType === "dine-in" || order.orderSource === "WAITER";
+          const isPaid = (order.paymentStatus || "").toLowerCase() === "paid";
+          const status = (order.status || "").toUpperCase();
+
+          return (
+            <div
+              key={orderId}
+              className="bg-white rounded-2xl border border-stone-200 p-4 shadow-sm space-y-3 relative overflow-hidden"
+            >
+              {/* Card Header: Order #, Channel Badge, and Time */}
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-black text-base text-stone-900 tracking-tight">
+                      #{order.orderNumber}
+                    </span>
+                    <span
+                      className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider flex items-center gap-1 ${
+                        isDineIn
+                          ? "bg-amber-100 text-amber-800"
+                          : orderType === "pickup"
+                          ? "bg-blue-100 text-blue-800"
+                          : "bg-orange-100 text-orange-800"
+                      }`}
+                    >
+                      {isDineIn ? (
+                        <UtensilsCrossed className="w-2.5 h-2.5" />
+                      ) : orderType === "pickup" ? (
+                        <ShoppingBag className="w-2.5 h-2.5" />
+                      ) : (
+                        <Truck className="w-2.5 h-2.5" />
+                      )}
+                      {isDineIn ? "Dine-In" : orderType === "pickup" ? "Pickup" : "Delivery"}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-stone-400 font-medium mt-0.5">
+                    {new Date(order.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} •{" "}
+                    {new Date(order.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+
+                {/* Total Price */}
+                <div className="text-right">
+                  <span className="text-lg font-black text-stone-900">
+                    Rs. {Number(order.totalAmount || 0).toFixed(0)}
+                  </span>
+                  <p className="text-[10px] text-stone-400 uppercase font-semibold">
+                    {order.paymentMethod === "qr" || order.paymentMethod === "fonepay_qr" || order.paymentMethod === "FONEPAY_QR"
+                      ? "FonePay QR"
+                      : "Cash / COD"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Customer & Items Summary */}
+              <div className="p-3 bg-stone-50 rounded-xl border border-stone-150 space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-stone-900">{order.customerInfo?.name || "Guest Customer"}</span>
+                  {order.customerInfo?.phone && (
+                    <a
+                      href={`tel:${order.customerInfo.phone}`}
+                      className="font-mono text-stone-600 font-semibold text-[11px] hover:text-orange-600"
+                    >
+                      {order.customerInfo.phone}
+                    </a>
+                  )}
+                </div>
+
+                {order.deliveryAddress && !isDineIn && (
+                  <p className="text-[11px] text-stone-500 line-clamp-1">📍 {order.deliveryAddress}</p>
+                )}
+
+                {/* Items preview */}
+                {order.items && order.items.length > 0 && (
+                  <div className="pt-1.5 border-t border-stone-200/60 flex flex-wrap gap-1">
+                    {order.items.slice(0, 3).map((it: any, idx: number) => (
+                      <span
+                        key={idx}
+                        className="text-[10px] font-bold bg-white px-2 py-0.5 rounded border border-stone-200 text-stone-700"
+                      >
+                        {it.quantity}x {it.name}
+                      </span>
+                    ))}
+                    {order.items.length > 3 && (
+                      <span className="text-[10px] font-bold bg-stone-200/70 text-stone-600 px-1.5 py-0.5 rounded">
+                        +{order.items.length - 3} more
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Status & Action Buttons Bar */}
+              <div className="flex items-center justify-between gap-2 pt-1">
+                {/* Left: Status Badge & Payment Toggle */}
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span
+                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${
+                      status === "PENDING"
+                        ? "bg-amber-100 text-amber-800 animate-pulse"
+                        : status === "PREPARING"
+                        ? "bg-blue-100 text-blue-800"
+                        : status === "READY"
+                        ? "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-400"
+                        : status === "COMPLETED" || status === "DELIVERED"
+                        ? "bg-green-100 text-green-800"
+                        : status === "CANCELLED"
+                        ? "bg-red-100 text-red-800"
+                        : "bg-stone-100 text-stone-700"
+                    }`}
+                  >
+                    {status === "READY" && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />}
+                    {status}
+                  </span>
+
+                  {/* 1-tap Payment toggle */}
+                  <button
+                    onClick={() => handleTogglePaymentStatus(orderId, order.paymentStatus)}
+                    disabled={updatingPaymentId === orderId}
+                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer border ${
+                      isPaid
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        : "bg-amber-50 text-amber-700 border-amber-200"
+                    }`}
+                  >
+                    {updatingPaymentId === orderId ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : isPaid ? (
+                      <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                    ) : (
+                      <Clock className="w-3 h-3 text-amber-600" />
+                    )}
+                    <span>{isPaid ? "PAID" : "UNPAID"}</span>
+                  </button>
+                </div>
+
+                {/* Right: Actions */}
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => setSelectedReceiptOrder(order)}
+                    className="p-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl transition-colors cursor-pointer"
+                    title="Print Tax Invoice"
+                  >
+                    <Receipt className="w-4 h-4 text-stone-700" />
+                  </button>
+                  <Link
+                    to={`/admin/orders/${orderId}`}
+                    className="p-2 bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 rounded-xl transition-colors cursor-pointer"
+                    title="View Details"
+                  >
+                    <Eye className="w-4 h-4 text-orange-600" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+
+        {filteredOrders.length === 0 && (
+          <div className="bg-white rounded-2xl border border-stone-200 p-8 text-center space-y-2">
+            <ShoppingBag className="w-10 h-10 text-stone-300 mx-auto" />
+            <p className="font-bold text-stone-700 text-sm">No orders match your filter</p>
+            <p className="text-xs text-stone-400">Try changing status or search criteria.</p>
+          </div>
+        )}
+      </div>
+
+      {/* DESKTOP ORDERS TABLE (HIDDEN ON MOBILE, ACTIVE ON MD+) */}
+      <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-stone-50 border-b border-stone-200 text-stone-500 font-bold uppercase tracking-wider text-[11px]">

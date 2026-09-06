@@ -258,14 +258,14 @@ export default function AdminWaitersPage() {
         </div>
       </div>
 
-      {/* Staff List Table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+      {/* Staff List (Mobile Div Cards + Desktop Table) */}
+      <div>
         {loading ? (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <div className="flex items-center justify-center py-16 bg-white rounded-2xl border border-stone-200">
+            <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
           </div>
         ) : filteredStaff.length === 0 ? (
-          <div className="text-center py-16 text-stone-500">
+          <div className="text-center py-16 text-stone-500 bg-white rounded-2xl border border-stone-200">
             <Users className="w-12 h-12 mx-auto mb-3 text-stone-300" />
             <p className="text-base font-bold text-stone-700">No staff members found</p>
             <p className="text-xs text-stone-400 mt-1">
@@ -273,86 +273,175 @@ export default function AdminWaitersPage() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-stone-50 border-b border-stone-200 uppercase text-stone-500 font-extrabold tracking-wider">
-                <tr>
-                  <th className="px-6 py-4">Role</th>
-                  <th className="px-6 py-4">Employee Code</th>
-                  <th className="px-6 py-4">Name</th>
-                  <th className="px-6 py-4">Phone / Contact</th>
-                  <th className="px-6 py-4">Email</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-stone-100 font-medium text-stone-800">
-                {filteredStaff.map((w) => (
-                  <tr key={w.id} className="hover:bg-stone-50/70 transition-colors">
-                    <td className="px-6 py-4">
+          <>
+            {/* MOBILE STAFF CARDS (PURE DIV CARDS - NO SQUISHED TABLES ON MOBILE) */}
+            <div className="block md:hidden space-y-3.5">
+              {filteredStaff.map((w) => (
+                <div
+                  key={w.id}
+                  className="bg-white rounded-2xl border border-stone-200 p-4 shadow-sm space-y-3 relative overflow-hidden"
+                >
+                  {/* Card Header: Role & Code & Status */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
                       {w.role === "kitchen" ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-100 text-amber-800 border border-amber-300 rounded-lg font-black text-[11px]">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-100 text-amber-800 border border-amber-300 rounded-lg font-black text-[11px]">
                           <ChefHat className="w-3.5 h-3.5" />
-                          Chef
+                          Kitchen Chef
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-orange-100 text-orange-800 border border-orange-300 rounded-lg font-black text-[11px]">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-orange-100 text-orange-800 border border-orange-300 rounded-lg font-black text-[11px]">
                           <UtensilsCrossed className="w-3.5 h-3.5" />
-                          Waiter
+                          Floor Waiter
                         </span>
                       )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="font-mono font-black text-sm bg-stone-100 text-stone-900 border border-stone-200 px-2.5 py-1 rounded-lg">
+                      <span className="font-mono font-black text-xs bg-stone-100 text-stone-900 border border-stone-200 px-2 py-0.5 rounded-md">
                         {w.employeeCode}
                       </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="font-bold text-stone-900 text-sm">{w.name}</div>
-                      {w.notes && <div className="text-[11px] text-stone-500 mt-0.5">{w.notes}</div>}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-1.5 text-stone-800 font-semibold">
-                        <Phone className="w-3.5 h-3.5 text-stone-400" />
-                        {w.phone || "—"}
+                    </div>
+
+                    <span
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-bold text-[10px] ${
+                        w.isActive
+                          ? "bg-green-100 text-green-800 border border-green-200"
+                          : "bg-red-100 text-red-800 border border-red-200"
+                      }`}
+                    >
+                      {w.isActive ? "Active" : "Disabled"}
+                    </span>
+                  </div>
+
+                  {/* Name & Notes */}
+                  <div>
+                    <h3 className="font-black text-base text-stone-900 leading-snug">{w.name}</h3>
+                    {w.notes && <p className="text-xs text-stone-500 mt-0.5">{w.notes}</p>}
+                  </div>
+
+                  {/* Contact Info */}
+                  <div className="p-3 bg-stone-50 rounded-xl border border-stone-150 space-y-1.5 text-xs">
+                    {w.phone && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-stone-400 font-medium flex items-center gap-1.5">
+                          <Phone className="w-3.5 h-3.5" /> Phone:
+                        </span>
+                        <a href={`tel:${w.phone}`} className="font-mono font-bold text-stone-800 hover:text-orange-600">
+                          {w.phone}
+                        </a>
                       </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-1.5 text-stone-700">
-                        <Mail className="w-3.5 h-3.5 text-stone-400" />
-                        {w.email || "—"}
+                    )}
+                    {w.email && (
+                      <div className="flex items-center justify-between pt-1 border-t border-stone-200/50">
+                        <span className="text-stone-400 font-medium flex items-center gap-1.5">
+                          <Mail className="w-3.5 h-3.5" /> Email:
+                        </span>
+                        <span className="text-stone-700 font-medium truncate max-w-[180px]">{w.email}</span>
                       </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold text-[10px] ${
-                          w.isActive
-                            ? "bg-green-100 text-green-800 border border-green-200"
-                            : "bg-red-100 text-red-800 border border-red-200"
-                        }`}
-                      >
-                        {w.isActive ? "Active" : "Disabled"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => handleDeleteStaff(w.id, w.name)}
-                        disabled={deletingId === w.id}
-                        className="p-2 hover:bg-red-50 text-stone-400 hover:text-red-600 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
-                        title="Delete account"
-                      >
-                        {deletingId === w.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin text-red-500" />
-                        ) : (
-                          <Trash2 className="w-4 h-4" />
-                        )}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    )}
+                  </div>
+
+                  {/* Bottom Action Row */}
+                  <div className="flex items-center justify-end gap-2 pt-1 border-t border-stone-100">
+                    <button
+                      onClick={() => handleDeleteStaff(w.id, w.name)}
+                      disabled={deletingId === w.id}
+                      className="px-3 py-1.5 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                    >
+                      {deletingId === w.id ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-3.5 h-3.5" />
+                      )}
+                      <span>Delete Account</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* DESKTOP TABLE VIEW (HIDDEN ON MOBILE, ACTIVE ON MD+) */}
+            <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-stone-50 border-b border-stone-200 uppercase text-stone-500 font-extrabold tracking-wider">
+                    <tr>
+                      <th className="px-6 py-4">Role</th>
+                      <th className="px-6 py-4">Employee Code</th>
+                      <th className="px-6 py-4">Name</th>
+                      <th className="px-6 py-4">Phone / Contact</th>
+                      <th className="px-6 py-4">Email</th>
+                      <th className="px-6 py-4">Status</th>
+                      <th className="px-6 py-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-stone-100 font-medium text-stone-800">
+                    {filteredStaff.map((w) => (
+                      <tr key={w.id} className="hover:bg-stone-50/70 transition-colors">
+                        <td className="px-6 py-4">
+                          {w.role === "kitchen" ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-100 text-amber-800 border border-amber-300 rounded-lg font-black text-[11px]">
+                              <ChefHat className="w-3.5 h-3.5" />
+                              Chef
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-orange-100 text-orange-800 border border-orange-300 rounded-lg font-black text-[11px]">
+                              <UtensilsCrossed className="w-3.5 h-3.5" />
+                              Waiter
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="font-mono font-black text-sm bg-stone-100 text-stone-900 border border-stone-200 px-2.5 py-1 rounded-lg">
+                            {w.employeeCode}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="font-bold text-stone-900 text-sm">{w.name}</div>
+                          {w.notes && <div className="text-[11px] text-stone-500 mt-0.5">{w.notes}</div>}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-1.5 text-stone-800 font-semibold">
+                            <Phone className="w-3.5 h-3.5 text-stone-400" />
+                            {w.phone || "—"}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-1.5 text-stone-700">
+                            <Mail className="w-3.5 h-3.5 text-stone-400" />
+                            {w.email || "—"}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span
+                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold text-[10px] ${
+                              w.isActive
+                                ? "bg-green-100 text-green-800 border border-green-200"
+                                : "bg-red-100 text-red-800 border border-red-200"
+                            }`}
+                          >
+                            {w.isActive ? "Active" : "Disabled"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <button
+                            onClick={() => handleDeleteStaff(w.id, w.name)}
+                            disabled={deletingId === w.id}
+                            className="p-2 hover:bg-red-50 text-stone-400 hover:text-red-600 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                            title="Delete account"
+                          >
+                            {deletingId === w.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin text-red-500" />
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
         )}
       </div>
 

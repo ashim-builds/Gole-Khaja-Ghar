@@ -216,7 +216,7 @@ function AdminProtectedLayoutContent() {
         )}
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-stone-50 pb-28 md:pb-8">
+        <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-8 bg-stone-50 pb-36 md:pb-8 custom-scrollbar">
           <Outlet />
         </main>
 

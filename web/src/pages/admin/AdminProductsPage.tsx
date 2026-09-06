@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
   Plus,
@@ -13,7 +13,13 @@ import {
   X,
   Sliders,
   TrendingUp,
-  TrendingDown
+  TrendingDown,
+  Search,
+  Filter,
+  Sparkles,
+  Tag,
+  Boxes,
+  RotateCcw,
 } from "lucide-react";
 import StockToggle from "@/components/admin/StockToggle";
 import { api } from "@/lib/api";
@@ -21,6 +27,13 @@ import { api } from "@/lib/api";
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Search & Filter state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("ALL");
+  const [stockStatusFilter, setStockStatusFilter] = useState<
+    "ALL" | "IN_STOCK" | "LOW_STOCK" | "OUT_OF_STOCK" | "UNTRACKED"
+  >("ALL");
 
   // Stock Adjustment Modal state
   const [adjustingProduct, setAdjustingProduct] = useState<any | null>(null);
@@ -30,25 +43,95 @@ export default function AdminProductsPage() {
   const [isSubmittingStock, setIsSubmittingStock] = useState(false);
   const [stockFeedback, setStockFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
-  useEffect(() => {
-    let isMounted = true;
+  const fetchProducts = () => {
+    setLoading(true);
     api.products
       .getAll()
       .then((res) => {
-        if (isMounted) {
-          setProducts(res.products || []);
-          setLoading(false);
-        }
+        setProducts(res.products || []);
+        setLoading(false);
       })
       .catch((err) => {
         console.error("Failed to fetch products for admin:", err);
-        if (isMounted) setLoading(false);
+        setLoading(false);
       });
+  };
 
-    return () => {
-      isMounted = false;
-    };
+  useEffect(() => {
+    fetchProducts();
   }, []);
+
+  // Compute unique categories
+  const categories = useMemo(() => {
+    const cats = new Set<string>();
+    products.forEach((p) => {
+      if (p.category) cats.add(p.category);
+    });
+    return ["ALL", ...Array.from(cats)];
+  }, [products]);
+
+  // Compute stock counts for filtering badges
+  const stockCounts = useMemo(() => {
+    let inStock = 0;
+    let lowStock = 0;
+    let outOfStock = 0;
+    let untracked = 0;
+
+    products.forEach((p) => {
+      if (!p.trackStock) {
+        untracked++;
+      } else {
+        const qty = p.stockQuantity ?? 0;
+        const alertThreshold = p.lowStockAlert ?? 5;
+        if (qty <= 0) {
+          outOfStock++;
+        } else if (qty <= alertThreshold) {
+          lowStock++;
+        } else {
+          inStock++;
+        }
+      }
+    });
+
+    return { total: products.length, inStock, lowStock, outOfStock, untracked };
+  }, [products]);
+
+  // Filtered products list
+  const filteredProducts = useMemo(() => {
+    return products.filter((product) => {
+      // Category filter
+      if (selectedCategory !== "ALL" && product.category !== selectedCategory) {
+        return false;
+      }
+
+      // Stock status filter
+      if (stockStatusFilter !== "ALL") {
+        const isTracked = product.trackStock === true;
+        const qty = product.stockQuantity ?? 0;
+        const alertThreshold = product.lowStockAlert ?? 5;
+
+        if (stockStatusFilter === "UNTRACKED" && isTracked) return false;
+        if (stockStatusFilter === "IN_STOCK" && (!isTracked || qty <= alertThreshold)) return false;
+        if (stockStatusFilter === "LOW_STOCK" && (!isTracked || qty <= 0 || qty > alertThreshold)) return false;
+        if (stockStatusFilter === "OUT_OF_STOCK" && (!isTracked || qty > 0)) return false;
+      }
+
+      // Search Query filter
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const name = (product.name || "").toLowerCase();
+        const cat = (product.category || "").toLowerCase();
+        const desc = (product.description || "").toLowerCase();
+        const slug = (product.slug || "").toLowerCase();
+
+        if (!name.includes(q) && !cat.includes(q) && !desc.includes(q) && !slug.includes(q)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [products, selectedCategory, stockStatusFilter, searchQuery]);
 
   const openStockModal = (product: any, defaultAction: "add" | "reduce" | "set" = "add") => {
     setAdjustingProduct(product);
@@ -79,7 +162,7 @@ export default function AdminProductsPage() {
     e.preventDefault();
     if (!adjustingProduct) return;
     const qty = typeof stockQty === "number" ? stockQty : parseInt(String(stockQty), 10);
-    if (isNaN(qty) || qty <= 0 && stockAction !== "set") {
+    if (isNaN(qty) || (qty <= 0 && stockAction !== "set")) {
       setStockFeedback({ type: "error", message: "Please enter a valid quantity." });
       return;
     }
@@ -118,7 +201,7 @@ export default function AdminProductsPage() {
 
       setTimeout(() => {
         closeStockModal();
-      }, 900);
+      }, 800);
     } catch (err: any) {
       setStockFeedback({
         type: "error",
@@ -138,38 +221,343 @@ export default function AdminProductsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 pb-12">
+      {/* HEADER BAR */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <div>
-          <h1 className="text-3xl font-black text-stone-900 tracking-tight">Products Catalog</h1>
+          <h1 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight">Products Catalog</h1>
           <p className="text-xs text-stone-500 font-medium mt-0.5">
-            Manage your dishes, drinks, prices, and live inventory stock
+            Manage food menu, pricing, categories, and live stock tracking
           </p>
         </div>
-        <Link
-          to="/admin/products/new"
-          className="inline-flex items-center justify-center gap-2 bg-orange-600 text-white font-black px-4 py-2.5 rounded-xl hover:bg-orange-500 transition-all shadow-md shadow-orange-600/20 cursor-pointer"
-        >
-          <Plus className="w-5 h-5 text-white" />
-          Add Product
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={fetchProducts}
+            className="p-2.5 bg-white rounded-xl border border-stone-200 text-stone-600 hover:bg-stone-50 transition-colors shadow-xs cursor-pointer"
+            title="Refresh Products"
+          >
+            <RotateCcw className="w-4 h-4" />
+          </button>
+          <Link
+            to="/admin/products/new"
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-500 text-white font-black text-xs uppercase tracking-wider px-4 py-2.5 rounded-xl transition-all shadow-md shadow-orange-600/20 cursor-pointer"
+          >
+            <Plus className="w-4 h-4 text-white" />
+            Add Product
+          </Link>
+        </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden">
-        <div className="p-4 md:p-0">
-          <table className="block md:table w-full text-left">
-            <thead className="hidden md:table-header-group bg-stone-50 border-b border-stone-100">
+      {/* SEARCH BAR & QUICK FILTERS CARD */}
+      <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-stone-200 shadow-sm space-y-3">
+        {/* Search Input Row */}
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Search by dish name, category, ingredients..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-9 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs sm:text-sm font-semibold text-stone-900 placeholder:text-stone-400 focus:outline-none focus:bg-white focus:border-orange-500 transition-all"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 p-0.5 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+          <div className="hidden sm:flex items-center px-3 py-2 bg-stone-100 rounded-xl text-xs font-bold text-stone-600 shrink-0">
+            {filteredProducts.length} of {products.length} Items
+          </div>
+        </div>
+
+        {/* Stock Status Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs">
+          <span className="text-[11px] font-bold text-stone-400 uppercase tracking-wider shrink-0 mr-1">
+            Stock:
+          </span>
+          <button
+            onClick={() => setStockStatusFilter("ALL")}
+            className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+              stockStatusFilter === "ALL"
+                ? "bg-stone-900 text-white shadow-xs"
+                : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+            }`}
+          >
+            <span>All</span>
+            <span className="px-1.5 py-0.2 bg-white/20 text-[10px] rounded-full">{stockCounts.total}</span>
+          </button>
+
+          <button
+            onClick={() => setStockStatusFilter("IN_STOCK")}
+            className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+              stockStatusFilter === "IN_STOCK"
+                ? "bg-emerald-600 text-white shadow-xs"
+                : "bg-emerald-50 text-emerald-800 border border-emerald-200/60 hover:bg-emerald-100"
+            }`}
+          >
+            <span>In Stock</span>
+            <span className="px-1.5 py-0.2 bg-emerald-200/50 text-[10px] rounded-full font-black">
+              {stockCounts.inStock}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setStockStatusFilter("LOW_STOCK")}
+            className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+              stockStatusFilter === "LOW_STOCK"
+                ? "bg-amber-600 text-white shadow-xs"
+                : "bg-amber-50 text-amber-800 border border-amber-200/60 hover:bg-amber-100"
+            }`}
+          >
+            <span>Low Stock</span>
+            <span className="px-1.5 py-0.2 bg-amber-200/50 text-[10px] rounded-full font-black">
+              {stockCounts.lowStock}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setStockStatusFilter("OUT_OF_STOCK")}
+            className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+              stockStatusFilter === "OUT_OF_STOCK"
+                ? "bg-red-600 text-white shadow-xs"
+                : "bg-red-50 text-red-800 border border-red-200/60 hover:bg-red-100"
+            }`}
+          >
+            <span>Out of Stock</span>
+            <span className="px-1.5 py-0.2 bg-red-200/50 text-[10px] rounded-full font-black">
+              {stockCounts.outOfStock}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setStockStatusFilter("UNTRACKED")}
+            className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+              stockStatusFilter === "UNTRACKED"
+                ? "bg-stone-700 text-white shadow-xs"
+                : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+            }`}
+          >
+            <span>Untracked</span>
+            <span className="px-1.5 py-0.2 bg-stone-200 text-[10px] rounded-full">
+              {stockCounts.untracked}
+            </span>
+          </button>
+        </div>
+
+        {/* Categories Scrollable Bar */}
+        {categories.length > 2 && (
+          <div className="flex items-center gap-1.5 overflow-x-auto pt-1 border-t border-stone-100 scrollbar-none">
+            <span className="text-[11px] font-bold text-stone-400 uppercase tracking-wider shrink-0 mr-1">
+              Category:
+            </span>
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                  selectedCategory === cat
+                    ? "bg-orange-600 text-white shadow-xs"
+                    : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                }`}
+              >
+                {cat === "ALL" ? "All Categories" : cat}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* MOBILE LIST VIEW (PURE DIV CARDS - NO TABLES ON MOBILE) */}
+      <div className="block md:hidden space-y-3">
+        {filteredProducts.map((product) => {
+          const isTracked = product.trackStock === true;
+          const stockQty = product.stockQuantity ?? 0;
+          const lowAlert = product.lowStockAlert ?? 5;
+          const isOutOfStock = isTracked && stockQty <= 0;
+          const isLowStock = isTracked && stockQty > 0 && stockQty <= lowAlert;
+
+          return (
+            <div
+              key={product.id || product._id}
+              className="bg-white rounded-2xl border border-stone-200 p-4 shadow-sm space-y-3 relative overflow-hidden"
+            >
+              {/* Product Header Row */}
+              <div className="flex items-start gap-3">
+                {/* Thumbnail */}
+                <div className="w-16 h-16 rounded-xl bg-stone-100 border border-stone-200 overflow-hidden shrink-0 flex items-center justify-center">
+                  {product.image ? (
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <ImageIcon className="w-6 h-6 text-stone-400" />
+                  )}
+                </div>
+
+                {/* Name, Category, Featured */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider bg-stone-100 px-2 py-0.5 rounded">
+                      {product.category || "General"}
+                    </span>
+                    {product.isFeatured && (
+                      <span className="text-[10px] font-black text-purple-700 bg-purple-50 border border-purple-200 px-2 py-0.5 rounded flex items-center gap-1">
+                        <Sparkles className="w-2.5 h-2.5" />
+                        Featured
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="font-black text-base text-stone-900 leading-snug mt-1 truncate">
+                    {product.name}
+                  </h3>
+
+                  {/* Price Tag */}
+                  <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                    {product.priceType === "weight" ? (
+                      <span className="font-black text-sm text-stone-900">
+                        Rs. {product.pricePerKg}{" "}
+                        <span className="text-xs font-normal text-stone-500">/kg</span>
+                      </span>
+                    ) : product.variants && product.variants.length > 0 ? (
+                      product.variants.length === 1 ? (
+                        <span className="font-black text-sm text-stone-900">
+                          Rs. {product.variants[0].price}{" "}
+                          <span className="text-[11px] font-semibold text-orange-700 bg-orange-50 px-1.5 py-0.5 rounded">
+                            /{product.variants[0].name}
+                          </span>
+                        </span>
+                      ) : (
+                        <div className="flex flex-wrap gap-1">
+                          {product.variants.map((v: any, idx: number) => (
+                            <span
+                              key={idx}
+                              className="text-[10px] font-bold bg-stone-100 text-stone-800 px-1.5 py-0.5 rounded border border-stone-200"
+                            >
+                              {v.name}: <strong className="text-orange-600">Rs.{v.price}</strong>
+                            </span>
+                          ))}
+                        </div>
+                      )
+                    ) : (
+                      <span className="text-stone-400 text-xs font-medium">—</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Stock Inventory & Availability Controls Row */}
+              <div className="pt-2.5 border-t border-stone-100 flex items-center justify-between gap-2">
+                {/* Left: Stock Status & Quick Buttons */}
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {isTracked ? (
+                    <>
+                      <span
+                        className={`px-2 py-1 rounded-lg text-xs font-black flex items-center gap-1 border shadow-2xs ${
+                          isOutOfStock
+                            ? "bg-red-50 text-red-700 border-red-200"
+                            : isLowStock
+                            ? "bg-amber-50 text-amber-800 border-amber-200"
+                            : "bg-emerald-50 text-emerald-800 border-emerald-200"
+                        }`}
+                      >
+                        <Package className="w-3 h-3" />
+                        <span>{stockQty} units</span>
+                        {isOutOfStock && <span className="text-[9px] uppercase font-bold text-red-700">(Out)</span>}
+                        {isLowStock && <span className="text-[9px] uppercase font-bold text-amber-700">(Low)</span>}
+                      </span>
+
+                      {/* Quick + and - buttons */}
+                      <button
+                        onClick={() => openStockModal(product, "add")}
+                        className="p-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 active:bg-emerald-100 transition-colors"
+                        title="Add Stock"
+                      >
+                        <PlusCircle className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => openStockModal(product, "reduce")}
+                        className="p-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 active:bg-amber-100 transition-colors"
+                        title="Reduce Stock"
+                      >
+                        <MinusCircle className="w-4 h-4" />
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => openStockModal(product, "set")}
+                      className="text-xs font-bold text-orange-600 bg-orange-50 border border-orange-200 px-2.5 py-1 rounded-lg active:bg-orange-100 flex items-center gap-1"
+                    >
+                      <Boxes className="w-3.5 h-3.5" />
+                      Track Stock
+                    </button>
+                  )}
+                </div>
+
+                {/* Right: Availability Toggle */}
+                <div className="shrink-0">
+                  <StockToggle
+                    productId={product.id || product._id}
+                    initialAvailable={product.isAvailable ?? true}
+                  />
+                </div>
+              </div>
+
+              {/* Bottom Action Bar */}
+              <div className="pt-2 border-t border-stone-100 flex items-center justify-between gap-2">
+                <button
+                  onClick={() => openStockModal(product, "set")}
+                  className="flex-1 py-1.5 px-3 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold rounded-xl transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Sliders className="w-3.5 h-3.5 text-stone-500" />
+                  Adjust Stock
+                </button>
+
+                <Link
+                  to={`/admin/products/${product.id || product._id}/edit`}
+                  className="flex-1 py-1.5 px-3 bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200/80 text-xs font-bold rounded-xl transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Edit className="w-3.5 h-3.5 text-orange-600" />
+                  Edit Product
+                </Link>
+              </div>
+            </div>
+          );
+        })}
+
+        {filteredProducts.length === 0 && (
+          <div className="bg-white rounded-2xl border border-stone-200 p-8 text-center space-y-2">
+            <Package className="w-10 h-10 text-stone-300 mx-auto" />
+            <p className="font-bold text-stone-700 text-sm">No products found</p>
+            <p className="text-xs text-stone-400">
+              Try adjusting your search query or category filters.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* DESKTOP TABLE VIEW (HIDDEN ON MOBILE, ACTIVE ON MD+) */}
+      <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-stone-50 border-b border-stone-200 text-stone-500 font-extrabold uppercase tracking-wider text-[11px]">
               <tr>
-                <th className="p-4 font-bold text-stone-500 text-xs uppercase tracking-wider">Image</th>
-                <th className="p-4 font-bold text-stone-500 text-xs uppercase tracking-wider">Product Name</th>
-                <th className="p-4 font-bold text-stone-500 text-xs uppercase tracking-wider">Price</th>
-                <th className="p-4 font-bold text-stone-500 text-xs uppercase tracking-wider">Stock & Inventory</th>
-                <th className="p-4 font-bold text-stone-500 text-xs uppercase tracking-wider">Availability</th>
-                <th className="p-4 font-bold text-stone-500 text-xs uppercase tracking-wider">Actions</th>
+                <th className="p-4">Image</th>
+                <th className="p-4">Product Name</th>
+                <th className="p-4">Price</th>
+                <th className="p-4">Stock & Inventory</th>
+                <th className="p-4">Availability</th>
+                <th className="p-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="block md:table-row-group divide-y divide-stone-100 md:divide-y-0">
-              {products.map((product: any) => {
+            <tbody className="divide-y divide-stone-100">
+              {filteredProducts.map((product: any) => {
                 const isTracked = product.trackStock === true;
                 const stockQty = product.stockQuantity ?? 0;
                 const lowAlert = product.lowStockAlert ?? 5;
@@ -177,15 +565,9 @@ export default function AdminProductsPage() {
                 const isLowStock = isTracked && stockQty > 0 && stockQty <= lowAlert;
 
                 return (
-                  <tr
-                    key={product.id || product._id}
-                    className="block md:table-row bg-white md:bg-transparent border border-stone-200 md:border-0 rounded-xl p-4 mb-4 md:mb-0 space-y-2.5 md:space-y-0 relative shadow-sm md:shadow-none hover:bg-stone-50/70 transition-colors"
-                  >
+                  <tr key={product.id || product._id} className="hover:bg-stone-50/70 transition-colors">
                     {/* IMAGE */}
-                    <td className="flex md:table-cell justify-between items-center p-0 md:p-4 border-b border-stone-100 md:border-0 pb-2 md:pb-0">
-                      <span className="md:hidden font-bold text-stone-400 text-[10px] uppercase tracking-wider">
-                        Image
-                      </span>
+                    <td className="p-4">
                       <div className="w-12 h-12 rounded-lg bg-stone-100 relative overflow-hidden border border-stone-200 flex items-center justify-center">
                         {product.image ? (
                           <img
@@ -200,155 +582,132 @@ export default function AdminProductsPage() {
                     </td>
 
                     {/* NAME & CATEGORY */}
-                    <td className="flex md:table-cell justify-between items-center p-0 md:p-4 border-b border-stone-100 md:border-0 pb-2 md:pb-0">
-                      <span className="md:hidden font-bold text-stone-400 text-[10px] uppercase tracking-wider">
-                        Product Name
-                      </span>
-                      <div className="text-right md:text-left">
-                        <p className="font-bold text-stone-900 leading-snug">{product.name}</p>
-                        <div className="flex items-center gap-1.5 justify-end md:justify-start mt-0.5">
-                          <span className="text-xs text-stone-500 font-medium">{product.category}</span>
-                          {product.isFeatured && (
-                            <span className="px-1.5 py-0.2 bg-purple-50 text-purple-700 border border-purple-200 rounded text-[10px] font-bold">
-                              Featured
-                            </span>
-                          )}
-                        </div>
+                    <td className="p-4">
+                      <p className="font-bold text-stone-900 text-sm leading-snug">{product.name}</p>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="text-xs text-stone-500 font-medium">{product.category}</span>
+                        {product.isFeatured && (
+                          <span className="px-1.5 py-0.2 bg-purple-50 text-purple-700 border border-purple-200 rounded text-[10px] font-bold">
+                            Featured
+                          </span>
+                        )}
                       </div>
                     </td>
 
                     {/* PRICE */}
-                    <td className="flex md:table-cell justify-between items-center p-0 md:p-4 border-b border-stone-100 md:border-0 pb-2 md:pb-0 font-black text-stone-900">
-                      <span className="md:hidden font-bold text-stone-400 text-[10px] uppercase tracking-wider">
-                        Price
-                      </span>
-                      <div className="flex flex-col items-end md:items-start gap-0.5">
-                        {product.priceType === "weight" ? (
-                          <span className="font-black text-stone-900">
-                            Rs. {product.pricePerKg} <span className="text-xs font-normal text-stone-500">/kg</span>
-                          </span>
-                        ) : product.variants && product.variants.length > 0 ? (
-                          product.variants.length === 1 ? (
-                            <span className="font-black text-stone-900">
-                              Rs. {product.variants[0].price}{" "}
-                              <span className="text-xs font-semibold text-orange-700 bg-orange-50 px-1.5 py-0.5 rounded">
-                                /{product.variants[0].name}
-                              </span>
+                    <td className="p-4 font-black text-stone-900">
+                      {product.priceType === "weight" ? (
+                        <span>
+                          Rs. {product.pricePerKg} <span className="text-xs font-normal text-stone-500">/kg</span>
+                        </span>
+                      ) : product.variants && product.variants.length > 0 ? (
+                        product.variants.length === 1 ? (
+                          <span>
+                            Rs. {product.variants[0].price}{" "}
+                            <span className="text-xs font-semibold text-orange-700 bg-orange-50 px-1.5 py-0.5 rounded">
+                              /{product.variants[0].name}
                             </span>
-                          ) : (
-                            <div className="flex flex-wrap gap-1 max-w-[220px]">
-                              {product.variants.map((v: any, idx: number) => (
-                                <span
-                                  key={idx}
-                                  className="text-[11px] font-bold bg-stone-100 text-stone-800 px-1.5 py-0.5 rounded border border-stone-200 whitespace-nowrap"
-                                >
-                                  {v.name}: <span className="text-orange-600 font-black">Rs. {v.price}</span>
-                                </span>
-                              ))}
-                            </div>
-                          )
+                          </span>
                         ) : (
-                          <span className="text-stone-400 font-medium">—</span>
-                        )}
-                      </div>
+                          <div className="flex flex-wrap gap-1 max-w-[220px]">
+                            {product.variants.map((v: any, idx: number) => (
+                              <span
+                                key={idx}
+                                className="text-[11px] font-bold bg-stone-100 text-stone-800 px-1.5 py-0.5 rounded border border-stone-200 whitespace-nowrap"
+                              >
+                                {v.name}: <span className="text-orange-600 font-black">Rs. {v.price}</span>
+                              </span>
+                            ))}
+                          </div>
+                        )
+                      ) : (
+                        <span className="text-stone-400 font-medium">—</span>
+                      )}
                     </td>
 
                     {/* STOCK & INVENTORY COLUMN */}
-                    <td className="flex md:table-cell justify-between items-center p-0 md:p-4 border-b border-stone-100 md:border-0 pb-2 md:pb-0">
-                      <span className="md:hidden font-bold text-stone-400 text-[10px] uppercase tracking-wider">
-                        Stock
-                      </span>
-                      <div className="flex flex-col items-end md:items-start gap-1.5">
-                        {isTracked ? (
-                          <div className="flex items-center gap-2">
-                            {/* Stock Badge */}
-                            <span
-                              className={`px-2.5 py-1 rounded-lg text-xs font-black flex items-center gap-1.5 border shadow-xs ${
-                                isOutOfStock
-                                  ? "bg-red-50 text-red-700 border-red-200"
-                                  : isLowStock
-                                  ? "bg-amber-50 text-amber-800 border-amber-200"
-                                  : "bg-emerald-50 text-emerald-800 border-emerald-200"
-                              }`}
-                            >
-                              <Package className="w-3.5 h-3.5" />
-                              <span>
-                                {stockQty} {stockQty === 1 ? "unit" : "units"}
+                    <td className="p-4">
+                      {isTracked ? (
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`px-2.5 py-1 rounded-lg text-xs font-black flex items-center gap-1.5 border shadow-2xs ${
+                              isOutOfStock
+                                ? "bg-red-50 text-red-700 border-red-200"
+                                : isLowStock
+                                ? "bg-amber-50 text-amber-800 border-amber-200"
+                                : "bg-emerald-50 text-emerald-800 border-emerald-200"
+                            }`}
+                          >
+                            <Package className="w-3.5 h-3.5" />
+                            <span>
+                              {stockQty} {stockQty === 1 ? "unit" : "units"}
+                            </span>
+                            {isOutOfStock && (
+                              <span className="text-[10px] font-bold bg-red-200 text-red-900 px-1 rounded uppercase">
+                                Out
                               </span>
-                              {isOutOfStock ? (
-                                <span className="text-[10px] font-bold bg-red-200 text-red-900 px-1 rounded uppercase">
-                                  Out
-                                </span>
-                              ) : isLowStock ? (
-                                <span className="text-[10px] font-bold bg-amber-200 text-amber-900 px-1 rounded uppercase">
-                                  Low
-                                </span>
-                              ) : null}
-                            </span>
+                            )}
+                            {isLowStock && (
+                              <span className="text-[10px] font-bold bg-amber-200 text-amber-900 px-1 rounded uppercase">
+                                Low
+                              </span>
+                            )}
+                          </span>
 
-                            {/* Quick Add / Reduce Buttons */}
-                            <div className="flex items-center gap-1">
-                              <button
-                                onClick={() => openStockModal(product, "add")}
-                                title="Add Stock (+)"
-                                className="p-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition-colors cursor-pointer"
-                              >
-                                <PlusCircle className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => openStockModal(product, "reduce")}
-                                title="Reduce Stock (-)"
-                                className="p-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 transition-colors cursor-pointer"
-                              >
-                                <MinusCircle className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => openStockModal(product, "set")}
-                                title="Adjust/Set Stock"
-                                className="p-1 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-200 transition-colors cursor-pointer"
-                              >
-                                <Sliders className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-medium text-stone-400 bg-stone-100 px-2 py-0.5 rounded-md">
-                              Untracked
-                            </span>
+                          {/* Quick Add / Reduce Buttons */}
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => openStockModal(product, "add")}
+                              title="Add Stock (+)"
+                              className="p-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition-colors cursor-pointer"
+                            >
+                              <PlusCircle className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => openStockModal(product, "reduce")}
+                              title="Reduce Stock (-)"
+                              className="p-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 transition-colors cursor-pointer"
+                            >
+                              <MinusCircle className="w-4 h-4" />
+                            </button>
                             <button
                               onClick={() => openStockModal(product, "set")}
-                              className="text-[11px] font-bold text-orange-600 hover:text-orange-700 hover:underline cursor-pointer"
+                              title="Adjust/Set Stock"
+                              className="p-1 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-200 transition-colors cursor-pointer"
                             >
-                              + Set Stock
+                              <Sliders className="w-4 h-4" />
                             </button>
                           </div>
-                        )}
-                      </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-medium text-stone-400 bg-stone-100 px-2 py-0.5 rounded-md">
+                            Untracked
+                          </span>
+                          <button
+                            onClick={() => openStockModal(product, "set")}
+                            className="text-[11px] font-bold text-orange-600 hover:text-orange-700 hover:underline cursor-pointer"
+                          >
+                            + Track Stock
+                          </button>
+                        </div>
+                      )}
                     </td>
 
                     {/* AVAILABILITY TOGGLE */}
-                    <td className="flex md:table-cell justify-between items-center p-0 md:p-4 border-b border-stone-100 md:border-0 pb-2 md:pb-0">
-                      <span className="md:hidden font-bold text-stone-400 text-[10px] uppercase tracking-wider">
-                        Availability
-                      </span>
-                      <div>
-                        <StockToggle
-                          productId={product.id || product._id}
-                          initialAvailable={product.isAvailable ?? true}
-                        />
-                      </div>
+                    <td className="p-4">
+                      <StockToggle
+                        productId={product.id || product._id}
+                        initialAvailable={product.isAvailable ?? true}
+                      />
                     </td>
 
                     {/* ACTIONS */}
-                    <td className="flex md:table-cell justify-between items-center p-0 md:p-4 last:border-0 pt-1 md:pt-0">
-                      <span className="md:hidden font-bold text-stone-400 text-[10px] uppercase tracking-wider">
-                        Actions
-                      </span>
+                    <td className="p-4 text-right">
                       <Link
                         to={`/admin/products/${product.id || product._id}/edit`}
                         className="inline-flex items-center justify-center p-2 bg-stone-100 text-stone-600 hover:bg-stone-200 hover:text-black rounded-lg transition-colors cursor-pointer"
-                        title="Edit Full Product"
+                        title="Edit Product"
                       >
                         <Edit className="w-4 h-4" />
                       </Link>
@@ -357,10 +716,10 @@ export default function AdminProductsPage() {
                 );
               })}
 
-              {products.length === 0 && (
-                <tr className="block md:table-row bg-white md:bg-transparent">
-                  <td colSpan={6} className="block md:table-cell p-8 text-center text-stone-400 font-medium">
-                    No products found. Add one to get started.
+              {filteredProducts.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="p-12 text-center text-stone-400 font-medium">
+                    No products match your search/filter criteria.
                   </td>
                 </tr>
               )}
@@ -401,20 +760,14 @@ export default function AdminProductsPage() {
                     Current Live Stock
                   </span>
                   <span className="text-lg font-black text-stone-900">
-                    {adjustingProduct.trackStock ? (
-                      `${adjustingProduct.stockQuantity ?? 0} units`
-                    ) : (
-                      "Untracked"
-                    )}
+                    {adjustingProduct.trackStock ? `${adjustingProduct.stockQuantity ?? 0} units` : "Untracked"}
                   </span>
                 </div>
                 <div className="text-right">
                   <span className="text-[11px] font-bold text-stone-400 uppercase tracking-wider block">
                     Resulting Stock
                   </span>
-                  <span className="text-lg font-black text-orange-600">
-                    {calculatePreviewStock()} units
-                  </span>
+                  <span className="text-lg font-black text-orange-600">{calculatePreviewStock()} units</span>
                 </div>
               </div>
 
@@ -478,7 +831,9 @@ export default function AdminProductsPage() {
                   required
                   placeholder={stockAction === "set" ? "e.g. 50" : "e.g. 10"}
                   value={stockQty}
-                  onChange={(e) => setStockQty(e.target.value === "" ? "" : Math.max(0, parseInt(e.target.value, 10) || 0))}
+                  onChange={(e) =>
+                    setStockQty(e.target.value === "" ? "" : Math.max(0, parseInt(e.target.value, 10) || 0))
+                  }
                   className="w-full text-lg font-black px-4 py-2.5 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white"
                 />
               </div>
@@ -568,4 +923,5 @@ export default function AdminProductsPage() {
     </div>
   );
 }
+
 
