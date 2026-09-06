@@ -13,7 +13,7 @@ export default function PrivacyPolicyPage() {
           </div>
           <h1 className="text-3xl md:text-4xl font-black mb-3">Privacy Policy</h1>
           <p className="text-stone-400 font-medium text-sm md:text-base">
-            Last updated: August 2026 · Golu Khaja Ghar, Nepal
+            Last updated: August 2026 · Gole Khaja Ghar, Nepal
           </p>
         </div>
       </div>
@@ -23,15 +23,15 @@ export default function PrivacyPolicyPage() {
           {/* Intro */}
           <section>
             <p className="text-stone-600 font-medium leading-relaxed">
-              At <strong className="text-stone-900">Golu Khaja Ghar</strong>, we respect your privacy and are committed to protecting your personal data. This policy explains what information we collect, how we use it, and your rights regarding your data.
+              At <strong className="text-stone-900">Gole Khaja Ghar</strong>, we respect your privacy and are committed to protecting your personal data. This policy explains what information we collect, how we use it, and your rights regarding your data.
             </p>
           </section>
 
           {/* Information We Collect */}
           <section>
             <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-9 h-9 bg-amber-50 rounded-xl flex items-center justify-center">
-                <Eye className="w-5 h-5 text-amber-600" />
+              <div className="w-9 h-9 bg-orange-50 rounded-xl flex items-center justify-center">
+                <Eye className="w-5 h-5 text-primary" />
               </div>
               <h2 className="text-xl font-black text-stone-900">Information We Collect</h2>
             </div>
@@ -106,8 +106,8 @@ export default function PrivacyPolicyPage() {
           {/* Cookies */}
           <section>
             <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-9 h-9 bg-amber-50 rounded-xl flex items-center justify-center">
-                <Cookie className="w-5 h-5 text-amber-600" />
+              <div className="w-9 h-9 bg-orange-50 rounded-xl flex items-center justify-center">
+                <Cookie className="w-5 h-5 text-primary" />
               </div>
               <h2 className="text-xl font-black text-stone-900">Cookies</h2>
             </div>
@@ -136,7 +136,6 @@ export default function PrivacyPolicyPage() {
               <ul className="space-y-2 pl-4">
                 {[
                   'Google OAuth: For optional "Sign in with Google" (governed by Google\'s Privacy Policy)',
-                  "Cloudinary: For product image hosting (images are stored on Cloudinary's servers)",
                   "OpenStreetMap (via Leaflet): For delivery address selection (no account data is shared)",
                 ].map((item, i) => (
                   <li key={i} className="flex items-start gap-2">
@@ -186,8 +185,8 @@ export default function PrivacyPolicyPage() {
               </p>
               <p className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-primary" />
-                <a href="mailto:info@golukhajaghar.com" className="hover:text-primary transition-colors">
-                  info@golukhajaghar.com
+                <a href="mailto:info@golekhajaghar.com" className="hover:text-primary transition-colors">
+                  info@golekhajaghar.com
                 </a>
               </p>
             </div>

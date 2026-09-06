@@ -1,5 +1,5 @@
 import webpush from 'web-push';
-import PushSubscriptionModel from '../models/PushSubscription.js';
+import prisma from '../lib/prisma.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -20,38 +20,38 @@ export interface PushPayload {
 }
 
 async function sendToSubscription(
-  sub: { endpoint: string; keys: { p256dh: string; auth: string } },
+  sub: { endpoint: string; p256dhKey: string; authKey: string },
   payload: PushPayload
 ) {
   try {
     await webpush.sendNotification(
       {
         endpoint: sub.endpoint,
-        keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth },
+        keys: { p256dh: sub.p256dhKey, auth: sub.authKey },
       },
       JSON.stringify({ ...payload, icon: payload.icon ?? '/favicon-circle.png' })
     );
   } catch (err: any) {
     if (err.statusCode === 410 || err.statusCode === 404) {
-      await PushSubscriptionModel.deleteOne({ endpoint: sub.endpoint }).catch(() => {});
+      await prisma.pushSubscription.delete({ where: { endpoint: sub.endpoint } }).catch(() => {});
     }
   }
 }
 
 export async function sendPushToUser(userId: string, payload: PushPayload) {
   if (!process.env.VAPID_PUBLIC_KEY) return;
-  const subs = await PushSubscriptionModel.find({ userId }).lean();
+  const subs = await prisma.pushSubscription.findMany({ where: { userId } });
   await Promise.allSettled(subs.map((s) => sendToSubscription(s, payload)));
 }
 
 export async function sendPushToAdmin(payload: PushPayload) {
   if (!process.env.VAPID_PUBLIC_KEY) return;
-  const subs = await PushSubscriptionModel.find({ type: 'admin' }).lean();
+  const subs = await prisma.pushSubscription.findMany({ where: { clientType: 'ADMIN' } });
   await Promise.allSettled(subs.map((s) => sendToSubscription(s, payload)));
 }
 
 export async function sendPushToAllCustomers(payload: PushPayload) {
   if (!process.env.VAPID_PUBLIC_KEY) return;
-  const subs = await PushSubscriptionModel.find({ type: 'customer' }).lean();
+  const subs = await prisma.pushSubscription.findMany({ where: { clientType: 'CUSTOMER' } });
   await Promise.allSettled(subs.map((s) => sendToSubscription(s, payload)));
 }

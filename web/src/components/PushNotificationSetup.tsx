@@ -19,7 +19,13 @@ export default function PushNotificationSetup({ userId }: Props) {
   const [subscribed, setSubscribed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [dismissed, setDismissed] = useState(false);
+  const [dismissed, setDismissed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem("golu_push_dismissed") === "true";
+    } catch {
+      return false;
+    }
+  });
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -30,7 +36,12 @@ export default function PushNotificationSetup({ userId }: Props) {
     // Check if already subscribed
     navigator.serviceWorker?.ready.then((reg) => {
       reg.pushManager.getSubscription().then((sub) => {
-        if (sub) setSubscribed(true);
+        if (sub) {
+          setSubscribed(true);
+          try {
+            localStorage.setItem("golu_push_dismissed", "true");
+          } catch {}
+        }
       });
     });
   }, []);
@@ -63,7 +74,13 @@ export default function PushNotificationSetup({ userId }: Props) {
       }
 
       // Get VAPID public key
-      const publicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+      let publicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+      if (!publicKey) {
+        try {
+          const res = await fetch("/api/push/vapid-public-key").then((r) => r.json());
+          if (res.publicKey) publicKey = res.publicKey;
+        } catch {}
+      }
       if (!publicKey) {
         throw new Error("VAPID public key is not configured.");
       }
@@ -112,6 +129,9 @@ export default function PushNotificationSetup({ userId }: Props) {
       }
 
       setSubscribed(true);
+      try {
+        localStorage.setItem("golu_push_dismissed", "true");
+      } catch {}
     } catch (err: any) {
       console.error("[Push] Subscribe error:", err);
       setError(err.message || "Failed to enable notifications.");
@@ -120,11 +140,18 @@ export default function PushNotificationSetup({ userId }: Props) {
     }
   };
 
+  const handleDismiss = () => {
+    setDismissed(true);
+    try {
+      localStorage.setItem("golu_push_dismissed", "true");
+    } catch {}
+  };
+
   // Show a soft banner
   return (
     <div className="fixed bottom-20 md:bottom-6 left-4 right-4 md:left-auto md:right-6 md:w-80 z-[1000] bg-[#111111] text-white rounded-2xl shadow-2xl p-4 flex items-start gap-3 border border-white/10 animate-in slide-in-from-bottom-4 duration-300">
-      <div className="w-9 h-9 bg-[#ffc107] rounded-xl flex items-center justify-center flex-shrink-0">
-        <Bell className="w-4 h-4 text-black" />
+      <div className="w-9 h-9 bg-primary text-white rounded-xl flex items-center justify-center flex-shrink-0">
+        <Bell className="w-4 h-4 text-white" />
       </div>
       <div className="flex-1 min-w-0">
         <p className="font-black text-sm text-white">Get order updates</p>
@@ -140,13 +167,13 @@ export default function PushNotificationSetup({ userId }: Props) {
           onClick={subscribe}
           disabled={loading}
           id="push-enable-btn"
-          className="mt-3 w-full py-2 bg-[#ffc107] text-black text-xs font-black rounded-lg hover:bg-[#ffc107]/90 transition-colors disabled:opacity-60 cursor-pointer"
+          className="mt-3 w-full py-2 bg-primary text-white text-xs font-black rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-60 cursor-pointer shadow-md shadow-primary/20"
         >
           {loading ? "Enabling…" : "Enable Notifications"}
         </button>
       </div>
       <button
-        onClick={() => setDismissed(true)}
+        onClick={handleDismiss}
         className="flex-shrink-0 text-stone-500 hover:text-white transition-colors cursor-pointer"
       >
         <X className="w-4 h-4" />

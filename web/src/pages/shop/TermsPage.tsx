@@ -6,8 +6,8 @@ const sections = [
   {
     icon: ShoppingBag,
     title: "Ordering & Availability",
-    color: "bg-amber-50",
-    iconColor: "text-amber-600",
+    color: "bg-orange-50",
+    iconColor: "text-primary",
     items: [
       "All orders are subject to product availability. If a product is out of stock, we will notify you promptly.",
       "Prices displayed on the website are in Nepali Rupees (NPR) and are subject to change without prior notice.",
@@ -65,7 +65,7 @@ export default function TermsPage() {
           </div>
           <h1 className="text-3xl md:text-4xl font-black mb-3">Terms & Conditions</h1>
           <p className="text-stone-400 font-medium text-sm md:text-base">
-            Last updated: August 2026 · Golu Khaja Ghar, Nepal
+            Last updated: August 2026 · Gole Khaja Ghar, Nepal
           </p>
         </div>
       </div>
@@ -75,7 +75,7 @@ export default function TermsPage() {
           {/* Intro */}
           <section>
             <p className="text-stone-600 font-medium leading-relaxed">
-              By accessing and using the <strong className="text-stone-900">Golu Khaja Ghar</strong> website and ordering service, you agree to be bound by these Terms & Conditions. Please read them carefully before placing an order.
+              By accessing and using the <strong className="text-stone-900">Gole Khaja Ghar</strong> website and ordering service, you agree to be bound by these Terms & Conditions. Please read them carefully before placing an order.
             </p>
           </section>
 

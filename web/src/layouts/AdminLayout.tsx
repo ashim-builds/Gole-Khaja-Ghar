@@ -1,10 +1,21 @@
-import React, { useState } from 'react';
-import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingCart, LogOut, Menu, X, BookOpen } from 'lucide-react';
-import { AdminLiveProvider, useAdminLive } from '@/context/AdminLiveContext';
-import AdminPushSetup from '@/components/AdminPushSetup';
-import NotificationBell from '@/components/NotificationBell';
-import { api } from '@/lib/api';
+import React, { useState } from "react";
+import { Link, useLocation, useNavigate, Outlet } from "react-router-dom";
+import {
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
+  LogOut,
+  Menu,
+  X,
+  Users,
+  Settings,
+  Store,
+  ExternalLink,
+} from "lucide-react";
+import { AdminLiveProvider, useAdminLive } from "@/context/AdminLiveContext";
+import AdminPushSetup from "@/components/AdminPushSetup";
+import NotificationBell from "@/components/NotificationBell";
+import { api } from "@/lib/api";
 
 function AdminProtectedLayoutContent() {
   const location = useLocation();
@@ -16,17 +27,18 @@ function AdminProtectedLayoutContent() {
   const handleLogout = async () => {
     try {
       await api.auth.adminLogout();
-      navigate('/admin/login');
+      navigate("/admin/login");
     } catch (err) {
-      console.error('Admin logout failed', err);
+      console.error("Admin logout failed", err);
     }
   };
 
   const navItems = [
-    { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-    { name: 'Products', href: '/admin/products', icon: Package },
-    { name: 'Orders', href: '/admin/orders', icon: ShoppingCart },
-    { name: 'Guide', href: '/admin/guide', icon: BookOpen },
+    { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+    { name: "Products", href: "/admin/products", icon: Package },
+    { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
+    { name: "Waiters", href: "/admin/waiters", icon: Users },
+    { name: "Settings", href: "/admin/settings", icon: Settings },
   ];
 
   return (
@@ -36,9 +48,15 @@ function AdminProtectedLayoutContent() {
         <div className="p-6 border-b border-white/10 flex justify-between items-center">
           <Link to="/admin" className="flex items-center gap-2">
             <div className="relative w-8 h-8 rounded-full overflow-hidden border border-white/20 flex-shrink-0 bg-stone-900 flex items-center justify-center">
-              <img src="/images/logo.png" alt="Golu Khaja Ghar" className="w-full h-full object-cover" />
+              <img
+                src="/images/logo.png"
+                alt="Gole Khaja Ghar"
+                className="w-full h-full object-cover"
+              />
             </div>
-            <span className="text-xl font-black text-white">Golu <span className="text-primary">Admin</span></span>
+            <span className="text-xl font-black text-white">
+              Gole <span className="text-primary">Admin</span>
+            </span>
           </Link>
           <div className="flex items-center gap-2">
             <NotificationBell type="admin" />
@@ -49,23 +67,27 @@ function AdminProtectedLayoutContent() {
             )}
           </div>
         </div>
-        
-        <nav className="flex-1 p-4 space-y-2">
+
+        <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto custom-scrollbar">
           {navItems.map((item) => {
-            const isActive = item.href === '/admin' 
-              ? pathname === '/admin' 
-              : pathname === item.href || pathname.startsWith(`${item.href}/`);
+            const isActive =
+              item.href === "/admin"
+                ? pathname === "/admin"
+                : pathname === item.href ||
+                  pathname.startsWith(`${item.href}/`);
             return (
               <Link
                 key={item.name}
                 to={item.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg font-bold transition-colors relative ${
-                  isActive ? 'bg-primary text-black' : 'text-stone-400 hover:text-white hover:bg-white/5'
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-colors relative text-sm ${
+                  isActive
+                    ? "bg-primary text-black font-black"
+                    : "text-stone-400 hover:text-white hover:bg-white/5"
                 }`}
               >
-                <item.icon className="w-5 h-5" />
+                <item.icon className="w-5 h-5 shrink-0" />
                 {item.name}
-                {item.name === 'Orders' && stats && stats.pendingOrders > 0 && (
+                {item.name === "Orders" && stats && stats.pendingOrders > 0 && (
                   <span className="absolute right-4 px-2 py-0.5 bg-red-500 text-white rounded-full text-[10px] font-black animate-pulse">
                     {stats.pendingOrders}
                   </span>
@@ -73,12 +95,23 @@ function AdminProtectedLayoutContent() {
               </Link>
             );
           })}
+
+          <div className="pt-4 border-t border-white/10 mt-4">
+            <Link
+              to="/"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 transition-colors border border-emerald-500/20 bg-emerald-500/5 text-sm"
+            >
+              <Store className="w-5 h-5 text-emerald-400" />
+              Customer Site
+              <ExternalLink className="w-3.5 h-3.5 ml-auto text-emerald-400/70" />
+            </Link>
+          </div>
         </nav>
 
         <div className="p-4 border-t border-white/10">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 w-full px-4 py-3 text-stone-400 hover:text-red-400 font-bold transition-colors rounded-lg hover:bg-white/5 cursor-pointer"
+            className="flex items-center gap-3 w-full px-4 py-3 text-stone-400 hover:text-red-400 font-bold transition-colors rounded-xl hover:bg-white/5 cursor-pointer text-sm"
           >
             <LogOut className="w-5 h-5" />
             Logout
@@ -92,37 +125,59 @@ function AdminProtectedLayoutContent() {
         <header className="md:hidden flex items-center justify-between p-4 bg-[#111111] text-white">
           <Link to="/admin" className="flex items-center gap-2">
             <div className="relative w-7 h-7 rounded-full overflow-hidden border border-white/20 flex-shrink-0 bg-stone-900 flex items-center justify-center">
-              <img src="/images/logo.png" alt="Golu Khaja Ghar" className="w-full h-full object-cover" />
+              <img
+                src="/images/logo.png"
+                alt="Gole Khaja Ghar"
+                className="w-full h-full object-cover"
+              />
             </div>
-            <span className="text-lg font-black text-white">Golu <span className="text-primary">Admin</span></span>
+            <span className="text-lg font-black text-white">
+              Gole <span className="text-primary">Admin</span>
+            </span>
           </Link>
           <div className="flex items-center gap-2">
+            <Link
+              to="/"
+              className="px-2.5 py-1 text-[11px] font-bold bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 rounded-lg flex items-center gap-1 transition-colors"
+            >
+              <Store className="w-3.5 h-3.5 text-emerald-400" />
+              Store
+            </Link>
             <NotificationBell type="admin" />
             {stats && stats.pendingOrders > 0 && (
               <span className="px-2 py-0.5 bg-red-500 text-white text-[10px] rounded-full font-black animate-pulse">
-                {stats.pendingOrders} pending
+                {stats.pendingOrders}
               </span>
             )}
-            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 cursor-pointer">
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 cursor-pointer text-stone-300 hover:text-white"
+            >
+              {mobileMenuOpen ? (
+                <X className="w-6 h-6" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )}
             </button>
           </div>
         </header>
 
-        {/* Mobile Menu */}
+        {/* Mobile Dropdown Menu */}
         {mobileMenuOpen && (
           <div className="md:hidden bg-[#111111] text-white absolute top-16 left-0 right-0 z-50 border-t border-white/10 p-4 space-y-2 shadow-xl">
             {navItems.map((item) => {
-              const isActive = item.href === '/admin' 
-                ? pathname === '/admin' 
-                : pathname === item.href || pathname.startsWith(`${item.href}/`);
+              const isActive =
+                item.href === "/admin"
+                  ? pathname === "/admin"
+                  : pathname === item.href ||
+                    pathname.startsWith(`${item.href}/`);
               return (
                 <Link
                   key={item.name}
                   to={item.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className={`flex items-center gap-3 px-4 py-3 rounded-lg font-bold ${
-                    isActive ? 'bg-primary text-black' : 'text-stone-400'
+                    isActive ? "bg-primary text-black" : "text-stone-400"
                   }`}
                 >
                   <item.icon className="w-5 h-5" />
@@ -130,6 +185,14 @@ function AdminProtectedLayoutContent() {
                 </Link>
               );
             })}
+            <Link
+              to="/"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-emerald-400 hover:bg-white/5"
+            >
+              <Store className="w-5 h-5 text-emerald-400" />
+              Go to Customer Store
+            </Link>
             <button
               onClick={handleLogout}
               className="flex items-center gap-3 w-full px-4 py-3 text-stone-400 hover:text-red-400 font-bold cursor-pointer"
@@ -141,9 +204,99 @@ function AdminProtectedLayoutContent() {
         )}
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-stone-50">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-stone-50 pb-28 md:pb-8">
           <Outlet />
         </main>
+
+        {/* Admin Mobile Bottom Navigation */}
+        <div
+          className="md:hidden fixed bottom-0 left-0 right-0 bg-[#111111]/95 backdrop-blur-lg border-t border-white/10 z-40 shadow-[0_-4px_25px_rgba(0,0,0,0.6)]"
+          style={{
+            paddingBottom: "max(0.75rem, env(safe-area-inset-bottom, 0px))",
+          }}
+        >
+          <div className="flex justify-around items-center px-1 pt-2.5">
+            <Link
+              to="/admin"
+              className="flex flex-col items-center gap-1 group py-1 px-1.5"
+            >
+              <LayoutDashboard
+                className={`w-5 h-5 transition-transform group-active:scale-90 ${pathname === "/admin" ? "text-primary" : "text-white/60 group-hover:text-primary"}`}
+              />
+              <span
+                className={`text-[9px] font-bold ${pathname === "/admin" ? "text-primary" : "text-white/60 group-hover:text-primary"}`}
+              >
+                Dashboard
+              </span>
+            </Link>
+            <Link
+              to="/admin/products"
+              className="flex flex-col items-center gap-1 group py-1 px-1.5"
+            >
+              <Package
+                className={`w-5 h-5 transition-transform group-active:scale-90 ${pathname.startsWith("/admin/products") ? "text-primary" : "text-white/60 group-hover:text-primary"}`}
+              />
+              <span
+                className={`text-[9px] font-bold ${pathname.startsWith("/admin/products") ? "text-primary" : "text-white/60 group-hover:text-primary"}`}
+              >
+                Products
+              </span>
+            </Link>
+            <Link
+              to="/admin/orders"
+              className="flex flex-col items-center gap-1 group py-1 px-1.5 relative"
+            >
+              <div className="relative">
+                <ShoppingCart
+                  className={`w-5 h-5 transition-transform group-active:scale-90 ${pathname.startsWith("/admin/orders") ? "text-primary" : "text-white/60 group-hover:text-primary"}`}
+                />
+                {stats && stats.pendingOrders > 0 && (
+                  <span className="absolute -top-1.5 -right-2.5 bg-red-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center animate-pulse shadow-md">
+                    {stats.pendingOrders}
+                  </span>
+                )}
+              </div>
+              <span
+                className={`text-[9px] font-bold ${pathname.startsWith("/admin/orders") ? "text-primary" : "text-white/60 group-hover:text-primary"}`}
+              >
+                Orders
+              </span>
+            </Link>
+            <Link
+              to="/admin/waiters"
+              className="flex flex-col items-center gap-1 group py-1 px-1.5"
+            >
+              <Users
+                className={`w-5 h-5 transition-transform group-active:scale-90 ${pathname.startsWith("/admin/waiters") ? "text-primary" : "text-white/60 group-hover:text-primary"}`}
+              />
+              <span
+                className={`text-[9px] font-bold ${pathname.startsWith("/admin/waiters") ? "text-primary" : "text-white/60 group-hover:text-primary"}`}
+              >
+                Waiters
+              </span>
+            </Link>
+            <Link
+              to="/admin/settings"
+              className="flex flex-col items-center gap-1 group py-1 px-1.5"
+            >
+              <Settings
+                className={`w-5 h-5 transition-transform group-active:scale-90 ${pathname.startsWith("/admin/settings") ? "text-primary" : "text-white/60 group-hover:text-primary"}`}
+              />
+              <span
+                className={`text-[9px] font-bold ${pathname.startsWith("/admin/settings") ? "text-primary" : "text-white/60 group-hover:text-primary"}`}
+              >
+                Settings
+              </span>
+            </Link>
+            <Link
+              to="/"
+              className="flex flex-col items-center gap-1 group py-1 px-1.5 text-emerald-400 hover:text-emerald-300 transition-colors"
+            >
+              <Store className="w-5 h-5 text-emerald-400 transition-transform group-active:scale-90" />
+              <span className="text-[9px] font-bold text-emerald-400">Store</span>
+            </Link>
+          </div>
+        </div>
       </div>
 
       {/* Floating Alert for incoming orders */}
@@ -152,16 +305,27 @@ function AdminProtectedLayoutContent() {
           <div className="flex justify-between items-start">
             <div className="flex items-center gap-2 text-primary">
               <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
-              <span className="font-black uppercase tracking-widest text-[10px]">New Order Incoming</span>
+              <span className="font-black uppercase tracking-widest text-[10px]">
+                New Order Incoming
+              </span>
             </div>
-            <button onClick={dismissNotification} className="text-stone-400 hover:text-white cursor-pointer">
+            <button
+              onClick={dismissNotification}
+              className="text-stone-400 hover:text-white cursor-pointer"
+            >
               <X className="w-4 h-4" />
             </button>
           </div>
           <div>
-            <p className="text-lg font-black">{newOrderNotification.orderNumber}</p>
-            <p className="text-sm font-semibold text-stone-300 mt-1">Customer: {newOrderNotification.customerName}</p>
-            <p className="text-xs text-stone-400 mt-0.5">Amount: Rs. {newOrderNotification.amount.toFixed(2)}</p>
+            <p className="text-lg font-black">
+              {newOrderNotification.orderNumber}
+            </p>
+            <p className="text-sm font-semibold text-stone-300 mt-1">
+              Customer: {newOrderNotification.customerName}
+            </p>
+            <p className="text-xs text-stone-400 mt-0.5">
+              Amount: Rs. {newOrderNotification.amount.toFixed(2)}
+            </p>
           </div>
           <div className="flex gap-2 mt-2">
             <Link

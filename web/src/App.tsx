@@ -30,14 +30,16 @@ import AdminOrderDetailPage from "@/pages/admin/AdminOrderDetailPage";
 import AdminProductsPage from "@/pages/admin/AdminProductsPage";
 import AdminNewProductPage from "@/pages/admin/AdminNewProductPage";
 import AdminEditProductPage from "@/pages/admin/AdminEditProductPage";
-import AdminGuidePage from "@/pages/admin/AdminGuidePage";
+import AdminWaitersPage from "@/pages/admin/AdminWaitersPage";
+import AdminSettingsPage from "@/pages/admin/AdminSettingsPage";
 
-// 404
 import NotFoundPage from "@/pages/NotFoundPage";
+import ScrollToTop from "@/components/ScrollToTop";
 
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         <Route element={<RootLayout />}>
           {/* Shop / Customer Routes */}
@@ -72,7 +74,8 @@ export default function App() {
               <Route path="/admin/products" element={<AdminProductsPage />} />
               <Route path="/admin/products/new" element={<AdminNewProductPage />} />
               <Route path="/admin/products/:id/edit" element={<AdminEditProductPage />} />
-              <Route path="/admin/guide" element={<AdminGuidePage />} />
+              <Route path="/admin/waiters" element={<AdminWaitersPage />} />
+              <Route path="/admin/settings" element={<AdminSettingsPage />} />
             </Route>
           </Route>
 

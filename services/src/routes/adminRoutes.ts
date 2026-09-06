@@ -13,7 +13,16 @@ import {
   updatePaymentStatus,
   getAdminLiveUpdates,
 } from '../controllers/orderController.js';
+import { adminLogin, adminLogout } from '../controllers/authController.js';
 import { authenticateAdmin } from '../middleware/auth.js';
+import { rateLimiter } from '../middleware/rateLimit.js';
+
+import {
+  listWaiters,
+  createWaiter,
+  deleteWaiter,
+  testAdminPush,
+} from '../controllers/waiterController.js';
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -22,8 +31,17 @@ const upload = multer({
 
 const router = Router();
 
-// Protect all admin routes
+// Public Admin Auth Routes
+router.post('/login', rateLimiter(5, 5 * 60 * 1000), adminLogin);
+router.post('/logout', adminLogout);
+
+// Protect all following admin routes
 router.use(authenticateAdmin);
+
+// Auth verification endpoint
+router.get('/check-auth', (_req, res) => {
+  res.json({ success: true, authenticated: true, isAdmin: true });
+});
 
 // Admin Product Management
 router.post(
@@ -55,5 +73,13 @@ router.patch('/orders/status', updateOrderStatus);
 router.patch('/orders/:id/payment', updatePaymentStatus);
 router.patch('/orders/payment', updatePaymentStatus);
 router.get('/live-updates', getAdminLiveUpdates);
+
+// Admin Waiter Management
+router.get('/waiters', listWaiters);
+router.post('/waiters', createWaiter);
+router.delete('/waiters/:id', deleteWaiter);
+
+// Admin Notification Test
+router.post('/test-push', testAdminPush);
 
 export default router;

@@ -13,8 +13,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon-circle.png', 'images/logo.png'],
       manifest: {
-        name: 'Golu Khaja Ghar',
-        short_name: 'GoluKhajaGhar',
+        name: 'Gole Khaja Ghar',
+        short_name: 'GoleKhajaGhar',
         description: 'Authentic local snacks, fresh & crispy delivered hot.',
         theme_color: '#ea580c',
         background_color: '#ffffff',
@@ -50,6 +50,9 @@ export default defineConfig({
           },
         ],
       },
+      devOptions: {
+        enabled: true,
+      },
     }),
   ],
   resolve: {
@@ -61,7 +64,12 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: process.env.VITE_BACKEND_URL || 'http://localhost:5000',
+        target: process.env.VITE_BACKEND_URL || 'http://localhost:4000',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/uploads': {
+        target: process.env.VITE_BACKEND_URL || 'http://localhost:4000',
         changeOrigin: true,
         secure: false,
       },

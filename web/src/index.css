@@ -1,13 +1,13 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f9f9f9;
-  --foreground: #111111;
-  --brand-primary: #ffc107; /* Bright Yellow */
-  --brand-secondary: #000000; /* Deep Black */
+  --background: #fbfbfb;
+  --foreground: #111827;
+  --brand-primary: #ea580c; /* Warm Nepali Khaja Orange */
+  --brand-secondary: #111827; /* Deep Slate Black */
   --surface: #ffffff;
-  --surface-alt: #f1f1f1;
-  --border: #e0e0e0;
+  --surface-alt: #f3f4f6;
+  --border: #e5e7eb;
 }
 
 @theme inline {
@@ -18,19 +18,19 @@
   --color-surface: var(--surface);
   --color-surface-alt: var(--surface-alt);
   --color-border: var(--border);
-  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
-  --font-heading: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Inter', 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-heading: 'Inter', 'Outfit', ui-sans-serif, system-ui, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #111111;
-    --foreground: #ffffff;
-    --brand-primary: #ffc107;
-    --brand-secondary: #000000;
-    --surface: #1e1e1e;
-    --surface-alt: #2a2a2a;
-    --border: #333333;
+    --background: #0f172a;
+    --foreground: #f8fafc;
+    --brand-primary: #ea580c;
+    --brand-secondary: #111827;
+    --surface: #1e293b;
+    --surface-alt: #334155;
+    --border: #334155;
   }
 }
 

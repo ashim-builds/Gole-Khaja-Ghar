@@ -22,8 +22,8 @@ async function run() {
 
   // 2. Write multiple sizes
   const targets = [
-    { file: "src/app/icon.png",           size: 512 },
-    { file: "public/favicon-circle.png",  size: 64  },
+    { file: "public/favicon-circle.png", size: 512 },
+    { file: "public/favicon-64.png",     size: 64  },
   ];
 
   for (const { file, size } of targets) {

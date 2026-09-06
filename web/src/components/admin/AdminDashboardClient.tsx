@@ -23,51 +23,51 @@ export default function AdminDashboardClient({
   const availableProducts = stats ? stats.availableProducts : initialAvailableProducts;
   const totalOrders = stats ? stats.totalOrders : initialTotalOrders;
   const pendingOrders = stats ? stats.pendingOrders : initialPendingOrders;
-  const displayOrders = recentOrders.length > 0 ? recentOrders : initialRecentOrders;
+  const displayOrders = (recentOrders && recentOrders.length > 0) ? recentOrders : (initialRecentOrders || []);
 
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-black text-stone-900">Dashboard</h1>
       
-      {/* Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100 flex items-center gap-4">
-          <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center">
-            <Package className="w-6 h-6" />
+      {/* Metrics Grid (2x2 on Mobile, 4x1 on Desktop) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+        <div className="bg-white p-3.5 sm:p-5 md:p-6 rounded-2xl shadow-sm border border-stone-100 flex items-center gap-3 md:gap-4">
+          <div className="w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center shrink-0">
+            <Package className="w-4.5 h-4.5 sm:w-5 sm:h-5 md:w-6 md:h-6" />
           </div>
-          <div>
-            <p className="text-sm font-bold text-stone-400">Total Products</p>
-            <p className="text-2xl font-black text-stone-900">{totalProducts}</p>
+          <div className="min-w-0">
+            <p className="text-[11px] sm:text-xs md:text-sm font-bold text-stone-400 truncate">Total Products</p>
+            <p className="text-lg sm:text-xl md:text-2xl font-black text-stone-900 leading-tight">{totalProducts}</p>
           </div>
         </div>
         
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100 flex items-center gap-4">
-          <div className="w-12 h-12 bg-green-50 text-green-500 rounded-xl flex items-center justify-center">
-            <Package className="w-6 h-6" />
+        <div className="bg-white p-3.5 sm:p-5 md:p-6 rounded-2xl shadow-sm border border-stone-100 flex items-center gap-3 md:gap-4">
+          <div className="w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 bg-green-50 text-green-500 rounded-xl flex items-center justify-center shrink-0">
+            <Package className="w-4.5 h-4.5 sm:w-5 sm:h-5 md:w-6 md:h-6" />
           </div>
-          <div>
-            <p className="text-sm font-bold text-stone-400">Available</p>
-            <p className="text-2xl font-black text-stone-900">{availableProducts}</p>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100 flex items-center gap-4">
-          <div className="w-12 h-12 bg-purple-50 text-purple-500 rounded-xl flex items-center justify-center">
-            <ShoppingCart className="w-6 h-6" />
-          </div>
-          <div>
-            <p className="text-sm font-bold text-stone-400">Total Orders</p>
-            <p className="text-2xl font-black text-stone-900">{totalOrders}</p>
+          <div className="min-w-0">
+            <p className="text-[11px] sm:text-xs md:text-sm font-bold text-stone-400 truncate">Available</p>
+            <p className="text-lg sm:text-xl md:text-2xl font-black text-stone-900 leading-tight">{availableProducts}</p>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100 flex items-center gap-4">
-          <div className="w-12 h-12 bg-orange-50 text-orange-500 rounded-xl flex items-center justify-center">
-            <Clock className="w-6 h-6" />
+        <div className="bg-white p-3.5 sm:p-5 md:p-6 rounded-2xl shadow-sm border border-stone-100 flex items-center gap-3 md:gap-4">
+          <div className="w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 bg-purple-50 text-purple-500 rounded-xl flex items-center justify-center shrink-0">
+            <ShoppingCart className="w-4.5 h-4.5 sm:w-5 sm:h-5 md:w-6 md:h-6" />
           </div>
-          <div>
-            <p className="text-sm font-bold text-stone-400">Pending Orders</p>
-            <p className="text-2xl font-black text-stone-900 flex items-center gap-2">
+          <div className="min-w-0">
+            <p className="text-[11px] sm:text-xs md:text-sm font-bold text-stone-400 truncate">Total Orders</p>
+            <p className="text-lg sm:text-xl md:text-2xl font-black text-stone-900 leading-tight">{totalOrders}</p>
+          </div>
+        </div>
+
+        <div className="bg-white p-3.5 sm:p-5 md:p-6 rounded-2xl shadow-sm border border-stone-100 flex items-center gap-3 md:gap-4">
+          <div className="w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 bg-orange-50 text-orange-500 rounded-xl flex items-center justify-center shrink-0">
+            <Clock className="w-4.5 h-4.5 sm:w-5 sm:h-5 md:w-6 md:h-6" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[11px] sm:text-xs md:text-sm font-bold text-stone-400 truncate">Pending Orders</p>
+            <p className="text-lg sm:text-xl md:text-2xl font-black text-stone-900 leading-tight flex items-center gap-2">
               {pendingOrders}
               {pendingOrders > 0 && (
                 <span className="inline-flex w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />

@@ -22,16 +22,16 @@ const TiktokIcon = ({ className }: { className?: string }) => (
 export default function Footer() {
   return (
     <footer className="bg-white border-t border-stone-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-28 md:pb-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="md:col-span-2">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-10 h-10 relative rounded-full overflow-hidden border border-primary/20 bg-stone-900 flex items-center justify-center">
-                <img src="/images/logo.png" alt="Golu Khaja Ghar Logo" className="w-full h-full object-cover" />
+                <img src="/images/logo.png" alt="Gole Khaja Ghar Logo" className="w-full h-full object-cover" />
               </div>
               <span className="font-extrabold text-xl tracking-tight text-black">
-                Golu Khaja Ghar
+                Gole Khaja Ghar
               </span>
             </div>
             <p className="text-stone-600 max-w-sm mb-6 leading-relaxed">
@@ -112,7 +112,7 @@ export default function Footer() {
         </div>
         
         <div className="border-t border-stone-200 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-stone-500">
-          <p>&copy; {new Date().getFullYear()} Golu Khaja Ghar. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Gole Khaja Ghar. All rights reserved.</p>
           <div className="flex space-x-4 mt-4 md:mt-0">
             <Link to="/privacy-policy" className="hover:text-black transition-colors">Privacy Policy</Link>
             <Link to="/terms" className="hover:text-black transition-colors">Terms & Conditions</Link>

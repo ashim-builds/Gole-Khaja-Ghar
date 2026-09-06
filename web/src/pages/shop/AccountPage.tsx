@@ -1,17 +1,67 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useUser } from "@/context/UserContext";
 import { useNavigate, Link } from "react-router-dom";
-import { User, Mail, Phone, LogOut, Package, Loader2 } from "lucide-react";
+import { User, Mail, Phone, LogOut, Package, Loader2, Bell, BellOff, CheckCircle2, AlertCircle } from "lucide-react";
+import { checkPushSubscription, subscribeToPush, unsubscribeFromPush } from "@/lib/pushManager";
 
 export default function AccountPage() {
   const { user, isLoading, logout } = useUser();
   const navigate = useNavigate();
+
+  const [pushStatus, setPushStatus] = useState<{
+    supported: boolean;
+    permission: NotificationPermission;
+    isSubscribed: boolean;
+  }>({
+    supported: true,
+    permission: "default",
+    isSubscribed: false,
+  });
+  const [pushLoading, setPushLoading] = useState(false);
+  const [pushError, setPushError] = useState("");
+
+  const refreshPushStatus = async () => {
+    const status = await checkPushSubscription();
+    setPushStatus(status);
+  };
 
   useEffect(() => {
     if (!isLoading && !user) {
       navigate("/login");
     }
   }, [user, isLoading, navigate]);
+
+  useEffect(() => {
+    refreshPushStatus();
+  }, []);
+
+  const handleEnablePush = async () => {
+    setPushLoading(true);
+    setPushError("");
+    try {
+      await subscribeToPush("customer");
+      await refreshPushStatus();
+    } catch (err: any) {
+      console.error("Enable push error:", err);
+      setPushError(err.message || "Failed to enable notifications.");
+    } finally {
+      setPushLoading(false);
+    }
+  };
+
+  const handleDisablePush = async () => {
+    setPushLoading(true);
+    setPushError("");
+    try {
+      await unsubscribeFromPush();
+      await refreshPushStatus();
+    } catch (err: any) {
+      console.error("Disable push error:", err);
+      setPushError(err.message || "Failed to disable notifications.");
+    } finally {
+      setPushLoading(false);
+    }
+  };
 
   if (isLoading || !user) {
     return (
@@ -34,7 +84,7 @@ export default function AccountPage() {
               </div>
               <div>
                 <h2 className="text-xl font-bold text-black">{user.name}</h2>
-                <p className="text-stone-500">Customer</p>
+                <p className="text-stone-500 capitalize">{user.role || "Customer"}</p>
               </div>
             </div>
 
@@ -43,7 +93,7 @@ export default function AccountPage() {
                 <Mail className="w-5 h-5 text-stone-400" />
                 <div>
                   <p className="text-xs font-bold text-stone-500 uppercase tracking-wider">Email</p>
-                  <p className="text-black font-medium">{user.email}</p>
+                  <p className="text-black font-medium">{user.email || "—"}</p>
                 </div>
               </div>
 
@@ -57,6 +107,72 @@ export default function AccountPage() {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+
+        {/* Notifications Setting Card */}
+        <div className="bg-white rounded-xl shadow-sm border border-stone-100 overflow-hidden mb-6 p-6 sm:p-8">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center text-primary">
+                {pushStatus.isSubscribed ? <Bell className="w-6 h-6" /> : <BellOff className="w-6 h-6 text-stone-400" />}
+              </div>
+              <div>
+                <h3 className="font-bold text-black text-lg">Order Notifications</h3>
+                <p className="text-sm text-stone-500">Receive live push alerts when your order is confirmed, cooking, or out for delivery</p>
+              </div>
+            </div>
+          </div>
+
+          {pushError && (
+            <div className="mt-4 p-3 bg-red-50 text-red-700 text-xs font-semibold rounded-lg flex items-center gap-2 border border-red-200">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{pushError}</span>
+            </div>
+          )}
+
+          <div className="mt-4 pt-4 border-t border-stone-100 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-stone-500">Status:</span>
+              <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full ${
+                pushStatus.isSubscribed
+                  ? "bg-green-100 text-green-800 border border-green-200"
+                  : pushStatus.permission === "denied"
+                  ? "bg-red-100 text-red-800 border border-red-200"
+                  : "bg-stone-100 text-stone-700"
+              }`}>
+                {pushStatus.isSubscribed ? (
+                  <>
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    Allowed & Active
+                  </>
+                ) : pushStatus.permission === "denied" ? (
+                  "Blocked in Browser"
+                ) : (
+                  "Disallowed / Disabled"
+                )}
+              </span>
+            </div>
+
+            {pushStatus.isSubscribed ? (
+              <button
+                disabled={pushLoading}
+                onClick={handleDisablePush}
+                className="px-4 py-2 bg-stone-100 text-stone-700 text-xs font-bold rounded-lg hover:bg-stone-200 hover:text-red-600 transition-colors cursor-pointer flex items-center gap-1.5"
+              >
+                {pushLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <BellOff className="w-3.5 h-3.5" />}
+                Disallow Notifications
+              </button>
+            ) : (
+              <button
+                disabled={pushLoading}
+                onClick={handleEnablePush}
+                className="px-4 py-2 bg-primary text-black font-black text-xs rounded-lg hover:bg-primary/90 transition-colors cursor-pointer flex items-center gap-1.5 shadow-sm shadow-primary/20 uppercase"
+              >
+                {pushLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Bell className="w-3.5 h-3.5" />}
+                Allow Notifications
+              </button>
+            )}
           </div>
         </div>
 

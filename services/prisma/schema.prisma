@@ -115,6 +115,11 @@ enum NotificationType {
   SYSTEM_ALERT
 }
 
+enum ProductPriceType {
+  VARIANT
+  WEIGHT
+}
+
 enum AuditAction {
   CREATE
   UPDATE
@@ -206,7 +211,7 @@ model TableSession {
   table      RestaurantTable @relation(fields: [tableId], references: [id], onDelete: Restrict)
   waiter     User?           @relation("WaiterSessions", fields: [waiterId], references: [id], onDelete: SetNull)
   orders     Order[]
-  bills      Bill[]
+  bill       Bill?
   kotTickets KotTicket[]
 
   @@index([tableId, status])
@@ -238,21 +243,25 @@ model Category {
 }
 
 model Product {
-  id            String   @id @default(uuid()) @db.VarChar(36)
-  categoryId    String   @db.VarChar(36)
-  name          String   @db.VarChar(150)
-  slug          String   @unique @db.VarChar(180)
-  description   String?  @db.Text
-  image         String   @db.VarChar(500)
-  galleryImages Json? // Array of image URLs
-  isAvailable   Boolean  @default(true)
-  isFeatured    Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id                String           @id @default(uuid()) @db.VarChar(36)
+  categoryId        String           @db.VarChar(36)
+  name              String           @db.VarChar(150)
+  slug              String           @unique @db.VarChar(180)
+  description       String?          @db.Text
+  image             String           @db.VarChar(500)
+  galleryImages     Json? // Array of image URLs
+  priceType         ProductPriceType @default(VARIANT)
+  pricePerKg        Decimal?         @db.Decimal(10, 2)
+  allowCustomWeight Boolean          @default(false)
+  isAvailable       Boolean          @default(true)
+  isFeatured        Boolean          @default(false)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
 
-  category   Category         @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  variants   ProductVariant[]
-  orderItems OrderItem[]
+  category      Category              @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  variants      ProductVariant[]
+  weightOptions ProductWeightOption[]
+  orderItems    OrderItem[]
 
   @@index([slug])
   @@index([categoryId, isAvailable])
@@ -273,6 +282,21 @@ model ProductVariant {
 
   @@index([productId, isAvailable])
   @@map("product_variants")
+}
+
+model ProductWeightOption {
+  id        String   @id @default(uuid()) @db.VarChar(36)
+  productId String   @db.VarChar(36)
+  value     Int // weight value in grams, e.g. 250, 500, 1000
+  unit      String   @default("g") @db.VarChar(10)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("product_weight_options")
 }
 
 // -----------------------------------------------------------------------------
@@ -305,7 +329,7 @@ model Order {
   tableSession TableSession? @relation(fields: [tableSessionId], references: [id], onDelete: SetNull)
   items        OrderItem[]
   kotTickets   KotTicket[]
-  bills        Bill[]
+  bill         Bill?
 
   @@index([orderNumber])
   @@index([userId])
@@ -386,8 +410,8 @@ model KotItem {
 model Bill {
   id             String  @id @default(uuid()) @db.VarChar(36)
   billNumber     String  @unique @db.VarChar(30)
-  tableSessionId String? @db.VarChar(36)
-  orderId        String? @db.VarChar(36)
+  tableSessionId String? @unique @db.VarChar(36)
+  orderId        String? @unique @db.VarChar(36)
   createdById    String? @db.VarChar(36)
 
   grossAmount    Decimal    @db.Decimal(10, 2)
@@ -406,8 +430,6 @@ model Bill {
   payments     Payment[]
 
   @@index([status, createdAt])
-  @@index([tableSessionId])
-  @@index([orderId])
   @@map("bills")
 }
 

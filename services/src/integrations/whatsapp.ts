@@ -61,7 +61,7 @@ export async function notifyCustomerStatusChange(
     confirmed: `✅ *Order Confirmed!*\n\nHi ${customerName}! Your order *${orderNumber}* has been confirmed. We're getting it ready for you!`,
     preparing: `👨‍🍳 *Order Being Prepared*\n\nHi ${customerName}! Your order *${orderNumber}* is now being prepared. Hang tight!`,
     ready: `🎉 *Order Ready!*\n\nHi ${customerName}! Your order *${orderNumber}* is ready for ${orderUrl.includes('delivery') ? 'delivery' : 'pickup'}!`,
-    delivered: `✅ *Order Delivered!*\n\nHi ${customerName}! Your order *${orderNumber}* has been delivered. Thank you for ordering from Golu Khaja Ghar! 🍲`,
+    delivered: `✅ *Order Delivered!*\n\nHi ${customerName}! Your order *${orderNumber}* has been delivered. Thank you for ordering from Gole Khaja Ghar! 🍲`,
     cancelled: `❌ *Order Cancelled*\n\nHi ${customerName}! Your order *${orderNumber}* has been cancelled. Contact us if you have questions.`,
   };
 
@@ -78,6 +78,6 @@ export async function notifyCustomerPaymentConfirmed(
   const message =
     `💳 *Payment Confirmed!*\n\n` +
     `Hi ${customerName}! We've received your payment for order *${orderNumber}*. ` +
-    `We're now preparing your delicious food. Thank you for ordering from Golu Khaja Ghar! 🍲`;
+    `We're now preparing your delicious food. Thank you for ordering from Gole Khaja Ghar! 🍲`;
   await sendWhatsApp(phone, message);
 }

@@ -89,7 +89,7 @@ export default function OrderDetailPage() {
                 ? "bg-red-100 text-red-800"
                 : order.status === "ready"
                 ? "bg-blue-100 text-blue-800"
-                : "bg-yellow-100 text-yellow-800"
+                : "bg-orange-100 text-orange-800"
             }`}
           >
             {order.status}

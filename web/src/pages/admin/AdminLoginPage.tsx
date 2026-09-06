@@ -1,14 +1,40 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Lock, Loader2 } from "lucide-react";
 import { useUser } from "@/context/UserContext";
+import { api } from "@/lib/api";
 
 export default function AdminLoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const navigate = useNavigate();
   const { refreshUser } = useUser();
+
+  // Check if admin is already logged in
+  useEffect(() => {
+    let active = true;
+    async function checkExistingAuth() {
+      try {
+        const res = await api.orders.getAdminLiveUpdates();
+        if (res && res.success && active) {
+          navigate("/admin", { replace: true });
+          return;
+        }
+      } catch {
+        // Not authenticated
+      } finally {
+        if (active) {
+          setIsCheckingAuth(false);
+        }
+      }
+    }
+    checkExistingAuth();
+    return () => {
+      active = false;
+    };
+  }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -16,34 +42,45 @@ export default function AdminLoginPage() {
     setError("");
 
     try {
-      const res = await fetch("/api/admin/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
-      });
-
-      if (res.ok) {
+      const res = await api.auth.adminLogin(password);
+      if (res.success) {
         await refreshUser();
-        navigate("/admin");
+        navigate("/admin", { replace: true });
       } else {
-        const data = await res.json();
-        setError(data.error || "Login failed");
+        setError("Invalid password");
       }
-    } catch (err) {
-      setError("An error occurred during login.");
+    } catch (err: any) {
+      setError(err.message || "An error occurred during login.");
     } finally {
       setLoading(false);
     }
   };
+
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#111111]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-stone-400 text-sm font-semibold">Checking session...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f5f5f5] px-4">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-stone-100">
         <div className="bg-[#111111] p-8 text-center flex flex-col items-center">
           <div className="w-16 h-16 relative rounded-full overflow-hidden border-2 border-primary mb-4">
-            <img src="/images/logo.png" alt="Logo" className="w-full h-full object-cover" />
+            <img
+              src="/images/logo.png"
+              alt="Logo"
+              className="w-full h-full object-cover"
+            />
           </div>
-          <h1 className="text-2xl font-black text-white">Golu Khaja Ghar Admin</h1>
+          <h1 className="text-2xl font-black text-white">
+            Gole Khaja Ghar Admin
+          </h1>
           <p className="text-stone-400 text-sm mt-1">Secure Dashboard Access</p>
         </div>
 

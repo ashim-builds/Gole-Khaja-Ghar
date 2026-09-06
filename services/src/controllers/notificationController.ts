@@ -1,24 +1,37 @@
 import { Request, Response } from 'express';
-import mongoose from 'mongoose';
-import NotificationModel from '../models/Notification.js';
+import prisma from '../lib/prisma.js';
 import { AuthenticatedRequest } from '../middleware/auth.js';
+
+function mapNotification(doc: any) {
+  return {
+    id: doc.id,
+    _id: doc.id,
+    userId: doc.userId,
+    targetRole: doc.targetRole,
+    title: doc.title,
+    message: doc.body,
+    body: doc.body,
+    linkUrl: doc.linkUrl,
+    read: doc.isRead,
+    isRead: doc.isRead,
+    createdAt: doc.createdAt,
+  };
+}
 
 export async function getUserNotifications(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     if (!req.user) {
-      res.status(401).json({ error: 'Unauthorized' });
+      res.json({ success: true, notifications: [] });
       return;
     }
 
-    const notifications = await NotificationModel.find({
-      recipientType: 'USER',
-      recipientId: req.user.userId,
-    })
-      .sort({ createdAt: -1 })
-      .limit(50)
-      .lean();
+    const notifications = await prisma.notification.findMany({
+      where: { userId: req.user.userId },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
 
-    res.json({ success: true, notifications });
+    res.json({ success: true, notifications: notifications.map(mapNotification) });
   } catch (error) {
     console.error('getUserNotifications error:', error);
     res.status(500).json({ error: 'Failed to fetch notifications' });
@@ -28,14 +41,15 @@ export async function getUserNotifications(req: AuthenticatedRequest, res: Respo
 export async function getUserUnreadCount(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     if (!req.user) {
-      res.status(401).json({ error: 'Unauthorized' });
+      res.json({ success: true, unreadCount: 0 });
       return;
     }
 
-    const unreadCount = await NotificationModel.countDocuments({
-      recipientType: 'USER',
-      recipientId: req.user.userId,
-      read: false,
+    const unreadCount = await prisma.notification.count({
+      where: {
+        userId: req.user.userId,
+        isRead: false,
+      },
     });
 
     res.json({ success: true, unreadCount });
@@ -53,15 +67,10 @@ export async function markUserRead(req: AuthenticatedRequest, res: Response): Pr
     }
 
     const { id } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      res.status(400).json({ error: 'Invalid notification ID' });
-      return;
-    }
-
-    await NotificationModel.findOneAndUpdate(
-      { _id: id, recipientId: req.user.userId, recipientType: 'USER' },
-      { read: true }
-    );
+    await prisma.notification.updateMany({
+      where: { id, userId: req.user.userId },
+      data: { isRead: true },
+    });
 
     res.json({ success: true });
   } catch (error) {
@@ -77,10 +86,10 @@ export async function markUserReadAll(req: AuthenticatedRequest, res: Response):
       return;
     }
 
-    await NotificationModel.updateMany(
-      { recipientId: req.user.userId, recipientType: 'USER', read: false },
-      { read: true }
-    );
+    await prisma.notification.updateMany({
+      where: { userId: req.user.userId, isRead: false },
+      data: { isRead: true },
+    });
 
     res.json({ success: true });
   } catch (error) {
@@ -91,12 +100,13 @@ export async function markUserReadAll(req: AuthenticatedRequest, res: Response):
 
 export async function getAdminNotifications(_req: Request, res: Response): Promise<void> {
   try {
-    const notifications = await NotificationModel.find({ recipientType: 'ADMIN' })
-      .sort({ createdAt: -1 })
-      .limit(50)
-      .lean();
+    const notifications = await prisma.notification.findMany({
+      where: { targetRole: 'ADMIN' },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
 
-    res.json({ success: true, notifications });
+    res.json({ success: true, notifications: notifications.map(mapNotification) });
   } catch (error) {
     console.error('getAdminNotifications error:', error);
     res.status(500).json({ error: 'Failed to fetch admin notifications' });
@@ -105,9 +115,11 @@ export async function getAdminNotifications(_req: Request, res: Response): Promi
 
 export async function getAdminUnreadCount(_req: Request, res: Response): Promise<void> {
   try {
-    const unreadCount = await NotificationModel.countDocuments({
-      recipientType: 'ADMIN',
-      read: false,
+    const unreadCount = await prisma.notification.count({
+      where: {
+        targetRole: 'ADMIN',
+        isRead: false,
+      },
     });
 
     res.json({ success: true, unreadCount });
@@ -120,15 +132,10 @@ export async function getAdminUnreadCount(_req: Request, res: Response): Promise
 export async function markAdminRead(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      res.status(400).json({ error: 'Invalid notification ID' });
-      return;
-    }
-
-    await NotificationModel.findOneAndUpdate(
-      { _id: id, recipientType: 'ADMIN' },
-      { read: true }
-    );
+    await prisma.notification.updateMany({
+      where: { id, targetRole: 'ADMIN' },
+      data: { isRead: true },
+    });
 
     res.json({ success: true });
   } catch (error) {
@@ -139,10 +146,10 @@ export async function markAdminRead(req: Request, res: Response): Promise<void> 
 
 export async function markAdminReadAll(_req: Request, res: Response): Promise<void> {
   try {
-    await NotificationModel.updateMany(
-      { recipientType: 'ADMIN', read: false },
-      { read: true }
-    );
+    await prisma.notification.updateMany({
+      where: { targetRole: 'ADMIN', isRead: false },
+      data: { isRead: true },
+    });
 
     res.json({ success: true });
   } catch (error) {

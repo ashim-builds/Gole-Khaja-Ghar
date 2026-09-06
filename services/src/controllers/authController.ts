@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
-import UserModel from '../models/User.js';
+import prisma from '../lib/prisma.js';
 import { signUserToken, signAdminToken } from '../auth/jwt.js';
 import { registerSchema, loginSchema, adminLoginSchema } from '../validators/schemas.js';
 import { AuthenticatedRequest } from '../middleware/auth.js';
@@ -16,7 +16,11 @@ export async function register(req: Request, res: Response): Promise<void> {
     }
 
     const { name, email, phone, password } = validation.data;
-    const existingUser = await UserModel.findOne({ email: email.toLowerCase() });
+    const lowerEmail = email.toLowerCase();
+    const existingUser = await prisma.user.findUnique({
+      where: { email: lowerEmail },
+    });
+
     if (existingUser) {
       res.status(400).json({ error: 'Account with this email already exists' });
       return;
@@ -25,15 +29,18 @@ export async function register(req: Request, res: Response): Promise<void> {
     const salt = await bcrypt.genSalt(12);
     const passwordHash = await bcrypt.hash(password, salt);
 
-    const user = await UserModel.create({
-      name,
-      email: email.toLowerCase(),
-      phone: phone || undefined,
-      passwordHash,
-      role: 'customer',
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email: lowerEmail,
+        phone: phone || null,
+        passwordHash,
+        role: 'CUSTOMER',
+        authProvider: 'LOCAL',
+      },
     });
 
-    const token = await signUserToken(user._id.toString(), user.email, user.role || 'customer');
+    const token = await signUserToken(user.id, user.email || '', user.role.toLowerCase());
 
     res.cookie('user_token', token, {
       httpOnly: true,
@@ -46,11 +53,11 @@ export async function register(req: Request, res: Response): Promise<void> {
     res.status(201).json({
       success: true,
       user: {
-        id: user._id.toString(),
+        id: user.id,
         name: user.name,
         email: user.email,
         phone: user.phone,
-        role: user.role,
+        role: user.role.toLowerCase(),
       },
     });
   } catch (error) {
@@ -61,17 +68,34 @@ export async function register(req: Request, res: Response): Promise<void> {
 
 export async function login(req: Request, res: Response): Promise<void> {
   try {
-    const validation = loginSchema.safeParse(req.body);
-    if (!validation.success) {
-      res.status(401).json({ error: 'Invalid email or password' });
+    const { identifier, email, password } = req.body;
+    const loginIdentifier = (identifier || email || '').trim();
+
+    if (!loginIdentifier || !password) {
+      res.status(400).json({ error: 'Please enter your email, phone, or employee code and password' });
       return;
     }
 
-    const { email, password } = validation.data;
-    const user = await UserModel.findOne({ email: email.toLowerCase() });
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: loginIdentifier.toLowerCase() },
+          { phone: loginIdentifier },
+          { staffProfile: { employeeCode: loginIdentifier.toUpperCase() } },
+        ],
+      },
+      include: {
+        staffProfile: true,
+      },
+    });
 
     if (!user) {
-      res.status(401).json({ error: 'Invalid email or password' });
+      res.status(401).json({ error: 'Invalid credentials' });
+      return;
+    }
+
+    if (user.role === 'WAITER' && user.staffProfile && !user.staffProfile.isActive) {
+      res.status(403).json({ error: 'Your staff account is currently deactivated. Please contact admin.' });
       return;
     }
 
@@ -82,11 +106,11 @@ export async function login(req: Request, res: Response): Promise<void> {
 
     const isValid = await bcrypt.compare(password, user.passwordHash);
     if (!isValid) {
-      res.status(401).json({ error: 'Invalid email or password' });
+      res.status(401).json({ error: 'Invalid credentials' });
       return;
     }
 
-    const token = await signUserToken(user._id.toString(), user.email, user.role || 'customer');
+    const token = await signUserToken(user.id, user.email || user.phone || user.id, user.role.toLowerCase());
 
     res.cookie('user_token', token, {
       httpOnly: true,
@@ -99,11 +123,12 @@ export async function login(req: Request, res: Response): Promise<void> {
     res.json({
       success: true,
       user: {
-        id: user._id.toString(),
+        id: user.id,
         name: user.name,
         email: user.email,
         phone: user.phone,
-        role: user.role,
+        role: user.role.toLowerCase(),
+        employeeCode: user.staffProfile?.employeeCode || null,
       },
     });
   } catch (error) {
@@ -115,24 +140,34 @@ export async function login(req: Request, res: Response): Promise<void> {
 export async function getMe(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     if (!req.user) {
-      res.status(401).json({ error: 'Unauthorized' });
+      res.json({ success: true, user: null });
       return;
     }
 
-    const user = await UserModel.findById(req.user.userId).select('-passwordHash').lean();
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+      },
+    });
+
     if (!user) {
-      res.status(404).json({ error: 'User not found' });
+      res.json({ success: true, user: null });
       return;
     }
 
     res.json({
       success: true,
       user: {
-        id: user._id.toString(),
+        id: user.id,
         name: user.name,
         email: user.email,
         phone: user.phone,
-        role: user.role,
+        role: user.role.toLowerCase(),
       },
     });
   } catch (error) {
@@ -203,6 +238,33 @@ export async function adminLogout(_req: Request, res: Response): Promise<void> {
   res.json({ success: true });
 }
 
+function getGoogleRedirectUri(req: Request): string {
+  if (process.env.GOOGLE_REDIRECT_URI) {
+    return process.env.GOOGLE_REDIRECT_URI;
+  }
+  const host = req.get('host');
+  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+  return `${protocol}://${host}/api/auth/google/callback`;
+}
+
+export function googleOAuthInitiate(req: Request, res: Response): void {
+  const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+  const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+
+  if (!GOOGLE_CLIENT_ID) {
+    res.redirect(`${clientUrl}/login?error=Google_OAuth_Not_Configured`);
+    return;
+  }
+
+  const redirectUri = getGoogleRedirectUri(req);
+  const scope = encodeURIComponent('openid profile email');
+  const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(
+    redirectUri
+  )}&response_type=code&scope=${scope}&access_type=offline&prompt=select_account`;
+
+  res.redirect(googleAuthUrl);
+}
+
 export async function googleOAuthCallback(req: Request, res: Response): Promise<void> {
   try {
     const code = req.query.code as string;
@@ -216,9 +278,7 @@ export async function googleOAuthCallback(req: Request, res: Response): Promise<
 
     const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
     const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-    const host = req.get('host');
-    const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-    const redirectUri = `${protocol}://${host}/api/auth/google/callback`;
+    const redirectUri = getGoogleRedirectUri(req);
 
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
@@ -249,23 +309,28 @@ export async function googleOAuthCallback(req: Request, res: Response): Promise<
     }
 
     const email = profileData.email.toLowerCase();
-    let user = await UserModel.findOne({ email });
+    let user = await prisma.user.findUnique({ where: { email } });
 
     if (user) {
       if (!user.googleId) {
-        user.googleId = profileData.id;
-        await user.save();
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: { googleId: profileData.id },
+        });
       }
     } else {
-      user = await UserModel.create({
-        name: profileData.name || 'Google User',
-        email,
-        googleId: profileData.id,
-        role: 'customer',
+      user = await prisma.user.create({
+        data: {
+          name: profileData.name || 'Google User',
+          email,
+          googleId: profileData.id,
+          role: 'CUSTOMER',
+          authProvider: 'GOOGLE',
+        },
       });
     }
 
-    const token = await signUserToken(user._id.toString(), user.email, user.role || 'customer');
+    const token = await signUserToken(user.id, user.email || '', user.role.toLowerCase());
 
     res.cookie('user_token', token, {
       httpOnly: true,

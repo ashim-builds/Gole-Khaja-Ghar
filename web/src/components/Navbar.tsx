@@ -56,10 +56,10 @@ export default function Navbar() {
             <div className="flex-shrink-0 flex items-center">
               <Link to="/" className="flex items-center gap-2 group">
                 <div className="w-10 h-10 relative rounded-full overflow-hidden border border-primary/20 bg-stone-900 flex items-center justify-center">
-                  <img src="/images/logo.png" alt="Golu Khaja Ghar Logo" className="w-full h-full object-cover" />
+                  <img src="/images/logo.png" alt="Gole Khaja Ghar Logo" className="w-full h-full object-cover" />
                 </div>
                 <span className="font-extrabold text-2xl tracking-tighter text-white hidden md:inline">
-                  Golu <span className="text-primary text-xl">Khaja Ghar</span>
+                  Gole <span className="text-primary text-xl">Khaja Ghar</span>
                 </span>
               </Link>
             </div>

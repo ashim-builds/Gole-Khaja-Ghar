@@ -71,7 +71,7 @@ export default function OrderTrackingPage() {
 
   // Format string for WhatsApp
   const whatsappPhone = "+9779865311559";
-  const orderTextString = `*Golu Khaja Ghar*
+  const orderTextString = `*Gole Khaja Ghar*
 Order #${order.orderNumber}
 
 *Customer:*

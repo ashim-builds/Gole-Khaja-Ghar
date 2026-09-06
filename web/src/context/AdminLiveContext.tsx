@@ -112,24 +112,28 @@ export function AdminLiveProvider({ children }: { children: React.ReactNode }) {
         const res = await fetch("/api/admin/live-updates");
         if (!res.ok) return;
 
-        const data = await res.json();
-        if (!active || !data.success) return;
+        const result = await res.json();
+        if (!active || !result.success) return;
 
-        setStats(data.stats);
-        setRecentOrders(data.recentOrders);
+        const payload = result.data || result;
+        const orders = payload.recentOrders || result.recentOrders || [];
+        const statsData = payload.stats || result.stats || null;
+
+        if (statsData) {
+          setStats(statsData);
+        }
+        setRecentOrders(orders);
 
         // Check if there's a new order
-        if (data.recentOrders.length > 0) {
-          const latestOrder = data.recentOrders[0];
+        if (orders.length > 0) {
+          const latestOrder = orders[0];
           
           if (!isInitialFetch.current && lastSeenOrderNumber.current && latestOrder.orderNumber !== lastSeenOrderNumber.current) {
-            // Find if this order is not already processed or seen
-            // If the latest order is different from our last seen order number, play sound & alert
             playNotificationSound();
             setNewOrderNotification({
               show: true,
               orderNumber: latestOrder.orderNumber,
-              customerName: latestOrder.customerInfo.name,
+              customerName: latestOrder.customerInfo?.name || "Customer",
               amount: latestOrder.totalAmount
             });
           }

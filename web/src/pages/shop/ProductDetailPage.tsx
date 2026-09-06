@@ -91,9 +91,9 @@ export default function ProductDetailPage() {
               </div>
 
               <div className="mb-6 flex flex-wrap items-center gap-2">
-                <span className="flex items-center text-stone-600 text-xs font-bold rounded-full bg-yellow-50 px-3 py-1.5 border border-yellow-100">
-                  <span className="w-4 h-4 rounded-full bg-yellow-200 flex items-center justify-center mr-1.5">
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                <span className="flex items-center text-stone-600 text-xs font-bold rounded-full bg-orange-50 px-3 py-1.5 border border-orange-100">
+                  <span className="w-4 h-4 rounded-full bg-orange-200 flex items-center justify-center mr-1.5">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                   </span>
                   Freshly Prepared
                 </span>

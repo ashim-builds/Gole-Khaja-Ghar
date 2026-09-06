@@ -1,23 +1,11 @@
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
+import prisma from '../lib/prisma.js';
 
-dotenv.config();
-
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/crispychips';
-
-export async function connectToDatabase(): Promise<typeof mongoose> {
-  if (mongoose.connection.readyState >= 1) {
-    return mongoose;
-  }
-
+export async function connectToDatabase(): Promise<void> {
   try {
-    const conn = await mongoose.connect(MONGODB_URI, {
-      bufferCommands: false,
-    });
-    console.log(`[Database] MongoDB Connected: ${conn.connection.host}`);
-    return conn;
+    await prisma.$connect();
+    console.log('✅ [Database] MySQL (Prisma) Connected successfully');
   } catch (error) {
-    console.error('[Database] MongoDB connection error:', error);
+    console.error('❌ [Database] MySQL connection error:', error);
     process.exit(1);
   }
 }

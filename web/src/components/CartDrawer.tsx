@@ -119,7 +119,17 @@ function CartItemCard({
 
       {/* Image */}
       <div className="relative w-20 h-20 bg-stone-50 rounded-xl overflow-hidden flex-shrink-0">
-        <img src={item.product.image} alt={item.product.name} className="w-full h-full object-cover" />
+        <img 
+          src={item.product.image || "/images/logo.png"} 
+          alt={item.product.name} 
+          onError={(e) => {
+            const target = e.currentTarget;
+            if (!target.src.endsWith('/images/logo.png')) {
+              target.src = '/images/logo.png';
+            }
+          }}
+          className="w-full h-full object-cover" 
+        />
       </div>
 
       {/* Details */}

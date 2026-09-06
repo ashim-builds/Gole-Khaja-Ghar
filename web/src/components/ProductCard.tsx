@@ -61,7 +61,17 @@ export default function ProductCard({
       
       {/* Image */}
       <Link to={`/product/${slug}`} className="relative w-20 h-20 md:w-full md:h-auto md:aspect-square rounded-[8px] bg-[#f5f5f5] overflow-hidden flex-shrink-0 group">
-        <img src={image} alt={name} className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${!isAvailable ? 'grayscale' : ''}`} />
+        <img 
+          src={image || "/images/logo.png"} 
+          alt={name} 
+          onError={(e) => {
+            const target = e.currentTarget;
+            if (!target.src.endsWith('/images/logo.png')) {
+              target.src = '/images/logo.png';
+            }
+          }}
+          className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${!isAvailable ? 'grayscale' : ''}`} 
+        />
         {!isAvailable && (
           <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
             <span className="text-[8px] md:text-xs font-bold text-white px-1.5 py-0.5 bg-red-600 rounded shadow-md transform -rotate-12">OUT OF STOCK</span>

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import PushSubscriptionModel from '../models/PushSubscription.js';
+import prisma from '../lib/prisma.js';
 import { AuthenticatedRequest } from '../middleware/auth.js';
 
 export async function subscribePush(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -10,39 +10,47 @@ export async function subscribePush(req: AuthenticatedRequest, res: Response): P
       return;
     }
 
-    const subType = type === 'admin' ? 'admin' : 'customer';
+    const isAdmin = type === 'admin';
+    const clientType = isAdmin ? 'ADMIN' : 'CUSTOMER';
+    const userId = !isAdmin && req.user?.userId ? req.user.userId : null;
 
-    if (subType === 'admin') {
-      if (!req.isAdmin) {
-        res.status(401).json({ error: 'Unauthorized: Admin authentication required' });
-        return;
-      }
-      await PushSubscriptionModel.findOneAndUpdate(
-        { endpoint: subscription.endpoint },
-        {
-          endpoint: subscription.endpoint,
-          keys: subscription.keys,
-          type: 'admin',
-          userId: undefined,
-        },
-        { upsert: true, new: true }
-      );
-    } else {
-      await PushSubscriptionModel.findOneAndUpdate(
-        { endpoint: subscription.endpoint },
-        {
-          endpoint: subscription.endpoint,
-          keys: subscription.keys,
-          type: 'customer',
-          userId: req.user?.userId || undefined,
-        },
-        { upsert: true, new: true }
-      );
-    }
+    await prisma.pushSubscription.upsert({
+      where: { endpoint: subscription.endpoint },
+      update: {
+        p256dhKey: subscription.keys.p256dh,
+        authKey: subscription.keys.auth,
+        clientType,
+        userId,
+      },
+      create: {
+        endpoint: subscription.endpoint,
+        p256dhKey: subscription.keys.p256dh,
+        authKey: subscription.keys.auth,
+        clientType,
+        userId,
+      },
+    });
 
     res.json({ success: true });
   } catch (error) {
     console.error('subscribePush error:', error);
     res.status(500).json({ error: 'Failed to save push subscription' });
+  }
+}
+
+export async function getVapidPublicKey(_req: Request, res: Response): Promise<void> {
+  res.json({ publicKey: process.env.VAPID_PUBLIC_KEY || '' });
+}
+
+export async function unsubscribePush(req: Request, res: Response): Promise<void> {
+  try {
+    const { endpoint } = req.body;
+    if (endpoint) {
+      await prisma.pushSubscription.deleteMany({ where: { endpoint } });
+    }
+    res.json({ success: true });
+  } catch (error) {
+    console.error('unsubscribePush error:', error);
+    res.status(500).json({ error: 'Failed to unsubscribe' });
   }
 }

@@ -53,14 +53,14 @@ export default function SplashScreen() {
         <div className="w-28 h-28 relative rounded-full overflow-hidden border-2 border-primary/40 shadow-2xl shadow-primary/30 mb-8 animate-[pulse_1.8s_ease-in-out_infinite]">
           <img
             src="/images/logo.png"
-            alt="Golu Khaja Ghar Splash Logo"
+            alt="Gole Khaja Ghar Splash Logo"
             className="w-full h-full object-cover"
           />
         </div>
 
         {/* Brand Text */}
         <h1 className="text-2xl font-black text-white tracking-widest uppercase mb-1">
-          Golu <span className="text-primary">Khaja Ghar</span>
+          Gole <span className="text-primary">Khaja Ghar</span>
         </h1>
         <p className="text-stone-400 font-bold text-xs uppercase tracking-widest mb-6">
           Authentic · Fresh · Delicious

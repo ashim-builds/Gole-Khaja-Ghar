@@ -136,7 +136,7 @@ export const api = {
         body: JSON.stringify(data),
       });
     },
-    async login(data: { email: string; password: string }) {
+    async login(data: { email?: string; identifier?: string; password: string }) {
       return request<{ success: boolean; user: UserProfile }>('/auth/login', {
         method: 'POST',
         body: JSON.stringify(data),
@@ -156,6 +156,50 @@ export const api = {
     },
     async adminLogout() {
       return request<{ success: boolean }>('/auth/admin/logout', { method: 'POST' });
+    },
+  },
+
+  // ── Admin Waiters & Management ──
+  admin: {
+    waiters: {
+      async list() {
+        return request<{
+          success: boolean;
+          waiters: Array<{
+            id: string;
+            name: string;
+            email: string | null;
+            phone: string | null;
+            employeeCode: string;
+            isActive: boolean;
+            notes: string;
+            createdAt: string;
+          }>;
+        }>('/admin/waiters');
+      },
+      async create(data: {
+        name: string;
+        phone: string;
+        email?: string;
+        password: string;
+        employeeCode: string;
+        notes?: string;
+      }) {
+        return request<{ success: boolean; waiter: any }>('/admin/waiters', {
+          method: 'POST',
+          body: JSON.stringify(data),
+        });
+      },
+      async delete(id: string) {
+        return request<{ success: boolean; message: string }>(`/admin/waiters/${id}`, {
+          method: 'DELETE',
+        });
+      },
+    },
+    async testPush() {
+      return request<{ success: boolean; message: string }>('/admin/test-push', {
+        method: 'POST',
+      });
     },
   },
 
@@ -335,5 +379,16 @@ export const api = {
         body: JSON.stringify({ subscription, type }),
       });
     },
+    async unsubscribe(endpoint: string) {
+      return request<{ success: boolean }>('/push/unsubscribe', {
+        method: 'POST',
+        body: JSON.stringify({ endpoint }),
+      });
+    },
+    async getVapidPublicKey() {
+      return request<{ publicKey: string }>('/push/vapid-public-key');
+    },
   },
 };
+
+export default api;

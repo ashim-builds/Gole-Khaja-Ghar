@@ -218,8 +218,8 @@ export default function CheckoutPage() {
                 <X className="w-5 h-5 text-stone-600" />
               </button>
               <div className="text-center mb-5">
-                <div className="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                  <QrCode className="w-7 h-7 text-amber-600" />
+                <div className="w-14 h-14 bg-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                  <QrCode className="w-7 h-7 text-primary" />
                 </div>
                 <h3 className="text-xl font-black text-stone-900">QR Scan & Pay</h3>
                 <p className="text-sm text-stone-500 font-medium mt-1">Scan the QR code to pay</p>
@@ -232,7 +232,7 @@ export default function CheckoutPage() {
                     <p className="text-xs text-stone-400 font-semibold">Restaurant QR Code</p>
                   </div>
                 </div>
-                <div className="text-center bg-amber-50 rounded-xl p-3 border border-amber-100 w-full">
+                <div className="text-center bg-orange-50 rounded-xl p-3 border border-orange-100 w-full">
                   <p className="text-sm font-black text-stone-900">Amount to Pay</p>
                   <p className="text-2xl font-black text-primary">Rs. {grandTotal.toFixed(2)}</p>
                 </div>
@@ -533,7 +533,7 @@ export default function CheckoutPage() {
                 )}
 
                 {formData.orderType === "delivery" && DELIVERY_FEE > 0 && (
-                  <p className="text-[11px] text-amber-600 font-semibold bg-amber-50 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+                  <p className="text-[11px] text-primary font-semibold bg-orange-50 px-3 py-1.5 rounded-lg flex items-center gap-1.5 border border-orange-100">
                     <Truck className="w-3.5 h-3.5 shrink-0" /> Add Rs. {(100 - cartTotal).toFixed(0)} more
                     for free delivery!
                   </p>

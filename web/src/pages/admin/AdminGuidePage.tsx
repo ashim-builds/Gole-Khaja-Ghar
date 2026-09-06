@@ -41,7 +41,7 @@ function Step({
 }) {
   return (
     <div className="flex gap-4 items-start">
-      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#ffc107] text-black flex items-center justify-center text-sm font-black">
+      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-black">
         {number}
       </div>
       <div className="flex-1 text-stone-700 font-medium leading-relaxed pt-1">
@@ -60,10 +60,10 @@ function Tip({
 }) {
   const styles = {
     tip: {
-      bg: "bg-amber-50 border-amber-200",
-      icon: <Zap className="w-4 h-4 text-amber-500" />,
+      bg: "bg-orange-50 border-orange-200",
+      icon: <Zap className="w-4 h-4 text-primary" />,
       label: "Tip",
-      text: "text-amber-800",
+      text: "text-orange-900",
     },
     warn: {
       bg: "bg-red-50 border-red-200",
@@ -233,7 +233,7 @@ export default function AdminGuidePage() {
             <h3 className="font-black text-stone-800">Recent Orders Table</h3>
             <p className="text-stone-600 text-sm leading-relaxed">
               Below the metric cards is a live-updating table showing recent orders. Click any{" "}
-              <strong className="text-[#ffc107]">order number</strong> link to open that order's detail page, or click{" "}
+              <strong className="text-primary">order number</strong> link to open that order's detail page, or click{" "}
               <strong>"View All"</strong> to go to the full orders list.
             </p>
           </div>
@@ -258,7 +258,7 @@ export default function AdminGuidePage() {
 
           <div className="space-y-4">
             <h3 className="font-black text-stone-800 text-lg border-b border-stone-100 pb-2">
-              <ToggleLeft className="inline w-5 h-5 mr-2 text-[#ffc107]" />
+              <ToggleLeft className="inline w-5 h-5 mr-2 text-primary" />
               Quick Stock Toggle
             </h3>
             <p className="text-stone-600 text-sm leading-relaxed">
@@ -271,7 +271,7 @@ export default function AdminGuidePage() {
 
           <div className="space-y-4">
             <h3 className="font-black text-stone-800 text-lg border-b border-stone-100 pb-2">
-              <Plus className="inline w-5 h-5 mr-2 text-[#ffc107]" />
+              <Plus className="inline w-5 h-5 mr-2 text-primary" />
               Adding a New Product
             </h3>
             <div className="space-y-3">
@@ -360,7 +360,7 @@ export default function AdminGuidePage() {
       content: (
         <div className="space-y-6">
           <p className="text-stone-600 leading-relaxed">
-            Golu Khaja Ghar features native web push notifications that keep you updated instantly on new orders and status updates, even when your browser is minimized!
+            Gole Khaja Ghar features native web push notifications that keep you updated instantly on new orders and status updates, even when your browser is minimized!
           </p>
           <div className="space-y-4">
             <Step number={1}>
@@ -406,13 +406,13 @@ export default function AdminGuidePage() {
   return (
     <div className="space-y-6 pb-20">
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-[#ffc107] rounded-xl flex items-center justify-center">
-          <BookOpen className="w-5 h-5 text-black" />
+        <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
+          <BookOpen className="w-5 h-5 text-white" />
         </div>
         <div>
           <h1 className="text-3xl font-black text-stone-900">Admin Guide</h1>
           <p className="text-stone-500 text-sm font-medium">
-            Everything you need to know to manage Golu Khaja Ghar
+            Everything you need to know to manage Gole Khaja Ghar
           </p>
         </div>
       </div>
@@ -467,7 +467,7 @@ export default function AdminGuidePage() {
 
       <div className="bg-white rounded-2xl shadow-sm border border-stone-100 p-6 md:p-8">
         <h2 className="text-2xl font-black text-stone-900 mb-6 flex items-center gap-3">
-          <span className="w-9 h-9 bg-[#ffc107] text-black rounded-xl flex items-center justify-center text-lg font-black">
+          <span className="w-9 h-9 bg-primary text-white rounded-xl flex items-center justify-center text-lg font-black">
             ?
           </span>
           Frequently Asked Questions
@@ -480,7 +480,7 @@ export default function AdminGuidePage() {
               <div
                 key={i}
                 className={`border rounded-xl overflow-hidden transition-all ${
-                  isOpen ? "border-[#ffc107]" : "border-stone-200"
+                  isOpen ? "border-primary" : "border-stone-200"
                 }`}
               >
                 <button
@@ -490,13 +490,13 @@ export default function AdminGuidePage() {
                 >
                   <span className="pr-4">{faq.q}</span>
                   {isOpen ? (
-                    <ChevronDown className="w-5 h-5 text-[#ffc107] flex-shrink-0" />
+                    <ChevronDown className="w-5 h-5 text-primary flex-shrink-0" />
                   ) : (
                     <ChevronRight className="w-5 h-5 text-stone-400 flex-shrink-0" />
                   )}
                 </button>
                 {isOpen && (
-                  <div className="px-4 pb-4 text-stone-600 text-sm leading-relaxed border-t border-stone-100 pt-3 bg-amber-50/30">
+                  <div className="px-4 pb-4 text-stone-600 text-sm leading-relaxed border-t border-stone-100 pt-3 bg-orange-50/30">
                     {faq.a}
                   </div>
                 )}

@@ -4,10 +4,10 @@ import { Eye } from "lucide-react";
 import { api } from "@/lib/api";
 
 interface AdminOrdersClientProps {
-  initialOrders: any[];
+  initialOrders?: any[];
 }
 
-export default function AdminOrdersClient({ initialOrders }: AdminOrdersClientProps) {
+export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersClientProps) {
   const [orders, setOrders] = useState(initialOrders);
 
   useEffect(() => {

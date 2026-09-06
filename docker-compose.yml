@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   mysql:
     image: mysql:8.0
@@ -11,8 +9,8 @@ services:
       MYSQL_USER: ${MYSQL_USER:-golu_user}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-golu_pass_123}
     ports:
-      # Expose for local development access; restrict in production environments
-      - "3306:3306"
+      # Expose for local development access; defaults to 3307 to prevent port conflicts
+      - "${MYSQL_PORT:-3307}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
@@ -35,17 +33,16 @@ services:
         condition: service_healthy
     environment:
       NODE_ENV: production
-      PORT: 5000
+      PORT: 4000
       DATABASE_URL: mysql://${MYSQL_USER:-golu_user}:${MYSQL_PASSWORD:-golu_pass_123}@mysql:3306/${MYSQL_DATABASE:-golu_khaja_ghar}
       JWT_SECRET: ${JWT_SECRET:-super_secret_jwt_key_change_in_prod}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-goleadmin}
       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
-      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
-      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
-      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
+    volumes:
+      - uploads_data:/app/public/uploads
     ports:
-      - "5000:5000"
+      - "4000:4000"
     networks:
       - golu_network
 
@@ -64,6 +61,7 @@ services:
 
 volumes:
   mysql_data:
+  uploads_data:
 
 networks:
   golu_network:
