@@ -1,0 +1,227 @@
+import React, { useRef, useMemo, useState, useEffect } from "react";
+import { Product } from "@/lib/api";
+
+interface VirtualPosProductGridProps {
+  products: Product[];
+  onProductClick: (product: Product) => void;
+  isMobile?: boolean;
+  className?: string;
+}
+
+export default function VirtualPosProductGrid({
+  products,
+  onProductClick,
+  isMobile = false,
+  className = "",
+}: VirtualPosProductGridProps) {
+  const parentRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState<number>(0);
+
+  // Measure container width for responsive column counts on desktop
+  useEffect(() => {
+    if (isMobile) return;
+    const el = parentRef.current;
+    if (!el) return;
+
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setContainerWidth(entry.contentRect.width);
+      }
+    });
+    ro.observe(el);
+    setContainerWidth(el.clientWidth);
+    return () => ro.disconnect();
+  }, [isMobile]);
+
+  // Determine column count
+  const columnCount = useMemo(() => {
+    if (isMobile) return 2;
+    if (containerWidth < 500) return 2;
+    if (containerWidth < 768) return 3;
+    if (containerWidth < 1100) return 4;
+    return 5;
+  }, [isMobile, containerWidth]);
+
+  // Split products into rows
+  const rows = useMemo(() => {
+    const r: Product[][] = [];
+    for (let i = 0; i < products.length; i += columnCount) {
+      r.push(products.slice(i, i + columnCount));
+    }
+    return r;
+  }, [products, columnCount]);
+
+  // Custom high-performance virtual windowing
+  const [scrollTop, setScrollTop] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(600);
+
+  useEffect(() => {
+    const el = parentRef.current;
+    if (!el) return;
+
+    let frameId: number | null = null;
+    const handleScroll = () => {
+      if (frameId !== null) cancelAnimationFrame(frameId);
+      frameId = requestAnimationFrame(() => {
+        setScrollTop(el.scrollTop);
+        setViewportHeight(el.clientHeight);
+      });
+    };
+
+    setViewportHeight(el.clientHeight);
+    el.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      if (frameId !== null) cancelAnimationFrame(frameId);
+      el.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  const estimatedRowHeight = isMobile ? 220 : 255;
+  const totalHeight = rows.length * estimatedRowHeight;
+  const overscan = 2; // Buffer rows above and below
+
+  const startIndex = Math.max(0, Math.floor(scrollTop / estimatedRowHeight) - overscan);
+  const endIndex = Math.min(
+    rows.length - 1,
+    Math.ceil((scrollTop + viewportHeight) / estimatedRowHeight) + overscan
+  );
+
+  const visibleRows = useMemo(() => {
+    const items = [];
+    for (let i = startIndex; i <= endIndex; i++) {
+      if (rows[i]) {
+        items.push({
+          index: i,
+          top: i * estimatedRowHeight,
+          items: rows[i],
+        });
+      }
+    }
+    return items;
+  }, [startIndex, endIndex, rows, estimatedRowHeight]);
+
+  const gridColsClass = useMemo(() => {
+    if (isMobile) return "grid-cols-2";
+    if (columnCount === 2) return "grid-cols-2";
+    if (columnCount === 3) return "grid-cols-3";
+    if (columnCount === 4) return "grid-cols-4";
+    return "grid-cols-5";
+  }, [isMobile, columnCount]);
+
+  return (
+    <div
+      ref={parentRef}
+      className={`flex-1 overflow-y-auto custom-scrollbar relative ${className}`}
+    >
+      {products.length === 0 ? (
+        <div className="text-center py-20 text-stone-500 space-y-2">
+          <p className="font-bold text-xs">No food items found matching filter</p>
+        </div>
+      ) : (
+        <div
+          style={{
+            height: `${totalHeight}px`,
+            position: "relative",
+            width: "100%",
+          }}
+        >
+          {visibleRows.map((virtualRow) => (
+            <div
+              key={virtualRow.index}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                transform: `translateY(${virtualRow.top}px)`,
+                height: `${estimatedRowHeight}px`,
+              }}
+              className={`grid ${gridColsClass} gap-2.5 sm:gap-3 p-1`}
+            >
+              {virtualRow.items.map((prod) => {
+                const isWeight = prod.priceType === "weight";
+                const hasVariants = prod.variants && prod.variants.length > 0;
+                const firstVariant = hasVariants ? prod.variants![0] : null;
+
+                const priceDisplay = isWeight
+                  ? `Rs. ${prod.pricePerKg}/kg`
+                  : firstVariant
+                  ? `Rs. ${firstVariant.price}`
+                  : `Rs. ${prod.pricePerKg || 0}`;
+
+                const portionHint =
+                  !isWeight && firstVariant
+                    ? prod.variants!.length > 1
+                      ? isMobile
+                        ? `(${prod.variants!.length} sizes)`
+                        : `/${firstVariant.name} (+${prod.variants!.length - 1})`
+                      : !isMobile
+                      ? `/${firstVariant.name}`
+                      : ""
+                    : "";
+
+                return (
+                  <div
+                    key={prod.id}
+                    onClick={() => onProductClick(prod)}
+                    className={`bg-stone-900 border border-stone-800 rounded-2xl flex flex-col justify-between cursor-pointer transition-all select-none shadow-md active:scale-95 ${
+                      isMobile
+                        ? "p-2.5 h-[208px]"
+                        : "p-3 h-[242px] hover:border-orange-500/70 hover:scale-[1.02] hover:shadow-xl group"
+                    }`}
+                  >
+                    <div>
+                      <div className="aspect-[4/3] rounded-xl overflow-hidden bg-stone-800 relative mb-2">
+                        <img
+                          src={prod.image || "/images/logo.png"}
+                          alt={prod.name}
+                          loading="lazy"
+                          decoding="async"
+                          className="w-full h-full object-cover"
+                        />
+                        {isWeight ? (
+                          <span className="absolute top-1 left-1 bg-orange-600 text-white text-[8px] sm:text-[9px] font-black uppercase px-1.5 py-0.5 rounded shadow">
+                            {isMobile ? "Weight" : "Weight Based"}
+                          </span>
+                        ) : prod.variants && prod.variants.length > 1 ? (
+                          <span className="absolute top-1 left-1 bg-stone-900/90 text-amber-400 border border-amber-500/40 text-[8px] sm:text-[9px] font-black uppercase px-1.5 py-0.5 rounded shadow">
+                            {prod.variants.length} {isMobile ? "Sizes" : "Portions"}
+                          </span>
+                        ) : null}
+                      </div>
+                      <h3 className="font-black text-xs text-stone-100 line-clamp-2 leading-tight break-words min-h-[1.75rem]">
+                        {prod.name}
+                      </h3>
+                      <p className="text-[10px] sm:text-[11px] text-stone-400 truncate mt-0.5">
+                        {prod.category}
+                      </p>
+                    </div>
+                    <div className="mt-2 flex items-center justify-between pt-1.5 border-t border-stone-800">
+                      <div className="flex flex-col">
+                        <span className="text-xs font-black text-orange-400">{priceDisplay}</span>
+                        {portionHint && (
+                          <span className="text-[9px] sm:text-[10px] text-stone-400 truncate max-w-[100px]">
+                            {portionHint}
+                          </span>
+                        )}
+                      </div>
+                      <span
+                        className={`rounded-lg flex items-center justify-center font-black transition-colors ${
+                          isMobile
+                            ? "w-6 h-6 bg-orange-600 text-white text-xs shadow-sm"
+                            : "w-6 h-6 bg-stone-800 group-hover:bg-orange-600 group-hover:text-white text-stone-400 text-xs"
+                        }`}
+                      >
+                        +
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

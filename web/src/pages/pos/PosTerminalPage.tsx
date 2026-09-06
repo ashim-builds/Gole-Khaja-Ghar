@@ -24,6 +24,7 @@ import {
 import { api, Product } from "@/lib/api";
 import { useUser } from "@/context/UserContext";
 import { subscribeToEvent, playAudioAlert } from "@/lib/socket";
+import VirtualPosProductGrid from "@/components/VirtualPosProductGrid";
 
 interface ReadyAlert {
   id: string;
@@ -835,67 +836,13 @@ export default function PosTerminalPage() {
               </div>
             </div>
 
-            {/* Mobile 2-Column Food Cards Grid */}
-            <div className="flex-1 overflow-y-auto p-3 grid grid-cols-2 gap-2.5 auto-rows-max items-start content-start custom-scrollbar pb-24">
-              {filteredProducts.map((prod) => {
-                const isWeight = prod.priceType === "weight";
-                const hasVariants = prod.variants && prod.variants.length > 0;
-                const firstVariant = hasVariants ? prod.variants![0] : null;
-
-                const priceDisplay = isWeight
-                  ? `Rs. ${prod.pricePerKg}/kg`
-                  : firstVariant
-                  ? `Rs. ${firstVariant.price}`
-                  : `Rs. ${prod.pricePerKg || 0}`;
-
-                const portionHint =
-                  !isWeight && firstVariant
-                    ? prod.variants!.length > 1
-                      ? `(${prod.variants!.length} sizes)`
-                      : ""
-                    : "";
-
-                return (
-                  <div
-                    key={prod.id}
-                    onClick={() => handleProductClick(prod)}
-                    className="bg-stone-900 border border-stone-800 rounded-2xl p-2.5 flex flex-col justify-between cursor-pointer transition-all active:scale-95 shadow-md select-none h-fit"
-                  >
-                    <div>
-                      <div className="aspect-[4/3] rounded-xl overflow-hidden bg-stone-800 relative mb-2">
-                        <img
-                          src={prod.image || "/images/logo.png"}
-                          alt={prod.name}
-                          className="w-full h-full object-cover"
-                        />
-                        {isWeight ? (
-                          <span className="absolute top-1 left-1 bg-orange-600 text-white text-[8px] font-black uppercase px-1.5 py-0.5 rounded shadow">
-                            Weight
-                          </span>
-                        ) : prod.variants && prod.variants.length > 1 ? (
-                          <span className="absolute top-1 left-1 bg-stone-900/90 text-amber-400 border border-amber-500/40 text-[8px] font-black uppercase px-1.5 py-0.5 rounded shadow">
-                            {prod.variants.length} Sizes
-                          </span>
-                        ) : null}
-                      </div>
-                      <h3 className="font-black text-xs text-stone-100 line-clamp-2 leading-tight break-words min-h-[1.75rem]">{prod.name}</h3>
-                      <p className="text-[10px] text-stone-400 truncate">{prod.category}</p>
-                    </div>
-                    <div className="mt-2.5 flex items-center justify-between pt-1.5 border-t border-stone-800">
-                      <div>
-                        <span className="text-xs font-black text-orange-400">{priceDisplay}</span>
-                        {portionHint && (
-                          <span className="text-[9px] text-stone-500 block leading-tight">{portionHint}</span>
-                        )}
-                      </div>
-                      <span className="w-6 h-6 rounded-lg bg-orange-600 text-white flex items-center justify-center text-xs font-black shadow-sm">
-                        +
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            {/* Mobile Virtualized 2-Column Food Cards Grid */}
+            <VirtualPosProductGrid
+              products={filteredProducts}
+              onProductClick={handleProductClick}
+              isMobile={true}
+              className="p-3 pb-24"
+            />
 
             {/* Floating Mobile Bottom Order Bar */}
             {cartItems.length > 0 && (
@@ -1314,67 +1261,13 @@ export default function PosTerminalPage() {
             </div>
           </div>
 
-          {/* Product Cards Grid */}
-          <div className="flex-1 overflow-y-auto p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 auto-rows-max items-start content-start custom-scrollbar">
-            {filteredProducts.map((prod) => {
-              const isWeight = prod.priceType === "weight";
-              const hasVariants = prod.variants && prod.variants.length > 0;
-              const firstVariant = hasVariants ? prod.variants![0] : null;
-
-              const priceDisplay = isWeight
-                ? `Rs. ${prod.pricePerKg}/kg`
-                : firstVariant
-                ? `Rs. ${firstVariant.price}`
-                : `Rs. ${prod.pricePerKg || 0}`;
-
-              const portionHint =
-                !isWeight && firstVariant
-                  ? prod.variants!.length > 1
-                    ? `/${firstVariant.name} (+${prod.variants!.length - 1})`
-                    : `/${firstVariant.name}`
-                  : "";
-
-              return (
-                <div
-                  key={prod.id}
-                  onClick={() => handleProductClick(prod)}
-                  className="bg-stone-900 border border-stone-800/80 hover:border-orange-500/70 rounded-2xl p-3 flex flex-col justify-between cursor-pointer transition-all hover:scale-[1.02] hover:shadow-xl group h-fit select-none"
-                >
-                  <div>
-                    <div className="aspect-[4/3] rounded-xl overflow-hidden bg-stone-800 relative mb-2.5">
-                      <img
-                        src={prod.image || "/images/logo.png"}
-                        alt={prod.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      {isWeight ? (
-                        <span className="absolute top-1.5 left-1.5 bg-orange-600 text-white text-[9px] font-black uppercase px-1.5 py-0.5 rounded shadow">
-                          Weight Based
-                        </span>
-                      ) : prod.variants && prod.variants.length > 1 ? (
-                        <span className="absolute top-1.5 left-1.5 bg-stone-900/90 text-amber-400 border border-amber-500/40 text-[9px] font-black uppercase px-1.5 py-0.5 rounded shadow">
-                          {prod.variants.length} Portions
-                        </span>
-                      ) : null}
-                    </div>
-                    <h3 className="font-black text-xs text-stone-100 line-clamp-2 leading-tight break-words min-h-[1.75rem]">{prod.name}</h3>
-                    <p className="text-[11px] text-stone-400 mt-0.5 truncate">{prod.category}</p>
-                  </div>
-                  <div className="mt-3 flex items-center justify-between pt-2 border-t border-stone-800">
-                    <div className="flex flex-col">
-                      <span className="text-xs font-black text-orange-400">{priceDisplay}</span>
-                      {portionHint && (
-                        <span className="text-[10px] text-stone-400 truncate max-w-[90px]">{portionHint}</span>
-                      )}
-                    </div>
-                    <span className="w-6 h-6 rounded-lg bg-stone-800 group-hover:bg-orange-600 group-hover:text-white flex items-center justify-center text-stone-400 text-xs font-black transition-colors">
-                      +
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          {/* Desktop Virtualized Product Cards Grid */}
+          <VirtualPosProductGrid
+            products={filteredProducts}
+            onProductClick={handleProductClick}
+            isMobile={false}
+            className="p-4"
+          />
         </div>
 
         {/* Right Column: Active Order Pad & Table Session */}
