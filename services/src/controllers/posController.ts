@@ -7,7 +7,6 @@ import { emitTableUpdated, emitKotStatusChanged, emitEvent } from '../lib/socket
 export async function createTableOrder(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const { tableSessionId, items, notes } = req.body;
-    const waiterId = req.user?.userId || null;
 
     if (!tableSessionId) {
       res.status(400).json({ error: 'tableSessionId is required' });
@@ -19,6 +18,12 @@ export async function createTableOrder(req: AuthenticatedRequest, res: Response)
       return;
     }
 
+    const waiterId = req.user?.userId || null;
+    let validUserId: string | null = null;
+    if (waiterId && waiterId !== 'admin') {
+      const userExists = await prisma.user.findUnique({ where: { id: waiterId } });
+      if (userExists) validUserId = waiterId;
+    }
     const session = await prisma.tableSession.findUnique({
       where: { id: tableSessionId },
       include: { table: true },
@@ -27,6 +32,10 @@ export async function createTableOrder(req: AuthenticatedRequest, res: Response)
     if (!session || (session.status !== 'ACTIVE' && session.status !== 'BILLED')) {
       res.status(400).json({ error: 'Table session is not active or not found' });
       return;
+    }
+
+    if (!validUserId && session.waiterId) {
+      validUserId = session.waiterId;
     }
 
     // Calculate subtotal
@@ -74,9 +83,9 @@ export async function createTableOrder(req: AuthenticatedRequest, res: Response)
       const order = await tx.order.create({
         data: {
           orderNumber,
-          userId: waiterId,
+          userId: validUserId,
           tableSessionId: session.id,
-          orderSource: 'WAITER',
+          orderSource: req.user?.role === 'ADMIN' ? 'ADMIN' : 'WAITER',
           orderType: 'DINE_IN',
           status: 'CONFIRMED',
           subtotalAmount: subtotal,
