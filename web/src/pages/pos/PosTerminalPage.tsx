@@ -1640,49 +1640,133 @@ export default function PosTerminalPage() {
             </div>
 
             <div className="space-y-4">
-              {/* Dynamic Number of Guests based on table.capacity */}
+              {/* Dynamic Number of Guests with Unlimited / Extra Chairs Support */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-bold text-stone-300">Number of Guests</label>
-                  <span className="text-[11px] font-semibold text-orange-400">
-                    Max Capacity: {openModalTable.capacity}
+                  <label className="text-xs font-bold text-stone-300 flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5 text-orange-500" />
+                    Number of Guests
+                  </label>
+                  <span className="text-[11px] font-semibold text-stone-400">
+                    Base Capacity: <strong className="text-orange-400">{openModalTable.capacity} Seats</strong>
                   </span>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {Array.from({ length: Math.min(openModalTable.capacity, 10) }, (_, i) => i + 1).map((num) => (
-                    <button
-                      key={num}
-                      type="button"
-                      onClick={() => setGuestCount(num)}
-                      className={`flex-1 min-w-[50px] py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                        guestCount === num
-                          ? "bg-orange-600 text-white shadow-md shadow-orange-600/30"
-                          : "bg-stone-800 text-stone-400 hover:bg-stone-700 hover:text-stone-200 border border-stone-700/60"
-                      }`}
-                    >
-                      {num} {num === 1 ? "Guest" : "Guests"}
-                    </button>
-                  ))}
+
+                {/* Quick Selection Preset Buttons (1..capacity + extra chairs) */}
+                <div className="grid grid-cols-4 sm:grid-cols-6 gap-1.5">
+                  {Array.from(
+                    new Set([
+                      ...Array.from({ length: Math.max(openModalTable.capacity, 4) }, (_, i) => i + 1),
+                      openModalTable.capacity + 1,
+                      openModalTable.capacity + 2,
+                    ])
+                  )
+                    .sort((a, b) => a - b)
+                    .map((num) => {
+                      const isExtra = num > openModalTable.capacity;
+                      const isSelected = guestCount === num;
+                      return (
+                        <button
+                          key={num}
+                          type="button"
+                          onClick={() => setGuestCount(num)}
+                          className={`py-2 px-1 rounded-xl text-xs font-black transition-all cursor-pointer text-center flex flex-col items-center justify-center ${
+                            isSelected
+                              ? isExtra
+                                ? "bg-amber-500 text-black shadow-md shadow-amber-500/30"
+                                : "bg-orange-600 text-white shadow-md shadow-orange-600/30"
+                              : isExtra
+                              ? "bg-stone-800/80 text-amber-300 hover:bg-stone-700/90 border border-amber-500/30"
+                              : "bg-stone-800 text-stone-300 hover:bg-stone-700 hover:text-white border border-stone-700/60"
+                          }`}
+                        >
+                          <span>{num} {num === 1 ? "Guest" : "Guests"}</span>
+                          {isExtra && (
+                            <span className="text-[9px] opacity-80 font-bold leading-none mt-0.5">
+                              +{num - openModalTable.capacity} extra
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
                 </div>
 
-                {/* Custom Stepper for extra seats */}
-                <div className="mt-2.5 flex items-center justify-between p-2.5 bg-stone-800/80 rounded-xl border border-stone-700">
-                  <span className="text-xs text-stone-300 font-semibold">Selected Seating:</span>
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setGuestCount((prev) => Math.max(1, prev - 1))}
-                      className="w-7 h-7 bg-stone-700 hover:bg-stone-600 rounded-lg flex items-center justify-center text-white font-bold cursor-pointer"
-                    >
-                      <Minus className="w-3.5 h-3.5" />
-                    </button>
-                    <span className="text-sm font-black text-white w-6 text-center">{guestCount}</span>
+                {/* Custom Stepper and Direct Input for any extra seats */}
+                <div className="mt-2.5 p-2.5 bg-stone-800/90 rounded-2xl border border-stone-700 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-xs text-stone-300 font-bold block">Selected Seating:</span>
+                      {guestCount > openModalTable.capacity ? (
+                        <span className="text-[10px] font-extrabold text-amber-400 flex items-center gap-1">
+                          ⚡ +{guestCount - openModalTable.capacity} Extra Chair{guestCount - openModalTable.capacity > 1 ? "s" : ""} Added
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-stone-400">Standard table capacity</span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setGuestCount((prev) => Math.max(1, prev - 1))}
+                        className="w-8 h-8 bg-stone-700 hover:bg-stone-600 rounded-xl flex items-center justify-center text-white font-bold cursor-pointer active:scale-95 transition-all"
+                        title="Minus 1 Guest"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+
+                      <input
+                        type="number"
+                        min="1"
+                        max="99"
+                        value={guestCount}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value, 10);
+                          if (!isNaN(val) && val >= 1) {
+                            setGuestCount(val);
+                          } else if (e.target.value === "") {
+                            setGuestCount(1);
+                          }
+                        }}
+                        className="w-12 h-8 bg-stone-900 border border-stone-600 rounded-xl text-center text-sm font-black text-white focus:outline-none focus:border-orange-500"
+                      />
+
+                      <button
+                        type="button"
+                        onClick={() => setGuestCount((prev) => prev + 1)}
+                        className="w-8 h-8 bg-stone-700 hover:bg-stone-600 rounded-xl flex items-center justify-center text-white font-bold cursor-pointer active:scale-95 transition-all"
+                        title="Plus 1 Guest"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Quick Extra Chair Adder Buttons */}
+                  <div className="flex items-center gap-1.5 pt-1 border-t border-stone-700/60">
+                    <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider shrink-0">
+                      Extra Chairs:
+                    </span>
                     <button
                       type="button"
                       onClick={() => setGuestCount((prev) => prev + 1)}
-                      className="w-7 h-7 bg-stone-700 hover:bg-stone-600 rounded-lg flex items-center justify-center text-white font-bold cursor-pointer"
+                      className="px-2 py-1 bg-stone-700 hover:bg-stone-600 text-stone-200 text-[11px] font-bold rounded-lg transition-all active:scale-95 cursor-pointer"
                     >
-                      <Plus className="w-3.5 h-3.5" />
+                      +1 Chair
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setGuestCount((prev) => prev + 2)}
+                      className="px-2 py-1 bg-stone-700 hover:bg-stone-600 text-stone-200 text-[11px] font-bold rounded-lg transition-all active:scale-95 cursor-pointer"
+                    >
+                      +2 Chairs
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setGuestCount((prev) => prev + 4)}
+                      className="px-2 py-1 bg-stone-700 hover:bg-stone-600 text-stone-200 text-[11px] font-bold rounded-lg transition-all active:scale-95 cursor-pointer"
+                    >
+                      +4 Chairs
                     </button>
                   </div>
                 </div>
