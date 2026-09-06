@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import {
   Receipt,
   Printer,
@@ -12,6 +13,7 @@ import {
   Trash2,
   UtensilsCrossed,
   ArrowRight,
+  ArrowLeft,
   ShieldCheck,
   AlertCircle,
   Percent,
@@ -25,6 +27,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { subscribeToEvent } from "@/lib/socket";
+import { useUser } from "@/context/UserContext";
 
 interface BillPayment {
   id: string;
@@ -35,6 +38,14 @@ interface BillPayment {
 }
 
 export default function AdminBillingPage() {
+  const location = useLocation();
+  const { user } = useUser();
+  const isStandalone = location.pathname === "/billing";
+  const userRole = (user?.role || "").toUpperCase();
+  const isAdmin = userRole === "ADMIN" || userRole === "SUPER_ADMIN";
+  const backPath = isAdmin ? "/admin" : "/";
+  const backLabel = isAdmin ? "Admin" : "Home";
+
   const [tables, setTables] = useState<any[]>([]);
   const [selectedTable, setSelectedTable] = useState<any | null>(null);
   const [sessionDetails, setSessionDetails] = useState<any | null>(null);
@@ -233,20 +244,45 @@ export default function AdminBillingPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div
+      className={`space-y-6 ${
+        isStandalone
+          ? "min-h-screen bg-stone-100/70 p-4 sm:p-6 md:p-8 max-w-7xl mx-auto"
+          : ""
+      }`}
+    >
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight flex items-center gap-2.5">
-            <Receipt className="w-7 h-7 text-orange-600" />
-            Cashier Billing & Tax Invoices
-          </h1>
-          <p className="text-stone-500 text-xs sm:text-sm mt-1">
-            Generate itemized tax invoices, record multi-tender split payments, and print 80mm thermal receipts.
-          </p>
+        <div className="flex items-center gap-3">
+          {isStandalone && (
+            <Link
+              to={backPath}
+              className="p-2.5 bg-white border border-stone-200 hover:bg-stone-50 rounded-xl text-stone-700 transition-colors flex items-center gap-1.5 text-xs font-bold shadow-sm"
+              title={`Back to ${backLabel}`}
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>{backLabel}</span>
+            </Link>
+          )}
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight flex items-center gap-2.5">
+              <Receipt className="w-7 h-7 text-orange-600" />
+              Cashier & Table Billing
+            </h1>
+            <p className="text-stone-500 text-xs sm:text-sm mt-0.5">
+              Generate itemized tax invoices, record split payments, and print 80mm receipts.
+            </p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
+          <Link
+            to="/pos"
+            className="px-3.5 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all"
+          >
+            <UtensilsCrossed className="w-4 h-4 text-orange-400" />
+            <span>POS Terminal</span>
+          </Link>
           <button
             onClick={fetchTablesAndBills}
             className="p-2.5 bg-white border border-stone-200 hover:bg-stone-50 rounded-xl text-stone-600 transition-colors shadow-sm cursor-pointer"

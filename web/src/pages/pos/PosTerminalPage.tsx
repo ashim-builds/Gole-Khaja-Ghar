@@ -417,6 +417,7 @@ export default function PosTerminalPage() {
 
   const userRole = (user?.role || "").toUpperCase();
   const isAdmin = userRole === "ADMIN" || userRole === "SUPER_ADMIN";
+  const isChefOrAdmin = isAdmin || userRole === "CHEF" || userRole === "KITCHEN";
   const backPath = isAdmin ? "/admin" : "/";
   const backLabel = isAdmin ? "Admin" : "Home";
 
@@ -448,17 +449,19 @@ export default function PosTerminalPage() {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-4">
+          {isChefOrAdmin && (
+            <Link
+              to="/kitchen"
+              target="_blank"
+              className="px-3 py-1.5 bg-stone-800 hover:bg-stone-700 border border-stone-700 rounded-xl text-xs font-bold text-stone-200 flex items-center gap-1.5 transition-colors"
+            >
+              <ChefHat className="w-4 h-4 text-orange-400" />
+              <span className="hidden sm:inline">Kitchen Screen (KDS)</span>
+            </Link>
+          )}
           <Link
-            to="/kitchen"
-            target="_blank"
-            className="px-3 py-1.5 bg-stone-800 hover:bg-stone-700 border border-stone-700 rounded-xl text-xs font-bold text-stone-200 flex items-center gap-1.5 transition-colors"
-          >
-            <ChefHat className="w-4 h-4 text-orange-400" />
-            <span className="hidden sm:inline">Kitchen Screen (KDS)</span>
-          </Link>
-          <Link
-            to="/admin/billing"
-            className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 rounded-xl text-xs font-bold text-white flex items-center gap-1.5 transition-colors shadow-md shadow-amber-600/20"
+            to="/billing"
+            className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 rounded-xl text-xs font-bold text-white flex items-center gap-1.5 transition-colors shadow-md shadow-amber-600/20"
           >
             <Receipt className="w-4 h-4" />
             <span>Billing</span>
@@ -731,7 +734,7 @@ export default function PosTerminalPage() {
                   </div>
                   {selectedTable.activeSession && (
                     <Link
-                      to="/admin/billing"
+                      to="/billing"
                       className="px-2.5 py-1 bg-stone-800 hover:bg-stone-700 text-amber-400 border border-amber-500/30 rounded-lg text-xs font-bold flex items-center gap-1"
                     >
                       <Receipt className="w-3.5 h-3.5" />

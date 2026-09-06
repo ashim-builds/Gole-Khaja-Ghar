@@ -5,6 +5,7 @@ import ShopLayout from "@/layouts/ShopLayout";
 import AdminLayout from "@/layouts/AdminLayout";
 import ProtectedRoute from "@/routes/ProtectedRoute";
 import AdminRoute from "@/routes/AdminRoute";
+import RoleRoute from "@/routes/RoleRoute";
 
 // Shop pages
 import HomePage from "@/pages/shop/HomePage";
@@ -73,9 +74,44 @@ export default function App() {
             </Route>
           </Route>
 
-          {/* POS Terminal & Kitchen KDS (Direct Screen Terminals) */}
-          <Route path="/pos" element={<PosTerminalPage />} />
-          <Route path="/kitchen" element={<KitchenDisplayPage />} />
+          {/* POS Terminal (Waiters, Cashiers, Admins) */}
+          <Route
+            element={
+              <RoleRoute
+                allowedRoles={["WAITER", "CASHIER"]}
+                title="Dine-In POS Terminal"
+                description="Access to Dine-In Table Ordering and POS is restricted to Waiters, Cashiers, and Management."
+              />
+            }
+          >
+            <Route path="/pos" element={<PosTerminalPage />} />
+          </Route>
+
+          {/* Kitchen KDS Screen (Chef, Kitchen Staff, Admins only) */}
+          <Route
+            element={
+              <RoleRoute
+                allowedRoles={["KITCHEN", "CHEF"]}
+                title="Kitchen Display Screen (KDS)"
+                description="Access to the Kitchen Display Screen (KDS) is strictly restricted to Chef and Kitchen staff."
+              />
+            }
+          >
+            <Route path="/kitchen" element={<KitchenDisplayPage />} />
+          </Route>
+
+          {/* Standalone Cashier & Waiter Billing Screen */}
+          <Route
+            element={
+              <RoleRoute
+                allowedRoles={["WAITER", "CASHIER"]}
+                title="Cashier & Table Billing"
+                description="Access to Table Settlements and Cashier Billing is restricted to Waiters, Cashiers, and Management."
+              />
+            }
+          >
+            <Route path="/billing" element={<AdminBillingPage />} />
+          </Route>
 
           {/* Admin Public Route */}
           <Route path="/admin/login" element={<AdminLoginPage />} />

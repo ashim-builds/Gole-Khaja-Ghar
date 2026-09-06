@@ -37,10 +37,16 @@ export default function Navbar() {
   ];
 
   if (user) {
-    if (user.role === "waiter") {
+    const role = (user.role || "").toUpperCase();
+    if (role === "ADMIN" || role === "SUPER_ADMIN") {
+      navLinks.push({ name: "Admin Dashboard", href: "/admin" });
       navLinks.push({ name: "Dine-In POS", href: "/pos" });
-    } else if (user.role === "kitchen") {
-      navLinks.push({ name: "Kitchen Screen", href: "/kitchen" });
+      navLinks.push({ name: "Billing", href: "/billing" });
+    } else if (role === "WAITER" || role === "CASHIER") {
+      navLinks.push({ name: "Dine-In POS", href: "/pos" });
+      navLinks.push({ name: "Billing", href: "/billing" });
+    } else if (role === "KITCHEN" || role === "CHEF") {
+      navLinks.push({ name: "Kitchen Screen (KDS)", href: "/kitchen" });
     }
     navLinks.push(
       { name: "My Orders", href: "/orders" },

@@ -5,8 +5,12 @@ import {
   markKotDelivered,
   updateKotItemStatus,
 } from '../controllers/kitchenController.js';
+import { requireRoles } from '../middleware/auth.js';
 
 const router = Router();
+
+// Kitchen Display System is restricted to CHEF / KITCHEN staff & Admin
+router.use(requireRoles(['KITCHEN', 'CHEF']));
 
 router.get('/tickets', getActiveKotTickets);
 router.patch('/tickets/:id/status', updateKotStatus);

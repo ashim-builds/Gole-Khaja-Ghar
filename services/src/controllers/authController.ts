@@ -144,6 +144,21 @@ export async function getMe(req: AuthenticatedRequest, res: Response): Promise<v
       return;
     }
 
+    if (req.user.userId === 'admin' || req.isAdmin) {
+      res.json({
+        success: true,
+        user: {
+          id: 'admin',
+          name: 'Administrator',
+          email: 'admin@golekhajaghar.com',
+          phone: null,
+          role: 'ADMIN',
+          employeeCode: 'ADMIN',
+        },
+      });
+      return;
+    }
+
     const user = await prisma.user.findUnique({
       where: { id: req.user.userId },
       select: {
@@ -152,6 +167,12 @@ export async function getMe(req: AuthenticatedRequest, res: Response): Promise<v
         email: true,
         phone: true,
         role: true,
+        staffProfile: {
+          select: {
+            employeeCode: true,
+            isActive: true,
+          },
+        },
       },
     });
 
@@ -167,7 +188,9 @@ export async function getMe(req: AuthenticatedRequest, res: Response): Promise<v
         name: user.name,
         email: user.email,
         phone: user.phone,
-        role: user.role.toLowerCase(),
+        role: user.role,
+        employeeCode: user.staffProfile?.employeeCode || null,
+        isActive: user.staffProfile?.isActive ?? true,
       },
     });
   } catch (error) {

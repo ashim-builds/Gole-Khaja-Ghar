@@ -4,11 +4,14 @@ import {
   getTableSessionDetails,
   closeTableSession,
 } from '../controllers/posController.js';
-import { optionalUser } from '../middleware/auth.js';
+import { requireRoles } from '../middleware/auth.js';
 
 const router = Router();
 
-router.post('/orders', optionalUser, createTableOrder);
+// POS operations are accessible to Waiters, Cashiers, and Admins
+router.use(requireRoles(['WAITER', 'CASHIER']));
+
+router.post('/orders', createTableOrder);
 router.get('/sessions/:sessionId', getTableSessionDetails);
 router.post('/sessions/:sessionId/close', closeTableSession);
 

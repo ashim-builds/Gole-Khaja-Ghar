@@ -16,8 +16,10 @@ export default function BottomNav() {
   const isActive = (path: string) =>
     path === "/" ? pathname === "/" : pathname.startsWith(path);
 
-  const isWaiter = user?.role === "waiter";
-  const isKitchen = user?.role === "kitchen";
+  const userRole = (user?.role || "").toUpperCase();
+  const isWaiter = userRole === "WAITER" || userRole === "CASHIER";
+  const isKitchen = userRole === "KITCHEN" || userRole === "CHEF";
+  const isAdmin = userRole === "ADMIN" || userRole === "SUPER_ADMIN";
 
   return (
     <div
