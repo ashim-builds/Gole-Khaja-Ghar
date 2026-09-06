@@ -512,53 +512,56 @@ export default function AdminSettingsPage() {
         </div>
       </div>
 
-      {/* 3. PUSH NOTIFICATIONS */}
-      <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-xs border border-stone-200/90 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-100 pb-4">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 bg-orange-50 border border-orange-200/80 rounded-xl flex items-center justify-center text-orange-600 shrink-0">
-              {pushStatus.isSubscribed ? (
-                <Bell className="w-5 h-5 text-orange-600" />
-              ) : (
-                <BellOff className="w-5 h-5 text-stone-400" />
-              )}
-            </div>
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-sm sm:text-base font-extrabold text-stone-900">
-                  Real-time Push Notifications
-                </h2>
-                <span
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                    pushStatus.isSubscribed
-                      ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                      : pushStatus.permission === "denied"
+      {/* 3 & 4. NOTIFICATIONS & AUDIO ALERTS (Horizontal 2-Column Grid) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+        {/* PUSH NOTIFICATIONS */}
+        <div className="bg-white rounded-2xl p-3.5 sm:p-4 shadow-xs border border-stone-200/90 flex flex-col justify-between space-y-3">
+          <div className="flex items-center justify-between gap-2 border-b border-stone-100 pb-2.5">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-orange-50 border border-orange-200/80 flex items-center justify-center text-orange-600 shrink-0">
+                {pushStatus.isSubscribed ? (
+                  <Bell className="w-4 h-4 text-orange-600" />
+                ) : (
+                  <BellOff className="w-4 h-4 text-stone-400" />
+                )}
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <h2 className="text-xs sm:text-sm font-extrabold text-stone-900 truncate">
+                    Push Notifications
+                  </h2>
+                  <span
+                    className={`px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shrink-0 ${
+                      pushStatus.isSubscribed
+                        ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                        : pushStatus.permission === "denied"
                         ? "bg-red-100 text-red-800 border border-red-200"
                         : "bg-stone-100 text-stone-600"
-                  }`}
-                >
-                  {pushStatus.isSubscribed
-                    ? "Active & Subscribed"
-                    : pushStatus.permission === "denied"
-                      ? "Blocked by Browser"
+                    }`}
+                  >
+                    {pushStatus.isSubscribed
+                      ? "Active"
+                      : pushStatus.permission === "denied"
+                      ? "Blocked"
                       : "Disabled"}
-                </span>
+                  </span>
+                </div>
+                <p className="text-[10px] sm:text-[11px] text-stone-500 truncate">
+                  Instant pop-up alerts on order arrival
+                </p>
               </div>
-              <p className="text-xs text-stone-500 mt-0.5">
-                Instant pop-up notifications on this device whenever orders are
-                placed.
-              </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-center shrink-0">
+          {/* Action Controls - Horizontal */}
+          <div className="grid grid-cols-2 gap-1.5 pt-0.5">
             <button
               disabled={loadingPush}
               onClick={handleTogglePush}
-              className={`px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 ${
+              className={`py-2 px-2 rounded-xl font-bold text-xs uppercase tracking-wider transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 ${
                 pushStatus.isSubscribed
                   ? "bg-stone-100 hover:bg-red-50 text-stone-700 hover:text-red-600 border border-stone-200"
-                  : "bg-orange-600 text-white hover:bg-orange-500 shadow-md shadow-orange-600/20"
+                  : "bg-orange-600 text-white hover:bg-orange-500 shadow-xs"
               }`}
             >
               {loadingPush ? (
@@ -571,98 +574,77 @@ export default function AdminSettingsPage() {
               ) : (
                 <>
                   <Bell className="w-3.5 h-3.5" />
-                  <span>Enable Push</span>
+                  <span>Enable</span>
                 </>
               )}
             </button>
-          </div>
-        </div>
 
-        {/* Action Row */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1 text-xs">
-          <div className="text-stone-500 text-[11px]">
-            {pushStatus.permission === "denied" ? (
-              <span className="text-red-600 font-semibold flex items-center gap-1.5">
-                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                Blocked in browser settings. Please allow notifications in site
-                permissions.
-              </span>
-            ) : pushStatus.isSubscribed ? (
-              <span>
-                Device registered for background WebPush notifications.
-              </span>
-            ) : (
-              <span>
-                Click "Enable Push" to receive live orders on this mobile phone
-                or PC.
-              </span>
-            )}
-          </div>
-
-          <button
-            disabled={testingPush || !pushStatus.isSubscribed}
-            onClick={handleTestPush}
-            className={`px-3.5 py-1.5 text-xs font-bold rounded-xl border transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 shrink-0 ${
-              pushStatus.isSubscribed
-                ? "bg-stone-50 hover:bg-stone-100 text-stone-800 border-stone-300"
-                : "opacity-40 cursor-not-allowed bg-stone-50 text-stone-400 border-stone-200"
-            }`}
-          >
-            {testingPush ? (
-              <Loader2 className="w-3 h-3 animate-spin" />
-            ) : (
-              <Send className="w-3 h-3 text-orange-600" />
-            )}
-            <span>Send Test Alert</span>
-          </button>
-        </div>
-      </div>
-
-      {/* 4. AUDIO ALERTS */}
-      <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-xs border border-stone-200/90 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 bg-amber-50 border border-amber-200/80 rounded-xl flex items-center justify-center text-amber-600 shrink-0">
-              {soundEnabled ? (
-                <Volume2 className="w-5 h-5 text-amber-600" />
+            <button
+              disabled={testingPush || !pushStatus.isSubscribed}
+              onClick={handleTestPush}
+              className={`py-2 px-2 text-xs font-bold rounded-xl border transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 ${
+                pushStatus.isSubscribed
+                  ? "bg-stone-50 hover:bg-stone-100 text-stone-800 border-stone-300"
+                  : "opacity-40 cursor-not-allowed bg-stone-50 text-stone-400 border-stone-200"
+              }`}
+            >
+              {testingPush ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
               ) : (
-                <VolumeX className="w-5 h-5 text-stone-400" />
+                <Send className="w-3.5 h-3.5 text-orange-600" />
               )}
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-sm sm:text-base font-extrabold text-stone-900">
-                  New Order Audio Chime
-                </h2>
-                <span
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                    soundEnabled
-                      ? "bg-amber-100 text-amber-900 border border-amber-200"
-                      : "bg-stone-100 text-stone-600"
-                  }`}
-                >
-                  {soundEnabled ? "Sound ON" : "Muted"}
-                </span>
+              <span>Test Alert</span>
+            </button>
+          </div>
+        </div>
+
+        {/* AUDIO ALERTS */}
+        <div className="bg-white rounded-2xl p-3.5 sm:p-4 shadow-xs border border-stone-200/90 flex flex-col justify-between space-y-3">
+          <div className="flex items-center justify-between gap-2 border-b border-stone-100 pb-2.5">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-200/80 flex items-center justify-center text-amber-600 shrink-0">
+                {soundEnabled ? (
+                  <Volume2 className="w-4 h-4 text-amber-600" />
+                ) : (
+                  <VolumeX className="w-4 h-4 text-stone-400" />
+                )}
               </div>
-              <p className="text-xs text-stone-500 mt-0.5">
-                Play an audible ding/chime when new customer or waiter orders
-                arrive.
-              </p>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <h2 className="text-xs sm:text-sm font-extrabold text-stone-900 truncate">
+                    Order Audio Chime
+                  </h2>
+                  <span
+                    className={`px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shrink-0 ${
+                      soundEnabled
+                        ? "bg-amber-100 text-amber-900 border border-amber-200"
+                        : "bg-stone-100 text-stone-600"
+                    }`}
+                  >
+                    {soundEnabled ? "Sound ON" : "Muted"}
+                  </span>
+                </div>
+                <p className="text-[10px] sm:text-[11px] text-stone-500 truncate">
+                  Audible ding chime on new orders
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-center shrink-0">
+          {/* Action Controls - Horizontal */}
+          <div className="grid grid-cols-2 gap-1.5 pt-0.5">
             <button
               onClick={playAlertSound}
-              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-stone-100 hover:bg-stone-200 text-stone-700 transition-all active:scale-95 cursor-pointer"
+              className="py-2 px-2 rounded-xl text-xs font-bold bg-stone-100 hover:bg-stone-200 text-stone-700 transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 border border-stone-200/80"
             >
-              Test Sound 🔔
+              <span>Test Sound 🔔</span>
             </button>
+
             <button
               onClick={handleToggleSound}
-              className={`px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider transition-all active:scale-95 cursor-pointer ${
+              className={`py-2 px-2 rounded-xl font-bold text-xs uppercase tracking-wider transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 ${
                 soundEnabled
-                  ? "bg-amber-500 text-black hover:bg-amber-400 shadow-xs"
+                  ? "bg-amber-500 text-black hover:bg-amber-400 shadow-xs font-black"
                   : "bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-200"
               }`}
             >
