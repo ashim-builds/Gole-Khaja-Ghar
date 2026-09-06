@@ -39,7 +39,7 @@ interface KotTicket {
   createdAt: string;
   tableSession?: {
     table?: { tableNumber: string };
-    waiter?: { name: string };
+    waiter?: { name: string; staffProfile?: { employeeCode?: string } };
   };
   order: {
     id: string;
@@ -355,7 +355,10 @@ export default function KitchenDisplayPage() {
                             <UtensilsCrossed className="w-3.5 h-3.5 shrink-0" />
                             <span>Table {ticket.tableSession?.table?.tableNumber || "Dine-In"}</span>
                             {ticket.tableSession?.waiter && (
-                              <span className="text-stone-400 font-normal">({ticket.tableSession.waiter.name})</span>
+                              <span className="text-stone-300 font-semibold text-[11px] bg-stone-800 px-2 py-0.5 rounded-full border border-stone-700">
+                                Waiter: {ticket.tableSession.waiter.name}
+                                {ticket.tableSession.waiter.staffProfile?.employeeCode ? ` (${ticket.tableSession.waiter.staffProfile.employeeCode})` : ""}
+                              </span>
                             )}
                           </div>
                         )}

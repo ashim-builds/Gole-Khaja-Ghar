@@ -11,6 +11,39 @@ import {
 import { BillStatus, PaymentMethod, PaymentStatus, OrderStatus, OrderType, UserRole } from '@prisma/client';
 import { emitEvent, emitPaymentRecorded, emitOrderStatusChanged } from '../lib/socket.js';
 
+const orderInclude = {
+  items: {
+    include: {
+      product: true,
+    },
+  },
+  bill: {
+    include: {
+      payments: true,
+    },
+  },
+  tableSession: {
+    include: {
+      table: true,
+      waiter: {
+        include: {
+          staffProfile: true,
+        },
+      },
+      bill: {
+        include: {
+          payments: true,
+        },
+      },
+    },
+  },
+  user: {
+    include: {
+      staffProfile: true,
+    },
+  },
+};
+
 function mapOrder(doc: any) {
   if (!doc) return null;
   const isTableSettled = doc.tableSession?.status === 'COMPLETED';
@@ -69,6 +102,24 @@ function mapOrder(doc: any) {
       transactionReference: p.transactionReference,
       createdAt: p.createdAt,
     })),
+    tableSessionId: doc.tableSessionId,
+    tableSession: doc.tableSession
+      ? {
+          id: doc.tableSession.id,
+          tableNumber: doc.tableSession.table?.tableNumber,
+          guestCount: doc.tableSession.guestCount,
+          waiterId: doc.tableSession.waiterId,
+          waiterName: doc.tableSession.waiter?.name || null,
+          waiterCode: doc.tableSession.waiter?.staffProfile?.employeeCode || null,
+        }
+      : null,
+    waiterName:
+      doc.tableSession?.waiter?.name ||
+      (doc.user?.role === 'WAITER' ? doc.user?.name : null) ||
+      null,
+    waiterCode:
+      doc.tableSession?.waiter?.staffProfile?.employeeCode ||
+      (doc.user?.staffProfile?.employeeCode || null),
     deliveryAddress: doc.deliveryAddress,
     address: doc.deliveryAddress,
     notes: doc.notes,

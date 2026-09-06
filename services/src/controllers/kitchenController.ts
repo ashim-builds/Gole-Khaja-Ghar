@@ -22,7 +22,13 @@ export async function getActiveKotTickets(_req: Request, res: Response): Promise
         tableSession: {
           include: {
             table: true,
-            waiter: { select: { id: true, name: true } },
+            waiter: {
+              select: {
+                id: true,
+                name: true,
+                staffProfile: { select: { employeeCode: true } },
+              },
+            },
           },
         },
         order: {
@@ -61,7 +67,13 @@ export async function updateKotStatus(req: Request, res: Response): Promise<void
         tableSession: {
           include: {
             table: true,
-            waiter: { select: { id: true, name: true } },
+            waiter: {
+              select: {
+                id: true,
+                name: true,
+                staffProfile: { select: { employeeCode: true } },
+              },
+            },
           },
         },
         order: true,
@@ -246,7 +258,13 @@ export async function markKotDelivered(req: Request, res: Response): Promise<voi
           tableSession: {
             include: {
               table: true,
-              waiter: { select: { id: true, name: true } },
+              waiter: {
+                select: {
+                  id: true,
+                  name: true,
+                  staffProfile: { select: { employeeCode: true } },
+                },
+              },
             },
           },
           order: true,

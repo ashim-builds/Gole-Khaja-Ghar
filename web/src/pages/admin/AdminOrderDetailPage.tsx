@@ -135,6 +135,26 @@ export default function AdminOrderDetailPage() {
               <p className="text-xs font-bold text-stone-400">Type</p>
               <p className="font-bold text-stone-800 capitalize">{order.orderType}</p>
             </div>
+            {(order.tableNumber || order.tableSession?.table?.tableNumber) && (
+              <div>
+                <p className="text-xs font-bold text-stone-400">Table</p>
+                <p className="font-black text-stone-800">
+                  {order.tableNumber ? `Table ${order.tableNumber}` : `Table ${order.tableSession.table.tableNumber}`}
+                </p>
+              </div>
+            )}
+            {(order.waiterName || order.tableSession?.waiter?.user?.fullName || order.tableSession?.waiterName) && (
+              <div>
+                <p className="text-xs font-bold text-stone-400">Assigned Waiter / Server</p>
+                <p className="font-bold text-stone-800 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-orange-500"></span>
+                  <span>{order.waiterName || order.tableSession?.waiter?.user?.fullName || order.tableSession?.waiterName}</span>
+                  {(order.waiterCode || order.tableSession?.waiter?.employeeCode) && (
+                    <span className="text-xs text-stone-500 font-mono">({order.waiterCode || order.tableSession?.waiter?.employeeCode})</span>
+                  )}
+                </p>
+              </div>
+            )}
             <div>
               <p className="text-xs font-bold text-stone-400">Total Amount</p>
               <p className="font-black text-lg text-primary">

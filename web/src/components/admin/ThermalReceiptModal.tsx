@@ -197,6 +197,15 @@ export default function ThermalReceiptModal({
                     : "Online Delivery"}
                 </strong>
               </div>
+              {(order.waiterName || order.tableSession?.waiter?.user?.fullName || order.tableSession?.waiterName) && (
+                <div className="flex justify-between">
+                  <span>Server / Waiter:</span>
+                  <strong className="text-stone-900">
+                    {order.waiterName || order.tableSession?.waiter?.user?.fullName || order.tableSession?.waiterName}
+                    {order.waiterCode || order.tableSession?.waiter?.employeeCode ? ` (${order.waiterCode || order.tableSession?.waiter?.employeeCode})` : ""}
+                  </strong>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span>Date & Time:</span>
                 <span>

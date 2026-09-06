@@ -91,6 +91,70 @@ export default function PosTerminalPage() {
   const [selectedWaiterId, setSelectedWaiterId] = useState<string>("");
   const [openSessionNotes, setOpenSessionNotes] = useState("");
   const [openingSession, setOpeningSession] = useState(false);
+  const [openTableError, setOpenTableError] = useState("");
+
+  const handleOpenTableModal = (table: TableData) => {
+    setOpenModalTable(table);
+    setGuestCount(Math.min(2, table.capacity || 2));
+    setOpenSessionNotes("");
+    setOpenTableError("");
+
+    // Auto-select current logged-in user if they are in waiter list
+    const matched = waiterList.find(
+      (w) => w.id === user?.id || w.id === (user as any)?._id || w.name?.toLowerCase() === user?.name?.toLowerCase()
+    );
+    if (matched) {
+      setSelectedWaiterId(matched.id);
+    } else if (waiterList.length === 1) {
+      setSelectedWaiterId(waiterList[0].id);
+    } else {
+      setSelectedWaiterId("");
+    }
+  };
+
+  const handleOpenTableSession = async () => {
+    if (!openModalTable) return;
+    if (!selectedWaiterId) {
+      setOpenTableError("Please select an assigned Waiter to open this table session.");
+      return;
+    }
+
+    try {
+      setOpeningSession(true);
+      setOpenTableError("");
+      const res = await api.tables.openSession({
+        tableId: openModalTable.id,
+        waiterId: selectedWaiterId,
+        guestCount,
+        notes: openSessionNotes,
+      });
+
+      if (res.success) {
+        setOpenModalTable(null);
+        await loadInitialData();
+        // Select this opened table
+        const updatedTable: TableData = {
+          ...openModalTable,
+          status: "OCCUPIED",
+          activeSession: {
+            id: res.session.id,
+            waiterName: res.session.waiter?.name || "Staff",
+            guestCount: res.session.guestCount,
+            openedAt: res.session.openedAt,
+            totalAmount: 0,
+            itemCount: 0,
+            ordersCount: 0,
+            billStatus: "UNPAID",
+          },
+        };
+        handleSelectTable(updatedTable);
+      }
+    } catch (err: any) {
+      setOpenTableError(err.message || "Failed to open table session");
+    } finally {
+      setOpeningSession(false);
+    }
+  };
 
   // Product Selection Modal (Weight/Portion Selector)
   const [activeProduct, setActiveProduct] = useState<Product | null>(null);
@@ -223,44 +287,6 @@ export default function PosTerminalPage() {
       }
     } else {
       setSessionDetails(null);
-    }
-  };
-
-  const handleOpenTableSession = async () => {
-    if (!openModalTable) return;
-    try {
-      setOpeningSession(true);
-      const res = await api.tables.openSession({
-        tableId: openModalTable.id,
-        waiterId: selectedWaiterId || undefined,
-        guestCount,
-        notes: openSessionNotes,
-      });
-
-      if (res.success) {
-        setOpenModalTable(null);
-        await loadInitialData();
-        // Select this opened table
-        const updatedTable: TableData = {
-          ...openModalTable,
-          status: "OCCUPIED",
-          activeSession: {
-            id: res.session.id,
-            waiterName: res.session.waiter?.name || "Staff",
-            guestCount: res.session.guestCount,
-            openedAt: res.session.openedAt,
-            totalAmount: 0,
-            itemCount: 0,
-            ordersCount: 0,
-            billStatus: "UNPAID",
-          },
-        };
-        handleSelectTable(updatedTable);
-      }
-    } catch (err: any) {
-      alert(err.message || "Failed to open table session");
-    } finally {
-      setOpeningSession(false);
     }
   };
 
@@ -625,7 +651,7 @@ export default function PosTerminalPage() {
           </div>
 
           {/* Product Cards Grid */}
-          <div className="flex-1 overflow-y-auto p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 auto-rows-max items-start content-start custom-scrollbar">
             {filteredProducts.map((prod) => {
               const isWeight = prod.priceType === "weight";
               const hasVariants = prod.variants && prod.variants.length > 0;
@@ -645,7 +671,7 @@ export default function PosTerminalPage() {
                 <div
                   key={prod.id}
                   onClick={() => handleProductClick(prod)}
-                  className="bg-stone-900 border border-stone-800/80 hover:border-orange-500/70 rounded-2xl p-3 flex flex-col justify-between cursor-pointer transition-all hover:scale-[1.02] hover:shadow-xl group"
+                  className="bg-stone-900 border border-stone-800/80 hover:border-orange-500/70 rounded-2xl p-3 flex flex-col justify-between cursor-pointer transition-all hover:scale-[1.02] hover:shadow-xl group h-fit select-none"
                 >
                   <div>
                     <div className="aspect-[4/3] rounded-xl overflow-hidden bg-stone-800 relative mb-2.5">
@@ -699,7 +725,7 @@ export default function PosTerminalPage() {
                       </span>
                     ) : (
                       <span className="text-[10px] font-bold bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full">
-                        Available Table
+                        Available Table ({selectedTable.capacity}p)
                       </span>
                     )}
                   </div>
@@ -715,9 +741,11 @@ export default function PosTerminalPage() {
                 </div>
                 {selectedTable.activeSession && (
                   <div className="text-xs text-stone-400 mt-1 flex items-center justify-between">
-                    <span>Staff: {selectedTable.activeSession.waiterName}</span>
+                    <span className="font-semibold text-stone-300">
+                      🤵 Waiter: {selectedTable.activeSession.waiterName}
+                    </span>
                     <span className="font-bold text-orange-400">
-                      Running Total: Rs. {selectedTable.activeSession.totalAmount.toFixed(0)}
+                      Running: Rs. {selectedTable.activeSession.totalAmount.toFixed(0)}
                     </span>
                   </div>
                 )}
@@ -740,63 +768,90 @@ export default function PosTerminalPage() {
               <div className="p-4 bg-stone-850 rounded-2xl border border-stone-800 text-center space-y-3">
                 <p className="text-xs text-stone-300">Table {selectedTable.tableNumber} is currently not seated.</p>
                 <button
-                  onClick={() => setOpenModalTable(selectedTable)}
-                  className="w-full py-2.5 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-lg"
+                  onClick={() => handleOpenTableModal(selectedTable)}
+                  className="w-full py-2.5 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-lg cursor-pointer"
                 >
                   Open Dining Session
                 </button>
               </div>
             )}
 
+            {/* Cart Items List */}
             {selectedTable?.activeSession && (
               <>
-                <div className="flex items-center justify-between text-xs font-black uppercase tracking-wider text-stone-400">
-                  <span>Current KOT Pad ({cartItems.length})</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black uppercase tracking-wider text-stone-400">
+                    New Order Items ({cartItems.length})
+                  </span>
                   {cartItems.length > 0 && (
                     <button
                       onClick={() => setCartItems([])}
-                      className="text-stone-500 hover:text-red-400 text-[11px]"
+                      className="text-[10px] text-red-400 hover:text-red-300 font-bold"
                     >
-                      Clear
+                      Clear All
                     </button>
                   )}
                 </div>
 
                 {cartItems.length === 0 ? (
-                  <div className="text-center py-8 text-stone-500 text-xs border-2 border-dashed border-stone-800 rounded-2xl">
-                    <ShoppingBag className="w-8 h-8 mx-auto text-stone-700 mb-2" />
-                    Tap items from menu to add to this KOT
+                  <div className="text-center py-8 text-stone-600 text-xs">
+                    Tap dishes on the center menu to add items to this table.
                   </div>
                 ) : (
                   <div className="space-y-2">
                     {cartItems.map((item) => (
                       <div
                         key={item.cartItemId}
-                        className="bg-stone-850 p-3 rounded-xl border border-stone-800 flex items-start justify-between gap-2"
+                        className="bg-stone-850 p-2.5 rounded-xl border border-stone-800 flex items-center justify-between gap-2"
                       >
-                        <div className="flex-1">
-                          <h4 className="text-xs font-black text-stone-100">{item.productName}</h4>
-                          <div className="text-[11px] text-stone-400 flex items-center gap-2 mt-0.5">
-                            <span className="font-bold text-orange-400">{item.variantName}</span>
-                            <span>×</span>
-                            <span>{item.quantity}</span>
-                            <span>=</span>
-                            <span className="font-black text-white">
-                              Rs. {(item.calculatedPrice * item.quantity).toFixed(0)}
-                            </span>
-                          </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold text-white truncate">{item.productName}</p>
+                          <p className="text-[10px] text-stone-400">
+                            {item.variantName ? `${item.variantName} • ` : ""}
+                            Rs. {item.calculatedPrice} each
+                          </p>
                           {item.specialInstructions && (
-                            <p className="text-[10px] text-amber-400/90 italic mt-1 bg-amber-950/40 px-2 py-0.5 rounded border border-amber-800/40">
+                            <p className="text-[10px] text-orange-400/90 truncate italic">
                               Note: {item.specialInstructions}
                             </p>
                           )}
                         </div>
-                        <button
-                          onClick={() => handleRemoveCartItem(item.cartItemId)}
-                          className="text-stone-500 hover:text-red-400 p-1 rounded transition-colors"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
+
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => {
+                              if (item.quantity > 1) {
+                                setCartItems((prev) =>
+                                  prev.map((it) =>
+                                    it.cartItemId === item.cartItemId
+                                      ? { ...it, quantity: it.quantity - 1 }
+                                      : it
+                                  )
+                                );
+                              } else {
+                                handleRemoveCartItem(item.cartItemId);
+                              }
+                            }}
+                            className="w-6 h-6 rounded-md bg-stone-700 hover:bg-stone-600 text-white flex items-center justify-center text-xs"
+                          >
+                            <Minus className="w-3 h-3" />
+                          </button>
+                          <span className="text-xs font-black text-white w-4 text-center">{item.quantity}</span>
+                          <button
+                            onClick={() =>
+                              setCartItems((prev) =>
+                                prev.map((it) =>
+                                  it.cartItemId === item.cartItemId
+                                    ? { ...it, quantity: it.quantity + 1 }
+                                    : it
+                                )
+                              )
+                            }
+                            className="w-6 h-6 rounded-md bg-stone-700 hover:bg-stone-600 text-white flex items-center justify-center text-xs"
+                          >
+                            <Plus className="w-3 h-3" />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -918,51 +973,94 @@ export default function PosTerminalPage() {
             <div className="flex justify-between items-center">
               <div>
                 <h3 className="text-lg font-black text-white">Open Table {openModalTable.tableNumber}</h3>
-                <p className="text-xs text-stone-400">Start new dining session for guest</p>
+                <p className="text-xs text-stone-400">
+                  Capacity: <strong className="text-orange-400">{openModalTable.capacity} Guests</strong>
+                </p>
               </div>
               <button
                 onClick={() => setOpenModalTable(null)}
-                className="p-1.5 text-stone-400 hover:text-white rounded-lg hover:bg-stone-800"
+                className="p-1.5 text-stone-400 hover:text-white rounded-lg hover:bg-stone-800 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="space-y-4">
+              {/* Dynamic Number of Guests based on table.capacity */}
               <div>
-                <label className="block text-xs font-bold text-stone-300 mb-1.5">Number of Guests</label>
-                <div className="flex items-center gap-3">
-                  {[1, 2, 4, 6, 8].map((num) => (
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-bold text-stone-300">Number of Guests</label>
+                  <span className="text-[11px] font-semibold text-orange-400">
+                    Max Capacity: {openModalTable.capacity}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {Array.from({ length: Math.min(openModalTable.capacity, 10) }, (_, i) => i + 1).map((num) => (
                     <button
                       key={num}
                       type="button"
                       onClick={() => setGuestCount(num)}
-                      className={`flex-1 py-2 rounded-xl text-xs font-black transition-all ${
+                      className={`flex-1 min-w-[50px] py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
                         guestCount === num
-                          ? "bg-orange-600 text-white"
-                          : "bg-stone-800 text-stone-400 hover:bg-stone-700"
+                          ? "bg-orange-600 text-white shadow-md shadow-orange-600/30"
+                          : "bg-stone-800 text-stone-400 hover:bg-stone-700 hover:text-stone-200 border border-stone-700/60"
                       }`}
                     >
-                      {num} {num === 1 ? "Person" : "Guests"}
+                      {num} {num === 1 ? "Guest" : "Guests"}
                     </button>
                   ))}
                 </div>
+
+                {/* Custom Stepper for extra seats */}
+                <div className="mt-2.5 flex items-center justify-between p-2.5 bg-stone-800/80 rounded-xl border border-stone-700">
+                  <span className="text-xs text-stone-300 font-semibold">Selected Seating:</span>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setGuestCount((prev) => Math.max(1, prev - 1))}
+                      className="w-7 h-7 bg-stone-700 hover:bg-stone-600 rounded-lg flex items-center justify-center text-white font-bold cursor-pointer"
+                    >
+                      <Minus className="w-3.5 h-3.5" />
+                    </button>
+                    <span className="text-sm font-black text-white w-6 text-center">{guestCount}</span>
+                    <button
+                      type="button"
+                      onClick={() => setGuestCount((prev) => prev + 1)}
+                      className="w-7 h-7 bg-stone-700 hover:bg-stone-600 rounded-lg flex items-center justify-center text-white font-bold cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
               </div>
 
+              {/* Mandatory Assigned Waiter Selection */}
               <div>
-                <label className="block text-xs font-bold text-stone-300 mb-1.5">Assigned Waiter / Staff</label>
+                <label className="block text-xs font-bold text-stone-300 mb-1.5">
+                  Assigned Waiter / Staff <span className="text-red-500">*</span>
+                </label>
                 <select
                   value={selectedWaiterId}
-                  onChange={(e) => setSelectedWaiterId(e.target.value)}
-                  className="w-full bg-stone-800 border border-stone-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500"
+                  onChange={(e) => {
+                    setSelectedWaiterId(e.target.value);
+                    setOpenTableError("");
+                  }}
+                  required
+                  className="w-full bg-stone-800 border border-stone-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 cursor-pointer font-semibold"
                 >
-                  <option value="">-- General Staff --</option>
+                  <option value="">-- Select Assigned Waiter (Required) --</option>
                   {waiterList.map((w) => (
                     <option key={w.id} value={w.id}>
                       {w.name} ({w.employeeCode || "Waiter"})
                     </option>
                   ))}
                 </select>
+                {openTableError && (
+                  <p className="text-xs text-red-400 font-bold mt-1.5 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    {openTableError}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -981,7 +1079,7 @@ export default function PosTerminalPage() {
               <button
                 type="button"
                 onClick={() => setOpenModalTable(null)}
-                className="flex-1 py-3 bg-stone-800 hover:bg-stone-700 text-stone-300 font-bold text-xs rounded-xl transition-colors"
+                className="flex-1 py-3 bg-stone-800 hover:bg-stone-700 text-stone-300 font-bold text-xs rounded-xl transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -989,7 +1087,7 @@ export default function PosTerminalPage() {
                 type="button"
                 disabled={openingSession}
                 onClick={handleOpenTableSession}
-                className="flex-1 py-3 bg-orange-600 hover:bg-orange-500 text-white font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-orange-600/30"
+                className="flex-1 py-3 bg-orange-600 hover:bg-orange-500 text-white font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-orange-600/30 cursor-pointer disabled:opacity-60"
               >
                 {openingSession ? "Opening..." : "Seat Table"}
               </button>

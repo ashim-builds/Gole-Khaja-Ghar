@@ -304,6 +304,17 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
                   <p className="text-[11px] text-stone-500 line-clamp-1">📍 {order.deliveryAddress}</p>
                 )}
 
+                {/* Show Assigned Waiter for Dine-In Table Orders */}
+                {(order.waiterName || order.tableSession?.waiterName) && (
+                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200/80 w-fit">
+                    <User className="w-3 h-3 text-amber-700" />
+                    <span>Waiter: {order.waiterName || order.tableSession?.waiterName}</span>
+                    {(order.waiterCode || order.tableSession?.waiterCode) && (
+                      <span className="font-mono text-amber-700 font-semibold">({order.waiterCode || order.tableSession?.waiterCode})</span>
+                    )}
+                  </div>
+                )}
+
                 {/* Items preview */}
                 {order.items && order.items.length > 0 && (
                   <div className="pt-1.5 border-t border-stone-200/60 flex flex-wrap gap-1">
@@ -454,10 +465,15 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
                       </div>
                     </td>
 
-                    {/* Customer or Table */}
+                    {/* Customer or Table & Waiter */}
                     <td className="p-4">
                       <p className="font-bold text-stone-900 text-xs">{order.customerInfo?.name || "Guest"}</p>
                       <p className="text-[11px] text-stone-500 font-mono">{order.customerInfo?.phone || "-"}</p>
+                      {(order.waiterName || order.tableSession?.waiterName) && (
+                        <p className="text-[10px] font-bold text-amber-800 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200/60 w-fit mt-0.5">
+                          Waiter: {order.waiterName || order.tableSession?.waiterName} {order.waiterCode || order.tableSession?.waiterCode ? `(${order.waiterCode || order.tableSession?.waiterCode})` : ""}
+                        </p>
+                      )}
                       {order.deliveryAddress && !isDineIn && (
                         <p className="text-[10px] text-stone-400 truncate max-w-xs">{order.deliveryAddress}</p>
                       )}
