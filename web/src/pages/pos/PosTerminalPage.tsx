@@ -436,37 +436,37 @@ export default function PosTerminalPage() {
 
   return (
     <div className="h-screen flex flex-col bg-stone-950 text-stone-100 font-sans select-none overflow-hidden">
-      {/* POS Top Header (Responsive) */}
-      <header className="bg-stone-900 border-b border-stone-800 px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between shrink-0 z-20">
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+      {/* Header */}
+      <header className="bg-stone-900 border-b border-stone-800 px-2.5 sm:px-4 py-2 sm:py-3 flex items-center justify-between shrink-0 z-20 gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
           <Link
             to={backPath}
             className="p-1.5 sm:p-2 hover:bg-stone-800 rounded-xl text-stone-400 hover:text-white transition-colors flex items-center gap-1 text-xs sm:text-sm font-semibold shrink-0"
             title={`Back to ${backLabel}`}
           >
             <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="hidden sm:inline">{backLabel}</span>
+            <span className="hidden md:inline">{backLabel}</span>
           </Link>
-          <div className="h-5 sm:h-6 w-px bg-stone-800 shrink-0" />
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl bg-orange-600 flex items-center justify-center text-white font-black shadow-lg shadow-orange-600/20 shrink-0">
-              <UtensilsCrossed className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
+          <div className="h-5 sm:h-6 w-px bg-stone-800 shrink-0 hidden sm:block" />
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-orange-600 flex items-center justify-center text-white font-black shadow-md shadow-orange-600/20 shrink-0">
+              <UtensilsCrossed className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
             <div className="min-w-0">
-              <h1 className="text-sm sm:text-base font-black tracking-wide text-white leading-tight flex items-center gap-1.5 truncate">
-                <span>Dine-In POS</span>
-                <span className="text-orange-500 text-[10px] sm:text-xs font-bold uppercase px-1.5 py-0.5 bg-orange-950/80 border border-orange-700/50 rounded-full">
+              <h1 className="text-xs sm:text-sm md:text-base font-black tracking-wide text-white leading-tight flex items-center gap-1.5 truncate">
+                <span className="truncate">Dine-In POS</span>
+                <span className="text-orange-500 text-[9px] sm:text-[10px] font-bold uppercase px-1.5 py-0.2 bg-orange-950/80 border border-orange-700/50 rounded-full hidden sm:inline-block shrink-0">
                   Terminal
                 </span>
               </h1>
-              <p className="text-[10px] sm:text-[11px] text-stone-400 hidden sm:block truncate">
-                Gole Khaja Ghar Restaurant Management
+              <p className="text-[10px] sm:text-[11px] text-stone-400 hidden lg:block truncate">
+                Gole Khaja Ghar Management
               </p>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {isChefOrAdmin && (
             <Link
               to="/kitchen"
@@ -479,14 +479,14 @@ export default function PosTerminalPage() {
           )}
           <Link
             to="/billing"
-            className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 rounded-xl text-xs font-bold text-white flex items-center gap-1.5 transition-colors shadow-md shadow-amber-600/20 active:scale-95"
+            className="px-2.5 sm:px-3 py-1.5 bg-amber-600 hover:bg-amber-500 rounded-xl text-xs font-bold text-white flex items-center gap-1 sm:gap-1.5 transition-colors shadow-md shadow-amber-600/20 active:scale-95 shrink-0"
           >
             <Receipt className="w-3.5 h-3.5" />
             <span>Billing</span>
           </Link>
           <button
             onClick={loadInitialData}
-            className="p-1.5 sm:p-2 hover:bg-stone-800 rounded-xl text-stone-400 hover:text-white transition-colors cursor-pointer"
+            className="p-1.5 sm:p-2 hover:bg-stone-800 rounded-xl text-stone-400 hover:text-white transition-colors cursor-pointer shrink-0"
             title="Refresh tables"
           >
             <RotateCcw className="w-4 h-4" />
