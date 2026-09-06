@@ -170,43 +170,80 @@ export default function KitchenDisplayPage() {
   return (
     <div className="min-h-screen bg-stone-950 text-stone-100 font-sans select-none flex flex-col">
       {/* Top KDS Header */}
-      <header className="bg-stone-900 border-b border-stone-800 px-4 md:px-6 py-3.5 flex flex-wrap items-center justify-between sticky top-0 z-30 shadow-xl gap-3">
-        <div className="flex items-center gap-3">
-          <Link
-            to={backPath}
-            className="p-2 hover:bg-stone-800 rounded-xl text-stone-400 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-bold"
-            title={`Back to ${backLabel}`}
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">{backLabel}</span>
-          </Link>
-          <div className="h-6 w-px bg-stone-800" />
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-orange-600 flex items-center justify-center text-white font-black shadow-lg shadow-orange-600/30">
-              <ChefHat className="w-6 h-6" />
+      <header className="bg-stone-900 border-b border-stone-800 px-3 sm:px-6 py-2.5 sm:py-3.5 sticky top-0 z-30 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
+        {/* Header Tier 1: Title & Controls */}
+        <div className="flex items-center justify-between gap-3 w-full sm:w-auto">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link
+              to={backPath}
+              className="p-1.5 sm:p-2 hover:bg-stone-800 rounded-xl text-stone-400 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-bold shrink-0"
+              title={`Back to ${backLabel}`}
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="hidden sm:inline">{backLabel}</span>
+            </Link>
+            <div className="h-5 sm:h-6 w-px bg-stone-800 shrink-0" />
+            <div className="flex items-center gap-2 sm:gap-2.5">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-orange-600 flex items-center justify-center text-white font-black shadow-lg shadow-orange-600/30 shrink-0">
+                <ChefHat className="w-4 h-4 sm:w-6 sm:h-6" />
+              </div>
+              <div>
+                <h1 className="text-sm sm:text-base md:text-lg font-black tracking-wide text-white flex items-center gap-1.5 sm:gap-2 leading-tight">
+                  <span>Kitchen (KDS)</span>
+                  <span className="text-[9px] sm:text-[10px] font-black uppercase px-1.5 sm:px-2 py-0.5 bg-orange-950 border border-orange-700/50 text-orange-400 rounded-full">
+                    Live
+                  </span>
+                </h1>
+                <p className="text-[10px] sm:text-[11px] text-stone-400 truncate max-w-[180px] sm:max-w-none">
+                  {user ? `Chef: ${user.name}` : "Cook & Prep Screen"}
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-base md:text-lg font-black tracking-wide text-white flex items-center gap-2">
-                Kitchen Display System (KDS)
-                <span className="text-[10px] font-black uppercase px-2 py-0.5 bg-orange-950 border border-orange-700/50 text-orange-400 rounded-full">
-                  Live
-                </span>
-              </h1>
-              <p className="text-[11px] text-stone-400">
-                {user ? `Logged in: Chef ${user.name}` : "Gole Khaja Ghar Cook & Prep Screen"}
-              </p>
-            </div>
+          </div>
+
+          {/* Quick Chef Action Buttons for Mobile */}
+          <div className="flex sm:hidden items-center gap-1.5">
+            <button
+              onClick={() => setAudioEnabled(!audioEnabled)}
+              className={`p-2 rounded-xl border transition-colors ${
+                audioEnabled
+                  ? "bg-emerald-950/60 border-emerald-700 text-emerald-400"
+                  : "bg-stone-800 border-stone-700 text-stone-400"
+              }`}
+              title={audioEnabled ? "Audio alert on" : "Audio muted"}
+            >
+              {audioEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+            </button>
+            <button
+              onClick={fetchTickets}
+              className="p-2 bg-stone-800 hover:bg-stone-700 rounded-xl text-stone-300 transition-colors"
+              title="Refresh queue"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+            {user && (
+              <button
+                onClick={async () => {
+                  await logout();
+                  navigate("/login");
+                }}
+                className="p-2 bg-red-950/40 hover:bg-red-900/60 border border-red-800/40 rounded-xl text-red-400 transition-colors"
+                title="Logout Chef"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Filter Pills & Chef Controls */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="flex bg-stone-950 p-1 rounded-xl border border-stone-800">
+        {/* Header Tier 2: Filter Pills & Desktop Controls */}
+        <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 w-full sm:w-auto overflow-x-auto scrollbar-none pb-0.5 sm:pb-0">
+          <div className="flex bg-stone-950 p-1 rounded-xl border border-stone-800 shrink-0">
             {(["ALL", "QUEUED", "PREPARING", "READY"] as const).map((mode) => (
               <button
                 key={mode}
                 onClick={() => setFilter(mode)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all ${
+                className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
                   filter === mode
                     ? "bg-orange-600 text-white shadow-md shadow-orange-600/30"
                     : "text-stone-400 hover:text-white"
@@ -214,17 +251,17 @@ export default function KitchenDisplayPage() {
               >
                 {mode === "ALL" ? "All" : mode === "QUEUED" ? "Queued" : mode === "PREPARING" ? "Cooking" : "Ready"}
                 {mode === "QUEUED" && queuedCount > 0 && (
-                  <span className="ml-1.5 px-1.5 py-0.2 bg-stone-800 text-stone-300 rounded-full text-[10px]">
+                  <span className="ml-1 px-1.5 py-0.2 bg-stone-800 text-stone-300 rounded-full text-[9px] sm:text-[10px]">
                     {queuedCount}
                   </span>
                 )}
                 {mode === "PREPARING" && preparingCount > 0 && (
-                  <span className="ml-1.5 px-1.5 py-0.2 bg-amber-950 text-amber-400 rounded-full text-[10px]">
+                  <span className="ml-1 px-1.5 py-0.2 bg-amber-950 text-amber-400 rounded-full text-[9px] sm:text-[10px]">
                     {preparingCount}
                   </span>
                 )}
                 {mode === "READY" && readyCount > 0 && (
-                  <span className="ml-1.5 px-1.5 py-0.2 bg-emerald-950 text-emerald-400 rounded-full text-[10px]">
+                  <span className="ml-1 px-1.5 py-0.2 bg-emerald-950 text-emerald-400 rounded-full text-[9px] sm:text-[10px]">
                     {readyCount}
                   </span>
                 )}
@@ -232,62 +269,65 @@ export default function KitchenDisplayPage() {
             ))}
           </div>
 
-          <button
-            onClick={() => setAudioEnabled(!audioEnabled)}
-            className={`p-2.5 rounded-xl border transition-colors flex items-center gap-1.5 text-xs font-bold ${
-              audioEnabled
-                ? "bg-emerald-950/60 border-emerald-700 text-emerald-400"
-                : "bg-stone-800 border-stone-700 text-stone-400"
-            }`}
-            title={audioEnabled ? "Audio alert on" : "Audio muted"}
-          >
-            {audioEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-          </button>
-
-          <button
-            onClick={toggleFullscreen}
-            className="p-2.5 bg-stone-800 hover:bg-stone-700 rounded-xl text-stone-300 transition-colors"
-            title="Toggle Fullscreen"
-          >
-            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-          </button>
-
-          <button
-            onClick={fetchTickets}
-            className="p-2.5 bg-stone-800 hover:bg-stone-700 rounded-xl text-stone-300 transition-colors"
-            title="Refresh queue"
-          >
-            <RotateCcw className="w-4 h-4" />
-          </button>
-
-          {user && (
+          {/* Desktop Only Buttons */}
+          <div className="hidden sm:flex items-center gap-2">
             <button
-              onClick={async () => {
-                await logout();
-                navigate("/login");
-              }}
-              className="p-2.5 bg-red-950/40 hover:bg-red-900/60 border border-red-800/40 rounded-xl text-red-400 transition-colors flex items-center gap-1 text-xs font-bold cursor-pointer"
-              title="Logout Chef"
+              onClick={() => setAudioEnabled(!audioEnabled)}
+              className={`p-2.5 rounded-xl border transition-colors flex items-center gap-1.5 text-xs font-bold ${
+                audioEnabled
+                  ? "bg-emerald-950/60 border-emerald-700 text-emerald-400"
+                  : "bg-stone-800 border-stone-700 text-stone-400"
+              }`}
+              title={audioEnabled ? "Audio alert on" : "Audio muted"}
             >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Logout</span>
+              {audioEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
             </button>
-          )}
+
+            <button
+              onClick={toggleFullscreen}
+              className="p-2.5 bg-stone-800 hover:bg-stone-700 rounded-xl text-stone-300 transition-colors"
+              title="Toggle Fullscreen"
+            >
+              {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            </button>
+
+            <button
+              onClick={fetchTickets}
+              className="p-2.5 bg-stone-800 hover:bg-stone-700 rounded-xl text-stone-300 transition-colors"
+              title="Refresh queue"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </button>
+
+            {user && (
+              <button
+                onClick={async () => {
+                  await logout();
+                  navigate("/login");
+                }}
+                className="p-2.5 bg-red-950/40 hover:bg-red-900/60 border border-red-800/40 rounded-xl text-red-400 transition-colors flex items-center gap-1 text-xs font-bold cursor-pointer"
+                title="Logout Chef"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="hidden sm:inline">Logout</span>
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
       {/* Tickets Queue Grid */}
-      <main className="flex-1 p-4 md:p-6 overflow-y-auto custom-scrollbar">
+      <main className="flex-1 p-3 sm:p-4 md:p-6 overflow-y-auto custom-scrollbar">
         {loading ? (
-          <div className="text-center py-24 text-stone-500 font-bold">Loading Kitchen Queue...</div>
+          <div className="text-center py-24 text-stone-500 font-bold text-xs sm:text-sm">Loading Kitchen Queue...</div>
         ) : filteredTickets.length === 0 ? (
-          <div className="text-center py-28 text-stone-500 space-y-3">
-            <ChefHat className="w-16 h-16 mx-auto text-stone-800 animate-pulse" />
-            <p className="text-lg font-black text-stone-400">All caught up! No active KOT tickets in queue.</p>
+          <div className="text-center py-24 sm:py-28 text-stone-500 space-y-3 px-4">
+            <ChefHat className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-stone-800 animate-pulse" />
+            <p className="text-base sm:text-lg font-black text-stone-400">All caught up! No active KOT tickets in queue.</p>
             <p className="text-xs text-stone-600">New orders from POS or online delivery will chime and pop up automatically.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3.5 sm:gap-5">
             {filteredTickets.map((ticket) => {
               const elapsed = getElapsedTimeInMinutes(ticket.createdAt);
               const isUrgent = elapsed >= 20;
