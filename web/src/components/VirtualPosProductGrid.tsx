@@ -1,5 +1,6 @@
 import React, { useRef, useMemo, useState, useEffect } from "react";
 import { Product } from "@/lib/api";
+import { Plus, UtensilsCrossed } from "lucide-react";
 
 interface VirtualPosProductGridProps {
   products: Product[];
@@ -36,9 +37,9 @@ export default function VirtualPosProductGrid({
   // Determine column count
   const columnCount = useMemo(() => {
     if (isMobile) return 2;
-    if (containerWidth < 500) return 2;
-    if (containerWidth < 768) return 3;
-    if (containerWidth < 1100) return 4;
+    if (containerWidth < 520) return 2;
+    if (containerWidth < 800) return 3;
+    if (containerWidth < 1180) return 4;
     return 5;
   }, [isMobile, containerWidth]);
 
@@ -51,7 +52,7 @@ export default function VirtualPosProductGrid({
     return r;
   }, [products, columnCount]);
 
-  // Custom high-performance virtual windowing
+  // High-performance virtual windowing
   const [scrollTop, setScrollTop] = useState(0);
   const [viewportHeight, setViewportHeight] = useState(600);
 
@@ -76,7 +77,7 @@ export default function VirtualPosProductGrid({
     };
   }, []);
 
-  const estimatedRowHeight = isMobile ? 220 : 255;
+  const estimatedRowHeight = isMobile ? 245 : 275;
   const totalHeight = rows.length * estimatedRowHeight;
   const overscan = 2; // Buffer rows above and below
 
@@ -115,7 +116,8 @@ export default function VirtualPosProductGrid({
     >
       {products.length === 0 ? (
         <div className="text-center py-20 text-stone-500 space-y-2">
-          <p className="font-bold text-xs">No food items found matching filter</p>
+          <UtensilsCrossed className="w-8 h-8 mx-auto text-stone-700" />
+          <p className="font-bold text-xs">No food items match filter</p>
         </div>
       ) : (
         <div
@@ -152,11 +154,7 @@ export default function VirtualPosProductGrid({
                 const portionHint =
                   !isWeight && firstVariant
                     ? prod.variants!.length > 1
-                      ? isMobile
-                        ? `(${prod.variants!.length} sizes)`
-                        : `/${firstVariant.name} (+${prod.variants!.length - 1})`
-                      : !isMobile
-                      ? `/${firstVariant.name}`
+                      ? `${prod.variants!.length} sizes`
                       : ""
                     : "";
 
@@ -164,56 +162,60 @@ export default function VirtualPosProductGrid({
                   <div
                     key={prod.id}
                     onClick={() => onProductClick(prod)}
-                    className={`bg-stone-900 border border-stone-800 rounded-2xl flex flex-col justify-between cursor-pointer transition-all select-none shadow-md active:scale-95 ${
-                      isMobile
-                        ? "p-2.5 h-[208px]"
-                        : "p-3 h-[242px] hover:border-orange-500/70 hover:scale-[1.02] hover:shadow-xl group"
-                    }`}
+                    className="bg-stone-900/90 border border-stone-800 hover:border-orange-500/60 rounded-2xl p-2.5 sm:p-3 flex flex-col justify-between cursor-pointer transition-all select-none shadow-md hover:shadow-xl active:scale-[0.98] group overflow-hidden h-[calc(100%-8px)]"
                   >
+                    {/* Top: Image & Tag */}
                     <div>
-                      <div className="aspect-[4/3] rounded-xl overflow-hidden bg-stone-800 relative mb-2">
+                      <div className="aspect-[16/10] sm:aspect-[4/3] rounded-xl overflow-hidden bg-stone-800/90 relative mb-2 flex-shrink-0">
                         <img
                           src={prod.image || "/images/logo.png"}
                           alt={prod.name}
                           loading="lazy"
                           decoding="async"
-                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            if (!target.src.endsWith("/images/logo.png")) {
+                              target.src = "/images/logo.png";
+                            }
+                          }}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                         {isWeight ? (
-                          <span className="absolute top-1 left-1 bg-orange-600 text-white text-[8px] sm:text-[9px] font-black uppercase px-1.5 py-0.5 rounded shadow">
-                            {isMobile ? "Weight" : "Weight Based"}
+                          <span className="absolute top-1.5 left-1.5 bg-orange-600/95 backdrop-blur-sm text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-lg shadow-md">
+                            Weight
                           </span>
                         ) : prod.variants && prod.variants.length > 1 ? (
-                          <span className="absolute top-1 left-1 bg-stone-900/90 text-amber-400 border border-amber-500/40 text-[8px] sm:text-[9px] font-black uppercase px-1.5 py-0.5 rounded shadow">
-                            {prod.variants.length} {isMobile ? "Sizes" : "Portions"}
+                          <span className="absolute top-1.5 left-1.5 bg-stone-950/90 backdrop-blur-sm text-amber-400 border border-amber-500/40 text-[9px] font-black uppercase px-2 py-0.5 rounded-lg shadow-md">
+                            {prod.variants.length} Sizes
                           </span>
                         ) : null}
                       </div>
-                      <h3 className="font-black text-xs text-stone-100 line-clamp-2 leading-tight break-words min-h-[1.75rem]">
+
+                      {/* Title & Category */}
+                      <h3 className="font-black text-xs sm:text-sm text-stone-100 line-clamp-2 leading-tight break-words min-h-[2rem]">
                         {prod.name}
                       </h3>
-                      <p className="text-[10px] sm:text-[11px] text-stone-400 truncate mt-0.5">
+                      <p className="text-[10px] sm:text-[11px] text-stone-400 truncate mt-0.5 font-medium">
                         {prod.category}
                       </p>
                     </div>
-                    <div className="mt-2 flex items-center justify-between pt-1.5 border-t border-stone-800">
-                      <div className="flex flex-col">
-                        <span className="text-xs font-black text-orange-400">{priceDisplay}</span>
+
+                    {/* Bottom Price & Add Action */}
+                    <div className="mt-2.5 pt-2 border-t border-stone-800/80 flex items-center justify-between gap-1.5">
+                      <div className="min-w-0">
+                        <div className="text-xs sm:text-sm font-black text-orange-400 truncate">
+                          {priceDisplay}
+                        </div>
                         {portionHint && (
-                          <span className="text-[9px] sm:text-[10px] text-stone-400 truncate max-w-[100px]">
-                            {portionHint}
-                          </span>
+                          <div className="text-[9px] text-stone-500 font-bold truncate">
+                            ({portionHint})
+                          </div>
                         )}
                       </div>
-                      <span
-                        className={`rounded-lg flex items-center justify-center font-black transition-colors ${
-                          isMobile
-                            ? "w-6 h-6 bg-orange-600 text-white text-xs shadow-sm"
-                            : "w-6 h-6 bg-stone-800 group-hover:bg-orange-600 group-hover:text-white text-stone-400 text-xs"
-                        }`}
-                      >
-                        +
-                      </span>
+
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-orange-600 group-hover:bg-orange-500 text-white flex items-center justify-center font-black shadow-md shadow-orange-600/25 transition-all flex-shrink-0 active:scale-90">
+                        <Plus className="w-4 h-4 stroke-[3]" />
+                      </div>
                     </div>
                   </div>
                 );
