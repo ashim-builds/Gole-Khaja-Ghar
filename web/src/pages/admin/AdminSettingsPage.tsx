@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Loader2,
-  ShieldCheck,
   Store,
   Sparkles,
   MapPin,
@@ -19,8 +18,6 @@ import {
   UtensilsCrossed,
   ChefHat,
   Receipt,
-  Database,
-  Radio,
   Share2,
 } from "lucide-react";
 import {
@@ -417,40 +414,6 @@ export default function AdminSettingsPage() {
             >
               {soundEnabled ? "Mute" : "Unmute"}
             </button>
-          </div>
-        </div>
-      </div>
-
-      {/* 4. SYSTEM & NETWORK DIAGNOSTICS */}
-      <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-xs border border-stone-200/90 space-y-3">
-        <h2 className="text-xs font-black text-stone-400 uppercase tracking-wider flex items-center gap-1.5">
-          <Radio className="w-3.5 h-3.5 text-stone-400" />
-          Live Architecture & Synchronization
-        </h2>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
-          <div className="p-3 bg-stone-50 rounded-xl border border-stone-200/60 flex items-center gap-3">
-            <Database className="w-5 h-5 text-emerald-600 shrink-0" />
-            <div>
-              <p className="font-extrabold text-stone-800">MySQL Database</p>
-              <p className="text-[10px] text-emerald-700 font-bold">Connected & Healthy</p>
-            </div>
-          </div>
-
-          <div className="p-3 bg-stone-50 rounded-xl border border-stone-200/60 flex items-center gap-3">
-            <Sparkles className="w-5 h-5 text-orange-600 shrink-0" />
-            <div>
-              <p className="font-extrabold text-stone-800">WebSocket Live Sync</p>
-              <p className="text-[10px] text-orange-700 font-bold">Realtime Connected</p>
-            </div>
-          </div>
-
-          <div className="p-3 bg-stone-50 rounded-xl border border-stone-200/60 flex items-center gap-3">
-            <ShieldCheck className="w-5 h-5 text-purple-600 shrink-0" />
-            <div>
-              <p className="font-extrabold text-stone-800">PWA Service Worker</p>
-              <p className="text-[10px] text-purple-700 font-bold">Cached & Standalone</p>
-            </div>
           </div>
         </div>
       </div>
