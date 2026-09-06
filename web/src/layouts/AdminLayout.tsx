@@ -141,22 +141,22 @@ function AdminProtectedLayoutContent() {
           <>
             {/* Backdrop */}
             <div
-              className="md:hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 animate-fade-in"
+              className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 animate-fade-in"
               onClick={() => setMoreOpen(false)}
             />
             {/* Slide-Up Sheet */}
-            <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#111111] border-t border-white/15 rounded-t-3xl p-5 shadow-2xl max-h-[85vh] overflow-y-auto custom-scrollbar overscroll-contain animate-in slide-in-from-bottom-6 duration-200">
+            <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-stone-200 rounded-t-3xl p-5 shadow-2xl max-h-[88vh] overflow-y-auto custom-scrollbar overscroll-contain animate-in slide-in-from-bottom-6 duration-200">
               {/* Sheet Drag Handle & Header */}
               <div className="flex flex-col items-center mb-4">
-                <div className="w-10 h-1 rounded-full bg-white/20 mb-3" />
+                <div className="w-10 h-1.5 rounded-full bg-stone-300 mb-3" />
                 <div className="flex items-center justify-between w-full px-1">
-                  <h3 className="text-base font-black text-white flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-orange-500" />
+                  <h3 className="text-base font-black text-stone-900 flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse" />
                     More Management Options
                   </h3>
                   <button
                     onClick={() => setMoreOpen(false)}
-                    className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-stone-300 hover:text-white cursor-pointer"
+                    className="p-1.5 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 hover:text-stone-900 transition-colors cursor-pointer"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -166,12 +166,48 @@ function AdminProtectedLayoutContent() {
               {/* 2-Column Grid of More Admin Tools */}
               <div className="grid grid-cols-2 gap-2.5">
                 {[
-                  { name: "Kitchen (KDS)", href: "/kitchen", icon: ChefHat, color: "text-amber-400" },
-                  { name: "Tables", href: "/admin/tables", icon: Grid, color: "text-emerald-400" },
-                  { name: "Billing", href: "/admin/billing", icon: Receipt, color: "text-cyan-400" },
-                  { name: "Staff", href: "/admin/waiters", icon: Users, color: "text-purple-400" },
-                  { name: "Reports", href: "/admin/reports", icon: TrendingUp, color: "text-blue-400" },
-                  { name: "Settings", href: "/admin/settings", icon: Settings, color: "text-stone-300" },
+                  {
+                    name: "Kitchen (KDS)",
+                    href: "/kitchen",
+                    icon: ChefHat,
+                    iconBg: "bg-amber-100 text-amber-700",
+                    borderHover: "hover:border-amber-300 hover:bg-amber-50/40",
+                  },
+                  {
+                    name: "Tables",
+                    href: "/admin/tables",
+                    icon: Grid,
+                    iconBg: "bg-emerald-100 text-emerald-700",
+                    borderHover: "hover:border-emerald-300 hover:bg-emerald-50/40",
+                  },
+                  {
+                    name: "Billing",
+                    href: "/admin/billing",
+                    icon: Receipt,
+                    iconBg: "bg-cyan-100 text-cyan-700",
+                    borderHover: "hover:border-cyan-300 hover:bg-cyan-50/40",
+                  },
+                  {
+                    name: "Staff",
+                    href: "/admin/waiters",
+                    icon: Users,
+                    iconBg: "bg-purple-100 text-purple-700",
+                    borderHover: "hover:border-purple-300 hover:bg-purple-50/40",
+                  },
+                  {
+                    name: "Reports",
+                    href: "/admin/reports",
+                    icon: TrendingUp,
+                    iconBg: "bg-blue-100 text-blue-700",
+                    borderHover: "hover:border-blue-300 hover:bg-blue-50/40",
+                  },
+                  {
+                    name: "Settings",
+                    href: "/admin/settings",
+                    icon: Settings,
+                    iconBg: "bg-stone-200 text-stone-700",
+                    borderHover: "hover:border-stone-400 hover:bg-stone-100/80",
+                  },
                 ].map((item) => {
                   const isActive =
                     pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -180,27 +216,47 @@ function AdminProtectedLayoutContent() {
                       key={item.name}
                       to={item.href}
                       onClick={() => setMoreOpen(false)}
-                      className={`p-3.5 rounded-2xl border flex flex-col justify-between transition-all active:scale-95 ${
+                      className={`p-3.5 rounded-2xl border flex flex-col justify-between transition-all active:scale-95 shadow-sm ${
                         isActive
-                          ? "bg-orange-600/20 border-orange-500 text-white shadow-md shadow-orange-600/20 ring-1 ring-orange-500/50"
-                          : "bg-white/5 border-white/10 hover:border-white/20 text-stone-200 hover:bg-white/10"
+                          ? "bg-orange-50 border-orange-500 text-orange-950 ring-1 ring-orange-500/40"
+                          : `bg-stone-50/90 border-stone-200/90 text-stone-800 ${item.borderHover}`
                       }`}
                     >
-                      <item.icon className={`w-5 h-5 mb-2 ${item.color}`} />
-                      <span className="text-xs font-black">{item.name}</span>
+                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center mb-2.5 shadow-xs ${item.iconBg}`}>
+                        <item.icon className="w-4 h-4" />
+                      </div>
+                      <span className="text-xs font-black text-stone-900 tracking-tight">{item.name}</span>
                     </Link>
                   );
                 })}
               </div>
 
-              {/* Logout Action (No Store link as requested) */}
-              <div className="pt-4 border-t border-white/10 mt-4">
+              {/* Go to Customer Storefront Button */}
+              <div className="pt-3">
+                <Link
+                  to="/"
+                  onClick={() => setMoreOpen(false)}
+                  className="flex items-center gap-3 p-3.5 rounded-2xl font-bold text-emerald-900 bg-emerald-50 hover:bg-emerald-100/90 border border-emerald-200/90 transition-all active:scale-95 shadow-sm"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-emerald-600/15 flex items-center justify-center text-emerald-700 flex-shrink-0">
+                    <Store className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-black text-emerald-950">Customer Storefront</div>
+                    <div className="text-[10px] text-emerald-700 font-medium truncate">View live customer ordering menu</div>
+                  </div>
+                  <ExternalLink className="w-4 h-4 text-emerald-700 ml-auto flex-shrink-0" />
+                </Link>
+              </div>
+
+              {/* Logout Action */}
+              <div className="pt-2">
                 <button
                   onClick={() => {
                     setMoreOpen(false);
                     handleLogout();
                   }}
-                  className="flex items-center justify-center gap-2.5 w-full py-3 px-4 text-red-400 hover:text-red-300 font-black text-xs uppercase tracking-wider bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-xl cursor-pointer transition-all active:scale-95"
+                  className="flex items-center justify-center gap-2 w-full py-3 px-4 text-red-600 hover:text-red-700 font-black text-xs uppercase tracking-wider bg-red-50 hover:bg-red-100/90 border border-red-200/90 rounded-xl cursor-pointer transition-all active:scale-95"
                 >
                   <LogOut className="w-4 h-4" />
                   <span>Logout</span>
