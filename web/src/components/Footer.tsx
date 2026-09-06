@@ -118,8 +118,8 @@ export default function Footer() {
               <li className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                 <span>
-                  Lekhnath-30, Dhungepatan,<br />
-                  Pokhara, Nepal
+                  Sisuwa, Pokhara-29,<br />
+                  Kaski, Nepal
                 </span>
               </li>
               <li className="flex items-center gap-3">
@@ -128,10 +128,12 @@ export default function Footer() {
               </li>
               <li className="flex items-start gap-3 border-t border-stone-100 pt-3 mt-3 text-stone-500">
                 <Clock className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                <span>
-                  8:00am - 9:00pm<br />
-                  <span className="text-emerald-600 font-semibold">Open 7 Days a Week</span>
-                </span>
+                <div className="space-y-1">
+                  <p className="text-stone-800 font-bold">8:00 AM – 9:00 PM</p>
+                  <p className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md font-semibold leading-tight">
+                    Closed 1st Tuesday of every month
+                  </p>
+                </div>
               </li>
             </ul>
           </div>
