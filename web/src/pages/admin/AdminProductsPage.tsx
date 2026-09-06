@@ -20,6 +20,7 @@ import {
   Tag,
   Boxes,
   RotateCcw,
+  ChevronDown,
 } from "lucide-react";
 import StockToggle from "@/components/admin/StockToggle";
 import { api } from "@/lib/api";
@@ -221,50 +222,46 @@ export default function AdminProductsPage() {
   }
 
   return (
-    <div className="space-y-4 pb-16 max-w-7xl mx-auto">
+    <div className="space-y-3.5 pb-16 max-w-7xl mx-auto">
       {/* HEADER BAR */}
       <div className="flex items-center justify-between gap-2">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-black text-stone-900 tracking-tight">Products Catalog</h1>
-            <span className="px-2 py-0.5 bg-orange-100 text-orange-700 text-xs font-black rounded-full">
-              {products.length}
-            </span>
-          </div>
-          <p className="text-xs text-stone-500 font-medium hidden sm:block mt-0.5">
-            Manage food menu, pricing, categories, and live stock tracking
-          </p>
+        <div className="flex items-center gap-2 min-w-0">
+          <h1 className="text-xl sm:text-2xl font-black text-stone-900 tracking-tight truncate">Products</h1>
+          <span className="px-2 py-0.5 bg-orange-100 text-orange-700 text-xs font-black rounded-full shrink-0">
+            {products.length}
+          </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 shrink-0">
           <button
             onClick={fetchProducts}
-            className="p-2.5 bg-white rounded-xl border border-stone-200 text-stone-600 hover:bg-stone-50 active:scale-95 transition-all shadow-xs cursor-pointer"
+            className="p-2 bg-white rounded-xl border border-stone-200 text-stone-600 hover:bg-stone-50 active:scale-95 transition-all shadow-xs cursor-pointer"
             title="Refresh Products"
           >
             <RotateCcw className="w-4 h-4" />
           </button>
           <Link
             to="/admin/products/new"
-            className="inline-flex items-center gap-1.5 bg-orange-600 hover:bg-orange-500 text-white font-black text-xs uppercase tracking-wider px-3.5 py-2.5 rounded-xl transition-all shadow-md shadow-orange-600/20 active:scale-95 cursor-pointer shrink-0"
+            className="inline-flex items-center gap-1.5 bg-orange-600 hover:bg-orange-500 text-white font-black text-xs uppercase tracking-wider px-3 py-2 rounded-xl transition-all shadow-md shadow-orange-600/20 active:scale-95 cursor-pointer shrink-0"
           >
             <Plus className="w-4 h-4 text-white stroke-[3]" />
-            <span>Add Product</span>
+            <span className="hidden sm:inline">Add Product</span>
+            <span className="sm:hidden">Add</span>
           </Link>
         </div>
       </div>
 
-      {/* SEARCH BAR & QUICK FILTERS CARD */}
+      {/* SEARCH BAR & 100% FIT DUAL DROPDOWNS (ZERO HORIZONTAL SCROLL) */}
       <div className="bg-white p-3 sm:p-4 rounded-2xl border border-stone-200/90 shadow-xs space-y-2.5">
         {/* Search Input Row */}
         <div className="relative">
           <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search dishes, categories..."
+            placeholder="Search dishes by name..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-9 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs sm:text-sm font-semibold text-stone-900 placeholder:text-stone-400 focus:outline-none focus:bg-white focus:border-orange-500 transition-all"
+            className="w-full pl-10 pr-9 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs sm:text-sm font-semibold text-stone-900 placeholder:text-stone-400 focus:outline-none focus:bg-white focus:border-orange-500 transition-all"
           />
           {searchQuery && (
             <button
@@ -276,105 +273,58 @@ export default function AdminProductsPage() {
           )}
         </div>
 
-        {/* Stock Status Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none text-xs">
-          <button
-            onClick={() => setStockStatusFilter("ALL")}
-            className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
-              stockStatusFilter === "ALL"
-                ? "bg-stone-900 text-white shadow-xs"
-                : "bg-stone-100 text-stone-600 hover:bg-stone-200"
-            }`}
-          >
-            <span>All</span>
-            <span className={`px-1.5 py-0.5 text-[10px] rounded-full font-black ${
-              stockStatusFilter === "ALL" ? "bg-white/20 text-white" : "bg-stone-200 text-stone-700"
-            }`}>
-              {stockCounts.total}
-            </span>
-          </button>
+        {/* 2-Column Responsive Filter Selectors (Fits 100% on all mobile screens, no horizontal scroll) */}
+        <div className="grid grid-cols-2 gap-2">
+          {/* Category Selector */}
+          <div className="relative">
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="w-full appearance-none bg-stone-50 hover:bg-stone-100/80 border border-stone-200 rounded-xl px-2.5 py-2 text-xs font-bold text-stone-800 pr-7 focus:outline-none focus:border-orange-500 focus:bg-white transition-all cursor-pointer truncate"
+            >
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat === "ALL" ? `All Categories (${products.length})` : cat}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="w-3.5 h-3.5 text-stone-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
 
-          <button
-            onClick={() => setStockStatusFilter("IN_STOCK")}
-            className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
-              stockStatusFilter === "IN_STOCK"
-                ? "bg-emerald-600 text-white shadow-xs"
-                : "bg-emerald-50 text-emerald-800 border border-emerald-200/60 hover:bg-emerald-100"
-            }`}
-          >
-            <span>In Stock</span>
-            <span className={`px-1.5 py-0.5 text-[10px] rounded-full font-black ${
-              stockStatusFilter === "IN_STOCK" ? "bg-emerald-700 text-white" : "bg-emerald-200 text-emerald-800"
-            }`}>
-              {stockCounts.inStock}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setStockStatusFilter("LOW_STOCK")}
-            className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
-              stockStatusFilter === "LOW_STOCK"
-                ? "bg-amber-600 text-white shadow-xs"
-                : "bg-amber-50 text-amber-800 border border-amber-200/60 hover:bg-amber-100"
-            }`}
-          >
-            <span>Low Stock</span>
-            <span className={`px-1.5 py-0.5 text-[10px] rounded-full font-black ${
-              stockStatusFilter === "LOW_STOCK" ? "bg-amber-700 text-white" : "bg-amber-200 text-amber-800"
-            }`}>
-              {stockCounts.lowStock}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setStockStatusFilter("OUT_OF_STOCK")}
-            className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
-              stockStatusFilter === "OUT_OF_STOCK"
-                ? "bg-red-600 text-white shadow-xs"
-                : "bg-red-50 text-red-800 border border-red-200/60 hover:bg-red-100"
-            }`}
-          >
-            <span>Out of Stock</span>
-            <span className={`px-1.5 py-0.5 text-[10px] rounded-full font-black ${
-              stockStatusFilter === "OUT_OF_STOCK" ? "bg-red-700 text-white" : "bg-red-200 text-red-800"
-            }`}>
-              {stockCounts.outOfStock}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setStockStatusFilter("UNTRACKED")}
-            className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
-              stockStatusFilter === "UNTRACKED"
-                ? "bg-stone-700 text-white shadow-xs"
-                : "bg-stone-100 text-stone-600 hover:bg-stone-200"
-            }`}
-          >
-            <span>Untracked</span>
-            <span className={`px-1.5 py-0.5 text-[10px] rounded-full font-black ${
-              stockStatusFilter === "UNTRACKED" ? "bg-stone-800 text-white" : "bg-stone-200 text-stone-700"
-            }`}>
-              {stockCounts.untracked}
-            </span>
-          </button>
+          {/* Stock Status Selector */}
+          <div className="relative">
+            <select
+              value={stockStatusFilter}
+              onChange={(e) => setStockStatusFilter(e.target.value as any)}
+              className="w-full appearance-none bg-stone-50 hover:bg-stone-100/80 border border-stone-200 rounded-xl px-2.5 py-2 text-xs font-bold text-stone-800 pr-7 focus:outline-none focus:border-orange-500 focus:bg-white transition-all cursor-pointer truncate"
+            >
+              <option value="ALL">All Stock ({stockCounts.total})</option>
+              <option value="IN_STOCK">🟢 In Stock ({stockCounts.inStock})</option>
+              <option value="LOW_STOCK">🟡 Low Stock ({stockCounts.lowStock})</option>
+              <option value="OUT_OF_STOCK">🔴 Out of Stock ({stockCounts.outOfStock})</option>
+              <option value="UNTRACKED">⚪ Untracked ({stockCounts.untracked})</option>
+            </select>
+            <ChevronDown className="w-3.5 h-3.5 text-stone-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
         </div>
 
-        {/* Categories Scrollable Bar */}
-        {categories.length > 2 && (
-          <div className="flex items-center gap-1.5 overflow-x-auto pt-2 border-t border-stone-100 scrollbar-none">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
-                  selectedCategory === cat
-                    ? "bg-orange-600 text-white shadow-xs"
-                    : "bg-stone-100 text-stone-600 hover:bg-stone-200"
-                }`}
-              >
-                {cat === "ALL" ? "All Categories" : cat}
-              </button>
-            ))}
+        {/* Active Filter Indicator & Clear Option */}
+        {(searchQuery || selectedCategory !== "ALL" || stockStatusFilter !== "ALL") && (
+          <div className="flex items-center justify-between pt-1 border-t border-stone-100 text-[11px]">
+            <span className="text-stone-500 font-medium">
+              Showing <strong>{filteredProducts.length}</strong> of {products.length} dishes
+            </span>
+            <button
+              onClick={() => {
+                setSearchQuery("");
+                setSelectedCategory("ALL");
+                setStockStatusFilter("ALL");
+              }}
+              className="text-orange-600 hover:text-orange-700 font-bold flex items-center gap-1 cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span>Reset</span>
+            </button>
           </div>
         )}
       </div>
