@@ -391,7 +391,7 @@ export default function PaymentPage() {
                 <PhoneCall className="w-3.5 h-3.5 text-orange-600" />
                 Need help with payment?
               </p>
-              <p className="text-[11px]">Call our hotline directly at <strong>+977 9865311559</strong></p>
+              <p className="text-[11px]">Call or WhatsApp our hotline directly at <strong>+977 984-6011810</strong></p>
             </div>
           </div>
         </div>

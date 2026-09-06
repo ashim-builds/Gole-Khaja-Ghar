@@ -112,7 +112,7 @@ export default function Navbar() {
               {/* Right Side Desktop Actions */}
               <div className="flex items-center gap-3 xl:gap-4 border-l border-white/10 pl-4 xl:pl-6 shrink-0">
                 <a
-                  href="tel:+9779865311559"
+                  href="tel:+9779846011810"
                   className="hidden xl:flex items-center gap-2 text-white hover:text-primary transition-colors text-sm font-bold bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-full border border-white/10"
                 >
                   <Phone className="w-3.5 h-3.5 text-primary" />
@@ -203,7 +203,7 @@ export default function Navbar() {
               ))}
               <div className="pt-2">
                 <a
-                  href="tel:+9779865311559"
+                  href="tel:+9779846011810"
                   className={`flex items-center justify-center gap-3 px-4 py-3 rounded-xl text-white font-bold transition-all border ${
                     scrolled
                       ? "bg-white/10 border-white/15 hover:bg-white/20"
@@ -211,7 +211,7 @@ export default function Navbar() {
                   }`}
                 >
                   <Phone className="w-4 h-4 text-primary" />
-                  <span>Call to Order (+977 9865311559)</span>
+                  <span>Call to Order (+977 984-6011810)</span>
                 </a>
               </div>
             </div>

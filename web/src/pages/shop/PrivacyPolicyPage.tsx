@@ -179,8 +179,8 @@ export default function PrivacyPolicyPage() {
             <div className="space-y-2 text-stone-600 font-medium text-sm">
               <p className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-primary" />
-                <a href="tel:+9779865311559" className="hover:text-primary transition-colors">
-                  +977 9865311559
+                <a href="tel:+9779846011810" className="hover:text-primary transition-colors">
+                  +977 984-6011810
                 </a>
               </p>
               <p className="flex items-center gap-2">

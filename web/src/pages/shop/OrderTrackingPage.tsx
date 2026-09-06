@@ -70,7 +70,7 @@ export default function OrderTrackingPage() {
   });
 
   // Format string for WhatsApp
-  const whatsappPhone = "+9779865311559";
+  const whatsappPhone = "+9779846011810";
   const orderTextString = `*Gole Khaja Ghar*
 Order #${order.orderNumber}
 
