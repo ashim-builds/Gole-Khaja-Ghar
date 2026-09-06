@@ -2,7 +2,7 @@ import React, { useState, useEffect, lazy, Suspense } from "react";
 import { useCart } from "@/context/CartContext";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
-import { Truck, ArrowRight, Loader2, MapPin, Edit3, QrCode, Banknote, X, Pin, CheckCircle, Phone } from "lucide-react";
+import { Truck, ArrowRight, Loader2, MapPin, Edit3, QrCode, Banknote, X, Pin, CheckCircle, Phone, User } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 
 const MapPicker = lazy(() => import("@/components/MapPicker"));
@@ -31,7 +31,7 @@ export interface CheckoutPayload {
 
 export default function CheckoutPage() {
   const { items, cartTotal, clearCart } = useCart();
-  const { user } = useUser();
+  const { user, isLoading: isUserLoading } = useUser();
   const navigate = useNavigate();
 
   const [isMounted, setIsMounted] = useState(false);
@@ -69,7 +69,13 @@ export default function CheckoutPage() {
     }
   }, [user]);
 
-  if (!isMounted) return null;
+  if (!isMounted || isUserLoading) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (
@@ -77,10 +83,56 @@ export default function CheckoutPage() {
         <h2 className="text-2xl font-black mb-4">Your cart is empty!</h2>
         <button
           onClick={() => navigate("/shop")}
-          className="px-6 py-3 bg-primary text-black font-bold rounded-lg hover:bg-primary/90 cursor-pointer"
+          className="px-6 py-3.5 bg-orange-600 text-white font-black rounded-xl hover:bg-orange-500 transition-all shadow-md shadow-orange-600/20 cursor-pointer uppercase text-xs tracking-wider"
         >
           Browse Menu
         </button>
+      </div>
+    );
+  }
+
+  // Enforce Login Required before ordering
+  if (!user) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center px-4 py-12 bg-stone-50">
+        <div className="max-w-md w-full bg-white rounded-3xl shadow-xl border border-stone-200 p-8 text-center space-y-6">
+          <div className="w-16 h-16 bg-orange-100 text-orange-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
+            <User className="w-8 h-8" />
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="text-2xl font-black text-stone-900 tracking-tight">Login Required to Order</h2>
+            <p className="text-sm text-stone-600 font-medium leading-relaxed">
+              Please sign in to your Gole Khaja Ghar account to complete your checkout, track your live delivery, and receive your receipt.
+            </p>
+          </div>
+
+          <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4 text-left flex justify-between items-center">
+            <div>
+              <p className="text-xs font-bold text-stone-400 uppercase tracking-wider">Your Cart Total</p>
+              <p className="text-xl font-black text-stone-900">Rs. {cartTotal.toFixed(2)}</p>
+            </div>
+            <span className="px-3 py-1 bg-orange-100 text-orange-800 text-xs font-black rounded-full">
+              {items.length} {items.length === 1 ? "Item" : "Items"}
+            </span>
+          </div>
+
+          <div className="space-y-3 pt-2">
+            <button
+              onClick={() => navigate("/login?redirect=/checkout")}
+              className="w-full py-4 bg-orange-600 hover:bg-orange-500 text-white font-black uppercase text-xs tracking-wider rounded-xl shadow-lg shadow-orange-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              Log In / Register to Order
+              <ArrowRight className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => navigate("/shop")}
+              className="w-full py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer"
+            >
+              Continue Browsing Menu
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -225,16 +277,27 @@ export default function CheckoutPage() {
                 <p className="text-sm text-stone-500 font-medium mt-1">Scan the QR code to pay</p>
               </div>
 
-              <div className="flex flex-col items-center gap-3 mb-6">
-                <div className="w-48 h-48 bg-stone-100 border-2 border-dashed border-stone-300 rounded-2xl flex items-center justify-center">
-                  <div className="text-center">
-                    <QrCode className="w-16 h-16 text-stone-400 mx-auto mb-2" />
-                    <p className="text-xs text-stone-400 font-semibold">Restaurant QR Code</p>
-                  </div>
+              <div className="flex flex-col items-center gap-3 mb-5">
+                <div className="w-52 h-auto max-w-full bg-stone-50 border border-stone-200 rounded-2xl p-2.5 shadow-inner flex flex-col items-center justify-center">
+                  <img
+                    src="/images/fonepay-qr.png"
+                    alt="BL GOLE KHAJA GHAR FonePay QR"
+                    className="w-full h-auto max-h-60 object-contain rounded-xl"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      if (!target.src.includes('fonepay_qr.png')) {
+                        target.src = '/fonepay_qr.png';
+                      }
+                    }}
+                  />
                 </div>
-                <div className="text-center bg-orange-50 rounded-xl p-3 border border-orange-100 w-full">
-                  <p className="text-sm font-black text-stone-900">Amount to Pay</p>
-                  <p className="text-2xl font-black text-primary">Rs. {grandTotal.toFixed(2)}</p>
+                <div className="text-center space-y-0.5">
+                  <p className="text-xs font-black text-stone-900">B L GOLE KHAJA GHAR</p>
+                  <p className="text-[10px] text-stone-500 font-mono">Terminal: 2222040019079684 • TAALCHOWK</p>
+                </div>
+                <div className="text-center bg-orange-50 rounded-2xl p-3 border border-orange-100 w-full">
+                  <p className="text-xs font-bold text-stone-600">Amount to Pay</p>
+                  <p className="text-2xl font-black text-orange-600">Rs. {grandTotal.toFixed(2)}</p>
                 </div>
               </div>
 
@@ -258,7 +321,7 @@ export default function CheckoutPage() {
               <button
                 onClick={handleQrConfirm}
                 disabled={isSubmitting}
-                className="w-full py-4 bg-primary text-black font-black rounded-xl hover:bg-primary/90 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-4 bg-orange-600 text-white font-black uppercase text-sm tracking-wider rounded-xl hover:bg-orange-500 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-orange-600/25"
               >
                 {isSubmitting ? (
                   <>
@@ -299,8 +362,8 @@ export default function CheckoutPage() {
                       name="name"
                       value={formData.name}
                       onChange={handleChange}
-                      className={`w-full h-12 px-4 rounded-xl border focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-black font-medium text-sm ${
-                        fieldErrors.name ? "border-red-400 bg-red-50" : "border-stone-300"
+                      className={`w-full h-12 px-4 rounded-xl border focus:outline-none focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/20 text-stone-900 placeholder:text-stone-400 bg-stone-50 font-medium text-sm transition-all ${
+                        fieldErrors.name ? "border-red-400 bg-red-50" : "border-stone-200"
                       }`}
                       placeholder="Ram Bahadur"
                     />
@@ -318,8 +381,8 @@ export default function CheckoutPage() {
                       value={formData.phone}
                       onChange={handleChange}
                       maxLength={10}
-                      className={`w-full h-12 px-4 rounded-xl border focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-black font-medium text-sm ${
-                        fieldErrors.phone ? "border-red-400 bg-red-50" : "border-stone-300"
+                      className={`w-full h-12 px-4 rounded-xl border focus:outline-none focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/20 text-stone-900 placeholder:text-stone-400 bg-stone-50 font-medium text-sm transition-all ${
+                        fieldErrors.phone ? "border-red-400 bg-red-50" : "border-stone-200"
                       }`}
                       placeholder="9812345678"
                     />
@@ -335,8 +398,8 @@ export default function CheckoutPage() {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className={`w-full h-12 px-4 rounded-xl border focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-black font-medium text-sm ${
-                        fieldErrors.email ? "border-red-400 bg-red-50" : "border-stone-300"
+                      className={`w-full h-12 px-4 rounded-xl border focus:outline-none focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/20 text-stone-900 placeholder:text-stone-400 bg-stone-50 font-medium text-sm transition-all ${
+                        fieldErrors.email ? "border-red-400 bg-red-50" : "border-stone-200"
                       }`}
                       placeholder="ram@example.com"
                     />
@@ -382,8 +445,8 @@ export default function CheckoutPage() {
                       onChange={handleChange}
                       rows={3}
                       maxLength={250}
-                      className={`mt-2 w-full p-4 rounded-xl border focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-black font-medium text-sm ${
-                        fieldErrors.address ? "border-red-400 bg-red-50" : "border-stone-300"
+                      className={`mt-2 w-full p-4 rounded-xl border focus:outline-none focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/20 text-stone-900 placeholder:text-stone-400 bg-stone-50 font-medium text-sm transition-all ${
+                        fieldErrors.address ? "border-red-400 bg-red-50" : "border-stone-200"
                       }`}
                       placeholder="Enter your full delivery address, nearby landmarks..."
                     />
@@ -403,8 +466,8 @@ export default function CheckoutPage() {
                     onClick={() => setFormData((prev) => ({ ...prev, paymentMethod: "cod" }))}
                     className={`flex flex-col items-center justify-center gap-2 py-4 rounded-xl border-2 font-bold transition-all text-sm cursor-pointer ${
                       formData.paymentMethod === "cod"
-                        ? "border-primary bg-primary/10 text-black"
-                        : "border-stone-200 text-stone-500 hover:border-stone-300"
+                        ? "border-orange-500 bg-orange-50/80 text-stone-900 shadow-sm"
+                        : "border-stone-200 text-stone-500 hover:border-stone-300 bg-white"
                     }`}
                   >
                     <Banknote className="w-6 h-6" />
@@ -416,8 +479,8 @@ export default function CheckoutPage() {
                     onClick={() => setFormData((prev) => ({ ...prev, paymentMethod: "qr" }))}
                     className={`flex flex-col items-center justify-center gap-2 py-4 rounded-xl border-2 font-bold transition-all text-sm cursor-pointer ${
                       formData.paymentMethod === "qr"
-                        ? "border-primary bg-primary/10 text-black"
-                        : "border-stone-200 text-stone-500 hover:border-stone-300"
+                        ? "border-orange-500 bg-orange-50/80 text-stone-900 shadow-sm"
+                        : "border-stone-200 text-stone-500 hover:border-stone-300 bg-white"
                     }`}
                   >
                     <QrCode className="w-6 h-6" />
@@ -439,8 +502,8 @@ export default function CheckoutPage() {
                     onChange={handleChange}
                     rows={2}
                     maxLength={100}
-                    className={`w-full p-4 rounded-xl border focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-black font-medium text-sm ${
-                      fieldErrors.notes ? "border-red-400 bg-red-50" : "border-stone-300"
+                    className={`w-full p-4 rounded-xl border focus:outline-none focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/20 text-stone-900 placeholder:text-stone-400 bg-stone-50 font-medium text-sm transition-all ${
+                      fieldErrors.notes ? "border-red-400 bg-red-50" : "border-stone-200"
                     }`}
                     placeholder="Any special requests? Let us know!"
                   />
@@ -577,7 +640,7 @@ export default function CheckoutPage() {
                 className={`w-full py-4 rounded-xl font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 text-sm cursor-pointer ${
                   isSubmitting
                     ? "bg-stone-200 text-stone-400 cursor-wait"
-                    : "bg-primary text-black hover:bg-primary/90 shadow-xl shadow-primary/20"
+                    : "bg-orange-600 text-white hover:bg-orange-500 shadow-xl shadow-orange-600/25"
                 }`}
               >
                 {isSubmitting ? (

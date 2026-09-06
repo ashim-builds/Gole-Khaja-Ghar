@@ -5,22 +5,23 @@ import {
   Trash2,
   Phone,
   Mail,
-  BadgePercent,
   Search,
   CheckCircle2,
   AlertCircle,
   Loader2,
   X,
   KeyRound,
-  Shield,
+  ChefHat,
+  UtensilsCrossed,
 } from "lucide-react";
 import { api } from "@/lib/api";
 
-interface Waiter {
+interface StaffMember {
   id: string;
   name: string;
   email: string | null;
   phone: string | null;
+  role?: string;
   employeeCode: string;
   isActive: boolean;
   notes: string;
@@ -28,15 +29,17 @@ interface Waiter {
 }
 
 export default function AdminWaitersPage() {
-  const [waiters, setWaiters] = useState<Waiter[]>([]);
+  const [staff, setStaff] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState<"ALL" | "WAITER" | "KITCHEN">("ALL");
   const [modalOpen, setModalOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   // Form State
+  const [role, setRole] = useState<"WAITER" | "KITCHEN">("WAITER");
   const [name, setName] = useState("");
   const [employeeCode, setEmployeeCode] = useState("");
   const [phone, setPhone] = useState("");
@@ -44,47 +47,90 @@ export default function AdminWaitersPage() {
   const [password, setPassword] = useState("");
   const [notes, setNotes] = useState("");
 
-  const fetchWaiters = async () => {
+  const fetchStaff = async () => {
     setLoading(true);
     try {
       const res = await api.admin.waiters.list();
       if (res.success) {
-        setWaiters(res.waiters || []);
+        setStaff((res.waiters || res.staff || []) as any);
       }
     } catch (err: any) {
-      setFeedback({ type: "error", text: err.message || "Failed to load waiters" });
+      setFeedback({ type: "error", text: err.message || "Failed to load staff members" });
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchWaiters();
+    fetchStaff();
   }, []);
 
-  const handleCreateWaiter = async (e: React.FormEvent) => {
+  const handleCreateStaff = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !employeeCode || !phone || !password) {
+    setFeedback(null);
+
+    const trimmedName = name.trim();
+    const trimmedPhone = phone.trim();
+    const trimmedCode = employeeCode.trim().toUpperCase();
+    const trimmedEmail = email.trim();
+
+    if (!trimmedName || !trimmedCode || !trimmedPhone || !password) {
       setFeedback({ type: "error", text: "Please fill in all required fields." });
       return;
     }
 
+    // 1. Strict Name validation (letters & spaces only, no digits)
+    if (!/^[a-zA-Z\s.'-]+$/.test(trimmedName) || trimmedName.length < 2) {
+      setFeedback({
+        type: "error",
+        text: "Full Name must only contain letters (no numbers or symbols allowed).",
+      });
+      return;
+    }
+
+    // 2. Strict Phone validation (exact 10 digits starting with 9)
+    if (!/^9\d{9}$/.test(trimmedPhone)) {
+      setFeedback({
+        type: "error",
+        text: "Phone Number must be exactly 10 digits starting with 9 (e.g. 98XXXXXXXX).",
+      });
+      return;
+    }
+
+    // 3. Strict Email validation (if provided)
+    if (trimmedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      setFeedback({
+        type: "error",
+        text: "Please enter a valid original email address (e.g. name@gmail.com).",
+      });
+      return;
+    }
+
+    // 4. Strict Employee Code validation
+    if (!/^[A-Z0-9_-]{2,20}$/.test(trimmedCode)) {
+      setFeedback({
+        type: "error",
+        text: "Employee Code must be valid alphanumeric (e.g. W-101, CHEF-1).",
+      });
+      return;
+    }
+
     setCreating(true);
-    setFeedback(null);
     try {
       const res = await api.admin.waiters.create({
-        name,
-        employeeCode,
-        phone,
-        email: email || undefined,
+        name: trimmedName,
+        employeeCode: trimmedCode,
+        phone: trimmedPhone,
+        email: trimmedEmail || undefined,
         password,
-        notes: notes || undefined,
+        role,
+        notes: notes.trim() || undefined,
       });
 
       if (res.success) {
         setFeedback({
           type: "success",
-          text: `Waiter "${name}" (Code: ${employeeCode.toUpperCase()}) created successfully!`,
+          text: `${role === "KITCHEN" ? "Chef" : "Waiter"} "${trimmedName}" (Code: ${trimmedCode}) created successfully!`,
         });
         setModalOpen(false);
         // Reset form
@@ -94,17 +140,18 @@ export default function AdminWaitersPage() {
         setEmail("");
         setPassword("");
         setNotes("");
-        fetchWaiters();
+        setRole("WAITER");
+        fetchStaff();
       }
     } catch (err: any) {
-      setFeedback({ type: "error", text: err.message || "Failed to create waiter account." });
+      setFeedback({ type: "error", text: err.message || "Failed to create staff account." });
     } finally {
       setCreating(false);
     }
   };
 
-  const handleDeleteWaiter = async (id: string, waiterName: string) => {
-    if (!window.confirm(`Are you sure you want to delete waiter account "${waiterName}"? This action cannot be undone.`)) {
+  const handleDeleteStaff = async (id: string, staffName: string) => {
+    if (!window.confirm(`Are you sure you want to delete staff account "${staffName}"? This action cannot be undone.`)) {
       return;
     }
 
@@ -113,34 +160,41 @@ export default function AdminWaitersPage() {
     try {
       const res = await api.admin.waiters.delete(id);
       if (res.success) {
-        setFeedback({ type: "success", text: `Waiter "${waiterName}" deleted.` });
-        setWaiters((prev) => prev.filter((w) => w.id !== id));
+        setFeedback({ type: "success", text: `Staff account "${staffName}" deleted.` });
+        setStaff((prev) => prev.filter((w) => w.id !== id));
       }
     } catch (err: any) {
-      setFeedback({ type: "error", text: err.message || "Failed to delete waiter." });
+      setFeedback({ type: "error", text: err.message || "Failed to delete staff member." });
     } finally {
       setDeletingId(null);
     }
   };
 
-  const filteredWaiters = waiters.filter(
-    (w) =>
+  const filteredStaff = staff.filter((w) => {
+    const matchesRole =
+      roleFilter === "ALL" ||
+      (roleFilter === "WAITER" && w.role === "waiter") ||
+      (roleFilter === "KITCHEN" && w.role === "kitchen");
+
+    const matchesSearch =
       w.name.toLowerCase().includes(search.toLowerCase()) ||
       w.employeeCode.toLowerCase().includes(search.toLowerCase()) ||
-      (w.phone && w.phone.includes(search))
-  );
+      (w.phone && w.phone.includes(search));
+
+    return matchesRole && matchesSearch;
+  });
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-black text-black flex items-center gap-2">
+          <h1 className="text-2xl md:text-3xl font-black text-stone-900 flex items-center gap-2">
             <Users className="w-8 h-8 text-primary" />
-            Waiter Staff Management
+            Restaurant Staff & Chef Management
           </h1>
           <p className="text-stone-500 text-sm mt-1">
-            Create, manage, and delete waiter accounts. Waiters can login to take orders and manage tables.
+            Create and manage accounts for Waiters (POS Floor) and Kitchen Chefs (KDS Screen).
           </p>
         </div>
 
@@ -149,10 +203,10 @@ export default function AdminWaitersPage() {
             setFeedback(null);
             setModalOpen(true);
           }}
-          className="px-5 py-3 bg-primary text-black font-black text-xs uppercase tracking-wider rounded-xl hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20 cursor-pointer self-start sm:self-auto"
+          className="px-5 py-3 bg-orange-600 text-white font-black text-xs uppercase tracking-wider rounded-xl hover:bg-orange-500 transition-all flex items-center justify-center gap-2 shadow-lg shadow-orange-600/20 cursor-pointer self-start sm:self-auto"
         >
-          <UserPlus className="w-4 h-4" />
-          Add New Waiter
+          <UserPlus className="w-4 h-4 text-white" />
+          Add Staff Member
         </button>
       </div>
 
@@ -174,8 +228,24 @@ export default function AdminWaitersPage() {
         </div>
       )}
 
-      {/* Search & Stats Filter */}
+      {/* Role Filter & Search */}
       <div className="bg-white rounded-2xl p-4 shadow-sm border border-stone-200 flex flex-col sm:flex-row gap-4 justify-between items-center">
+        <div className="flex gap-2 w-full sm:w-auto">
+          {(["ALL", "WAITER", "KITCHEN"] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setRoleFilter(tab)}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                roleFilter === tab
+                  ? "bg-stone-900 text-white shadow-sm"
+                  : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+              }`}
+            >
+              {tab === "ALL" ? "All Staff" : tab === "WAITER" ? "Waiters" : "Kitchen Chefs"}
+            </button>
+          ))}
+        </div>
+
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
           <input
@@ -183,27 +253,23 @@ export default function AdminWaitersPage() {
             placeholder="Search by name, code, phone..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white"
+            className="w-full pl-10 pr-4 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs font-semibold text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white"
           />
-        </div>
-
-        <div className="text-xs font-bold text-stone-500 self-end sm:self-center">
-          Total Waiters: <span className="text-black font-black text-sm">{waiters.length}</span>
         </div>
       </div>
 
-      {/* Waiters List */}
+      {/* Staff List Table */}
       <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-16">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
-        ) : filteredWaiters.length === 0 ? (
+        ) : filteredStaff.length === 0 ? (
           <div className="text-center py-16 text-stone-500">
             <Users className="w-12 h-12 mx-auto mb-3 text-stone-300" />
-            <p className="text-base font-bold text-stone-700">No waiter accounts found</p>
+            <p className="text-base font-bold text-stone-700">No staff members found</p>
             <p className="text-xs text-stone-400 mt-1">
-              {search ? "Try refining your search" : "Click 'Add New Waiter' to create an account for staff."}
+              {search ? "Try refining your search" : "Click 'Add Staff Member' to create credentials for staff."}
             </p>
           </div>
         ) : (
@@ -211,6 +277,7 @@ export default function AdminWaitersPage() {
             <table className="w-full text-left text-xs">
               <thead className="bg-stone-50 border-b border-stone-200 uppercase text-stone-500 font-extrabold tracking-wider">
                 <tr>
+                  <th className="px-6 py-4">Role</th>
                   <th className="px-6 py-4">Employee Code</th>
                   <th className="px-6 py-4">Name</th>
                   <th className="px-6 py-4">Phone / Contact</th>
@@ -219,20 +286,33 @@ export default function AdminWaitersPage() {
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-stone-100 font-medium">
-                {filteredWaiters.map((w) => (
+              <tbody className="divide-y divide-stone-100 font-medium text-stone-800">
+                {filteredStaff.map((w) => (
                   <tr key={w.id} className="hover:bg-stone-50/70 transition-colors">
                     <td className="px-6 py-4">
-                      <span className="font-mono font-black text-sm bg-primary/10 text-primary border border-primary/20 px-2.5 py-1 rounded-lg">
+                      {w.role === "kitchen" ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-100 text-amber-800 border border-amber-300 rounded-lg font-black text-[11px]">
+                          <ChefHat className="w-3.5 h-3.5" />
+                          Chef
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-orange-100 text-orange-800 border border-orange-300 rounded-lg font-black text-[11px]">
+                          <UtensilsCrossed className="w-3.5 h-3.5" />
+                          Waiter
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="font-mono font-black text-sm bg-stone-100 text-stone-900 border border-stone-200 px-2.5 py-1 rounded-lg">
                         {w.employeeCode}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="font-bold text-black text-sm">{w.name}</div>
-                      {w.notes && <div className="text-[11px] text-stone-400 mt-0.5">{w.notes}</div>}
+                      <div className="font-bold text-stone-900 text-sm">{w.name}</div>
+                      {w.notes && <div className="text-[11px] text-stone-500 mt-0.5">{w.notes}</div>}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-1.5 text-stone-700">
+                      <div className="flex items-center gap-1.5 text-stone-800 font-semibold">
                         <Phone className="w-3.5 h-3.5 text-stone-400" />
                         {w.phone || "—"}
                       </div>
@@ -248,18 +328,18 @@ export default function AdminWaitersPage() {
                         className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-bold text-[10px] ${
                           w.isActive
                             ? "bg-green-100 text-green-800 border border-green-200"
-                            : "bg-stone-100 text-stone-600"
+                            : "bg-red-100 text-red-800 border border-red-200"
                         }`}
                       >
-                        {w.isActive ? "Active" : "Inactive"}
+                        {w.isActive ? "Active" : "Disabled"}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <button
+                        onClick={() => handleDeleteStaff(w.id, w.name)}
                         disabled={deletingId === w.id}
-                        onClick={() => handleDeleteWaiter(w.id, w.name)}
-                        className="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                        title="Delete Waiter"
+                        className="p-2 hover:bg-red-50 text-stone-400 hover:text-red-600 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                        title="Delete account"
                       >
                         {deletingId === w.id ? (
                           <Loader2 className="w-4 h-4 animate-spin text-red-500" />
@@ -276,45 +356,88 @@ export default function AdminWaitersPage() {
         )}
       </div>
 
-      {/* Add Waiter Modal */}
+      {/* Add Staff Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative animate-in fade-in zoom-in duration-150">
-            <button
-              onClick={() => setModalOpen(false)}
-              className="absolute top-5 right-5 text-stone-400 hover:text-black cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
-                <UserPlus className="w-5 h-5" />
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-stone-200 animate-scale-in text-stone-900">
+            <div className="flex items-center justify-between pb-4 border-b border-stone-100">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
+                  <UserPlus className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-black text-lg text-stone-900">Add New Staff Member</h3>
+                  <p className="text-xs text-stone-500">Create login credentials for restaurant staff</p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-xl font-black text-black">Add Waiter Account</h2>
-                <p className="text-xs text-stone-500">
-                  Waiter will use their Employee Code / Phone and Password to login.
-                </p>
-              </div>
+              <button
+                onClick={() => setModalOpen(false)}
+                className="text-stone-400 hover:text-stone-900 p-1.5 rounded-lg hover:bg-stone-100 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            <form onSubmit={handleCreateWaiter} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-stone-700 uppercase mb-1">
-                    Full Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Ramesh Thapa"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white"
-                  />
-                </div>
+            <form onSubmit={handleCreateStaff} className="space-y-4 pt-4">
+              {/* Role Picker */}
+              <div>
+                <label className="block text-xs font-bold text-stone-700 uppercase mb-1.5">Staff Role</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRole("WAITER");
+                      if (!employeeCode || employeeCode.startsWith("CHEF-")) setEmployeeCode(`W-${staff.length + 1}`);
+                    }}
+                    className={`p-3 rounded-xl border flex items-center justify-center gap-2 text-xs font-bold transition-all cursor-pointer ${
+                      role === "WAITER"
+                        ? "bg-stone-900 border-stone-900 text-white shadow-md"
+                        : "bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100"
+                    }`}
+                  >
+                    <UtensilsCrossed className="w-4 h-4 text-orange-400" />
+                    Waiter / Server
+                  </button>
 
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRole("KITCHEN");
+                      if (!employeeCode || employeeCode.startsWith("W-")) setEmployeeCode(`CHEF-${staff.length + 1}`);
+                    }}
+                    className={`p-3 rounded-xl border flex items-center justify-center gap-2 text-xs font-bold transition-all cursor-pointer ${
+                      role === "KITCHEN"
+                        ? "bg-stone-900 border-stone-900 text-white shadow-md"
+                        : "bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100"
+                    }`}
+                  >
+                    <ChefHat className="w-4 h-4 text-amber-400" />
+                    Kitchen Chef
+                  </button>
+                </div>
+              </div>
+
+              {/* Full Name Input */}
+              <div>
+                <label className="block text-xs font-bold text-stone-700 uppercase mb-1">
+                  Full Name * <span className="text-[10px] text-stone-400 font-normal">(Letters only, no numbers)</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Ramesh Thapa"
+                  value={name}
+                  onChange={(e) => {
+                    // Only allow letters, spaces, dots, hyphens
+                    const filtered = e.target.value.replace(/[^a-zA-Z\s.'-]/g, "");
+                    setName(filtered);
+                  }}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 bg-white text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm font-semibold"
+                />
+              </div>
+
+              {/* Employee Code & Phone Number */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-stone-700 uppercase mb-1">
                     Employee Code *
@@ -322,84 +445,103 @@ export default function AdminWaitersPage() {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. W-101"
+                    placeholder={role === "KITCHEN" ? "e.g. CHEF-1" : "e.g. W-101"}
                     value={employeeCode}
-                    onChange={(e) => setEmployeeCode(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm font-semibold font-mono uppercase focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white"
+                    onChange={(e) => {
+                      const filtered = e.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, "").slice(0, 15);
+                      setEmployeeCode(filtered);
+                    }}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 bg-white text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm font-mono font-bold uppercase"
                   />
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-stone-700 uppercase mb-1">
-                    Phone Number *
+                    Phone Number * <span className="text-[10px] text-stone-400 font-normal">(10 digits starting with 9)</span>
                   </label>
                   <input
                     type="tel"
                     required
                     placeholder="98XXXXXXXX"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white"
+                    onChange={(e) => {
+                      // Only allow digits, max 10
+                      const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
+                      setPhone(digits);
+                    }}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 bg-white text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm font-semibold font-mono"
                   />
+                  {phone && !phone.startsWith("9") && (
+                    <p className="text-[11px] text-red-500 font-medium mt-1 flex items-center gap-1">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      Phone number must start with 9
+                    </p>
+                  )}
+                  {phone && phone.startsWith("9") && phone.length < 10 && (
+                    <p className="text-[11px] text-amber-600 font-medium mt-1">
+                      {10 - phone.length} more digit{10 - phone.length > 1 ? "s" : ""} required (10 total)
+                    </p>
+                  )}
                 </div>
+              </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-stone-700 uppercase mb-1">
-                    Password *
-                  </label>
+              {/* Password */}
+              <div>
+                <label className="block text-xs font-bold text-stone-700 uppercase mb-1">Password *</label>
+                <div className="relative">
+                  <KeyRound className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
                   <input
                     type="password"
                     required
-                    placeholder="••••••••"
+                    placeholder="Enter login password (min 6 chars)"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-stone-300 bg-white text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm font-medium"
                   />
                 </div>
               </div>
 
+              {/* Email (Optional) */}
               <div>
                 <label className="block text-xs font-bold text-stone-700 uppercase mb-1">
-                  Email Address <span className="text-stone-400 lowercase font-normal">(optional)</span>
+                  Email <span className="text-[10px] text-stone-400 font-normal">(Optional, valid format e.g. name@gmail.com)</span>
                 </label>
                 <input
                   type="email"
-                  placeholder="ramesh@golekhajaghar.com"
+                  placeholder="ramesh@gmail.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 bg-white text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm font-medium"
                 />
               </div>
 
+              {/* Notes */}
               <div>
-                <label className="block text-xs font-bold text-stone-700 uppercase mb-1">
-                  Notes / Shift <span className="text-stone-400 lowercase font-normal">(optional)</span>
-                </label>
+                <label className="block text-xs font-bold text-stone-700 uppercase mb-1">Notes (Optional)</label>
                 <input
                   type="text"
-                  placeholder="e.g. Evening Shift / Hall 1"
+                  placeholder="e.g. Head chef / Evening shift server"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 bg-white text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm font-medium"
                 />
               </div>
 
-              <div className="pt-4 flex gap-3">
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-3">
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
-                  className="flex-1 py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs uppercase rounded-xl transition-colors cursor-pointer"
+                  className="flex-1 py-3 border border-stone-200 text-stone-600 font-bold text-xs rounded-xl hover:bg-stone-50 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={creating}
-                  className="flex-1 py-3 bg-primary text-black font-black text-xs uppercase tracking-wider rounded-xl hover:bg-primary/90 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-primary/20"
+                  className="flex-1 py-3 bg-orange-600 text-white font-black uppercase text-xs tracking-wider rounded-xl hover:bg-orange-500 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-orange-600/20 disabled:opacity-50"
                 >
-                  {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : "Create Waiter"}
+                  {creating ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : "Save Account"}
                 </button>
               </div>
             </form>

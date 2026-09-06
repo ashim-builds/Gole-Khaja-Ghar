@@ -2,10 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useUser } from "@/context/UserContext";
 import { api } from "@/lib/api";
-import { User, UtensilsCrossed, ShieldAlert } from "lucide-react";
+import { User, UtensilsCrossed, ChefHat, ShieldAlert } from "lucide-react";
 
 export default function LoginPage() {
-  const [roleTab, setRoleTab] = useState<"customer" | "waiter">("customer");
+  const [roleTab, setRoleTab] = useState<"customer" | "waiter" | "kitchen">(
+    "customer",
+  );
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -34,8 +36,17 @@ export default function LoginPage() {
 
       if (res.success || res.user) {
         await refreshUser();
-        const from = searchParams.get("from");
-        navigate(from || "/");
+        const userRole = res.user?.role?.toLowerCase();
+        if (userRole === "waiter") {
+          navigate("/pos");
+        } else if (userRole === "kitchen") {
+          navigate("/kitchen");
+        } else if (userRole === "admin") {
+          navigate("/admin");
+        } else {
+          const from = searchParams.get("from");
+          navigate(from || "/");
+        }
       } else {
         setError((res as any).error || "Login failed");
       }
@@ -48,16 +59,16 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-stone-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full mx-auto bg-white p-8 rounded-2xl shadow-sm border border-stone-200">
+      <div className="max-w-md w-full mx-auto bg-white p-8 rounded-3xl shadow-sm border border-stone-200">
         {/* Role Switcher Tabs */}
-        <div className="flex bg-stone-100 p-1 rounded-xl mb-6">
+        <div className="flex bg-stone-100 p-1 rounded-2xl mb-6">
           <button
             type="button"
             onClick={() => {
               setRoleTab("customer");
               setError("");
             }}
-            className={`flex-1 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            className={`flex-1 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
               roleTab === "customer"
                 ? "bg-white text-black shadow-sm"
                 : "text-stone-500 hover:text-stone-900"
@@ -73,25 +84,47 @@ export default function LoginPage() {
               setRoleTab("waiter");
               setError("");
             }}
-            className={`flex-1 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            className={`flex-1 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
               roleTab === "waiter"
                 ? "bg-white text-black shadow-sm"
                 : "text-stone-500 hover:text-stone-900"
             }`}
           >
-            <UtensilsCrossed className="w-4 h-4 text-primary" />
-            Waiter Staff
+            <UtensilsCrossed className="w-4 h-4 text-orange-500" />
+            Waiter
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setRoleTab("kitchen");
+              setError("");
+            }}
+            className={`flex-1 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+              roleTab === "kitchen"
+                ? "bg-white text-black shadow-sm"
+                : "text-stone-500 hover:text-stone-900"
+            }`}
+          >
+            <ChefHat className="w-4 h-4 text-amber-500" />
+            Chef
           </button>
         </div>
 
         <div className="text-center mb-6">
           <h2 className="text-2xl font-black text-black">
-            {roleTab === "customer" ? "Customer Login" : "Waiter Staff Portal"}
+            {roleTab === "customer"
+              ? "Customer Login"
+              : roleTab === "waiter"
+                ? "Waiter Staff Portal"
+                : "Kitchen Chef Portal"}
           </h2>
           <p className="text-xs text-stone-500 mt-1">
             {roleTab === "customer"
               ? "Welcome back to Gole Khaja Ghar"
-              : "Sign in with your staff credentials"}
+              : roleTab === "waiter"
+                ? "Sign in to access table ordering & POS terminal"
+                : "Sign in to access live Kitchen Display System (KDS)"}
           </p>
         </div>
 
@@ -105,26 +138,36 @@ export default function LoginPage() {
 
           <div>
             <label className="block text-xs font-bold text-stone-700 uppercase mb-1">
-              {roleTab === "customer" ? "Email or Phone" : "Employee Code, Phone or Email"}
+              {roleTab === "customer"
+                ? "Email or Phone"
+                : "Employee Code, Phone or Email"}
             </label>
             <input
               type="text"
               required
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:border-primary text-black text-sm font-medium"
-              placeholder={roleTab === "customer" ? "your@email.com or 98XXXXXXXX" : "e.g. W-101 or 98XXXXXXXX"}
+              className="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/20 text-sm font-semibold transition-all"
+              placeholder={
+                roleTab === "customer"
+                  ? "your@email.com or 98XXXXXXXX"
+                  : roleTab === "waiter"
+                    ? "e.g. W-101 or 98XXXXXXXX"
+                    : "e.g. CHEF-1 or 98XXXXXXXX"
+              }
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-stone-700 uppercase mb-1">Password</label>
+            <label className="block text-xs font-bold text-stone-700 uppercase mb-1">
+              Password
+            </label>
             <input
               type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:border-primary text-black text-sm font-medium"
+              className="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/20 text-sm font-semibold transition-all"
               placeholder="••••••••"
             />
           </div>
@@ -132,9 +175,15 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary text-black font-black uppercase text-xs tracking-wider py-3.5 rounded-xl hover:bg-primary/90 transition-all mt-2 disabled:opacity-50 cursor-pointer shadow-md shadow-primary/20"
+            className="w-full bg-orange-600 text-white font-black uppercase text-xs tracking-wider py-3.5 rounded-xl hover:bg-orange-500 transition-all mt-2 disabled:opacity-50 cursor-pointer shadow-lg shadow-orange-600/25"
           >
-            {loading ? "Signing in..." : roleTab === "customer" ? "Login as Customer" : "Login as Waiter"}
+            {loading
+              ? "Signing in..."
+              : roleTab === "customer"
+                ? "Login as Customer"
+                : roleTab === "waiter"
+                  ? "Login to POS Terminal"
+                  : "Login to Kitchen Screen"}
           </button>
 
           {roleTab === "customer" ? (
@@ -154,7 +203,12 @@ export default function LoginPage() {
                 href="/api/auth/google"
                 className="w-full flex items-center justify-center gap-3 bg-white text-stone-700 font-bold border border-stone-200 py-3 rounded-xl hover:bg-stone-50 transition-colors text-xs"
               >
-                <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+                <svg
+                  viewBox="0 0 24 24"
+                  width="20"
+                  height="20"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
                   <g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)">
                     <path
                       fill="#4285F4"
@@ -179,14 +233,18 @@ export default function LoginPage() {
 
               <div className="mt-4 text-center text-xs text-stone-600">
                 Don't have an account?{" "}
-                <Link to="/register" className="font-bold text-primary hover:underline">
+                <Link
+                  to="/register"
+                  className="font-bold text-primary hover:underline"
+                >
                   Register here
                 </Link>
               </div>
             </>
           ) : (
             <div className="mt-4 p-3 bg-stone-50 rounded-xl border border-stone-100 text-center text-xs text-stone-500">
-              Waiter accounts cannot register online. Please contact the Super Admin for your credentials.
+              Staff accounts are created by Super Admin. Please contact
+              management for employee credentials.
             </div>
           )}
         </form>

@@ -61,7 +61,7 @@ export default function OrdersPage() {
             <p className="text-stone-500 mb-6">Looks like you haven't placed any orders yet.</p>
             <Link
               to="/shop"
-              className="inline-flex bg-primary text-black font-black uppercase text-sm tracking-wide px-6 py-3 rounded-md hover:bg-primary/90 transition-colors"
+              className="inline-flex bg-orange-600 text-white font-black uppercase text-sm tracking-wider px-6 py-3.5 rounded-xl hover:bg-orange-500 transition-all shadow-md shadow-orange-600/20"
             >
               Start Shopping
             </Link>

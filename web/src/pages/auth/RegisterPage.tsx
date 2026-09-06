@@ -100,7 +100,7 @@ export default function RegisterPage() {
               required
               value={formData.name}
               onChange={handleChange}
-              className={`w-full px-4 py-3 rounded-md border focus:outline-none focus:border-primary text-black ${
+              className={`w-full px-4 py-3 rounded-xl border focus:outline-none focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/20 text-stone-900 placeholder:text-stone-400 bg-stone-50 font-medium text-sm transition-all ${
                 fieldErrors.name ? "border-red-400 bg-red-50" : "border-stone-200"
               }`}
               placeholder="Ram Bahadur"
@@ -120,7 +120,7 @@ export default function RegisterPage() {
               required
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-md border border-stone-200 focus:outline-none focus:border-primary text-black"
+              className="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/20 font-medium text-sm transition-all"
               placeholder="your@email.com"
             />
           </div>
@@ -133,7 +133,7 @@ export default function RegisterPage() {
               value={formData.phone}
               onChange={handleChange}
               maxLength={10}
-              className={`w-full px-4 py-3 rounded-md border focus:outline-none focus:border-primary text-black ${
+              className={`w-full px-4 py-3 rounded-xl border focus:outline-none focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/20 text-stone-900 placeholder:text-stone-400 bg-stone-50 font-medium text-sm transition-all ${
                 fieldErrors.phone ? "border-red-400 bg-red-50" : "border-stone-200"
               }`}
               placeholder="9812345678"
@@ -154,7 +154,7 @@ export default function RegisterPage() {
               minLength={6}
               value={formData.password}
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-md border border-stone-200 focus:outline-none focus:border-primary text-black"
+              className="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/20 font-medium text-sm transition-all"
               placeholder="••••••"
             />
           </div>
@@ -162,7 +162,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary text-black font-black uppercase text-sm tracking-wide py-3 rounded-md hover:bg-primary/90 transition-colors mt-2 disabled:opacity-50 cursor-pointer"
+            className="w-full bg-orange-600 text-white font-black uppercase text-sm tracking-wider py-3.5 rounded-xl hover:bg-orange-500 transition-all mt-2 disabled:opacity-50 cursor-pointer shadow-lg shadow-orange-600/25"
           >
             {loading ? "Creating Account..." : "Register"}
           </button>

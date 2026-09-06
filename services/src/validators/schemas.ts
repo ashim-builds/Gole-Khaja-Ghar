@@ -115,6 +115,12 @@ export const checkoutSchema = z
       .transform((val) => val.replace(/[<>]/g, ''))
       .optional()
       .or(z.literal('')),
+    txRef: z
+      .string()
+      .trim()
+      .max(100, 'Transaction reference is too long')
+      .optional()
+      .or(z.literal('')),
     items: z
       .array(orderItemSchema)
       .min(1, 'Your cart is empty')

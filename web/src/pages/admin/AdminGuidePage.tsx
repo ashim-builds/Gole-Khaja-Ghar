@@ -248,8 +248,9 @@ export default function AdminGuidePage() {
       content: (
         <div className="space-y-8">
           <div className="space-y-4">
-            <h3 className="font-black text-stone-800 text-lg border-b border-stone-100 pb-2">
-              📋 Products List
+            <h3 className="font-black text-stone-800 text-lg border-b border-stone-100 pb-2 flex items-center gap-2">
+              <Package className="w-5 h-5 text-primary" />
+              Products List
             </h3>
             <p className="text-stone-600 text-sm leading-relaxed">
               Navigate to <strong>Products</strong> in the sidebar to see all your products. Each row shows the product image, name, category, price, stock status, whether it is featured, and an edit button.
@@ -303,8 +304,9 @@ export default function AdminGuidePage() {
       content: (
         <div className="space-y-8">
           <div className="space-y-4">
-            <h3 className="font-black text-stone-800 text-lg border-b border-stone-100 pb-2">
-              🏷️ Order Status Flow
+            <h3 className="font-black text-stone-800 text-lg border-b border-stone-100 pb-2 flex items-center gap-2">
+              <Tag className="w-5 h-5 text-primary" />
+              Order Status Flow
             </h3>
             <div className="space-y-3">
               {[

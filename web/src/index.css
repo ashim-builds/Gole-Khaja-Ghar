@@ -22,59 +22,57 @@
   --font-heading: 'Inter', 'Outfit', ui-sans-serif, system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f172a;
-    --foreground: #f8fafc;
-    --brand-primary: #ea580c;
-    --brand-secondary: #111827;
-    --surface: #1e293b;
-    --surface-alt: #334155;
-    --border: #334155;
-  }
-}
-
-/* Utilities */
-@layer utilities {
-  .mask-image-brush {
-    mask-size: contain;
-    mask-repeat: no-repeat;
-    mask-position: center;
-  }
-  
-  .hide-scrollbar {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
-  }
-  .hide-scrollbar::-webkit-scrollbar {
-    display: none; /* Chrome, Safari and Opera */
-  }
-  
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 9999px;
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.20);
-    border-radius: 9999px;
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.35);
-  }
-  .custom-scrollbar {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.20) rgba(255, 255, 255, 0.05);
-  }
-}
-
+/* Ensure crisp, high-contrast light theme by default */
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background-color: #fbfbfb;
+  color: #111827;
   font-family: var(--font-sans);
+}
+
+/* Global Form Controls & Inputs - High Contrast & Crisp Visibility */
+input, textarea, select {
+  background-color: #ffffff;
+  color: #111827;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #9ca3af;
+  opacity: 1;
+}
+
+/* Form Controls within Dark Surfaces (POS, KDS, Dark Modals) */
+.bg-stone-950 input,
+.bg-stone-950 textarea,
+.bg-stone-950 select,
+.bg-stone-900 input,
+.bg-stone-900 textarea,
+.bg-stone-900 select,
+.bg-stone-850 input,
+.bg-stone-850 textarea,
+.bg-stone-850 select,
+.bg-black input,
+.bg-black textarea,
+.bg-black select,
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: #1c1917;
+  color: #ffffff;
+}
+
+.bg-stone-950 input::placeholder,
+.bg-stone-950 textarea::placeholder,
+.bg-stone-900 input::placeholder,
+.bg-stone-900 textarea::placeholder,
+.bg-stone-850 input::placeholder,
+.bg-stone-850 textarea::placeholder,
+.bg-black input::placeholder,
+.bg-black textarea::placeholder,
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #78716c;
+  opacity: 1;
 }
 
 /* ===== Global Interactive Element Cursors ===== */
@@ -115,3 +113,138 @@ select:disabled {
   from { transform: translateX(-50%) translateY(-1rem); opacity: 0; }
   to   { transform: translateX(-50%) translateY(0); opacity: 1; }
 }
+
+/* ===== Modern Premium Universal Scrollbar Styling (Zero Arrows) ===== */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #ea580c transparent;
+}
+
+/* Universal Chromium, Edge, Safari WebKit Scrollbars */
+*::-webkit-scrollbar,
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+/* Force-remove ALL scrollbar arrows and buttons unconditionally */
+*::-webkit-scrollbar-button,
+::-webkit-scrollbar-button,
+*::-webkit-scrollbar-button:single-button,
+::-webkit-scrollbar-button:single-button,
+*::-webkit-scrollbar-button:double-button,
+::-webkit-scrollbar-button:double-button,
+*::-webkit-scrollbar-button:start,
+::-webkit-scrollbar-button:start,
+*::-webkit-scrollbar-button:end,
+::-webkit-scrollbar-button:end,
+*::-webkit-scrollbar-button:horizontal,
+::-webkit-scrollbar-button:horizontal,
+*::-webkit-scrollbar-button:vertical,
+::-webkit-scrollbar-button:vertical,
+*::-webkit-scrollbar-button:start:decrement,
+::-webkit-scrollbar-button:start:decrement,
+*::-webkit-scrollbar-button:end:increment,
+::-webkit-scrollbar-button:end:increment,
+*::-webkit-scrollbar-button:vertical:start:increment,
+*::-webkit-scrollbar-button:vertical:end:decrement,
+*::-webkit-scrollbar-button:horizontal:start:increment,
+*::-webkit-scrollbar-button:horizontal:end:decrement {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  max-width: 0 !important;
+  max-height: 0 !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+*::-webkit-scrollbar-track,
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+}
+
+*::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:hover {
+  background-color: #ea580c;
+}
+
+*::-webkit-scrollbar-corner,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Dark mode & dark container scrollbars */
+.dark,
+.bg-stone-950,
+.bg-stone-900,
+.bg-stone-850,
+.bg-black {
+  scrollbar-color: #ea580c #1c1917;
+}
+
+.dark *::-webkit-scrollbar-thumb,
+.bg-stone-950 *::-webkit-scrollbar-thumb,
+.bg-stone-900 *::-webkit-scrollbar-thumb,
+.bg-stone-850 *::-webkit-scrollbar-thumb,
+.bg-black *::-webkit-scrollbar-thumb {
+  background-color: #44403c;
+}
+
+.dark *::-webkit-scrollbar-thumb:hover,
+.bg-stone-950 *::-webkit-scrollbar-thumb:hover,
+.bg-stone-900 *::-webkit-scrollbar-thumb:hover,
+.bg-stone-850 *::-webkit-scrollbar-thumb:hover,
+.bg-black *::-webkit-scrollbar-thumb:hover {
+  background-color: #ea580c;
+}
+
+/* ===== Thermal Receipt Print Optimizations ===== */
+@media print {
+  @page {
+    size: 80mm auto;
+    margin: 0;
+  }
+  html, body {
+    background: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 80mm !important;
+  }
+  body * {
+    visibility: hidden;
+  }
+  #receipt-print-area,
+  #receipt-print-area *,
+  #table-standee-card,
+  #table-standee-card * {
+    visibility: visible;
+  }
+  #receipt-print-area,
+  #table-standee-card {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm !important;
+    max-width: 80mm !important;
+    margin: 0 !important;
+    padding: 12px 8px !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+  }
+}
+
+
+

@@ -8,7 +8,8 @@ export async function listTables(_req: Request, res: Response): Promise<void> {
       where: { isActive: true },
       include: {
         sessions: {
-          where: { status: 'ACTIVE' },
+          where: { status: { in: ['ACTIVE', 'BILLED'] } },
+          orderBy: { openedAt: 'desc' },
           include: {
             waiter: { select: { id: true, name: true } },
             orders: {
@@ -39,13 +40,19 @@ export async function listTables(_req: Request, res: Response): Promise<void> {
         });
       }
 
+      const totalPaid = (activeSession?.bill?.payments || []).reduce(
+        (sum, p) => sum + Number(p.amount),
+        0
+      );
+      const isSettled = activeSession?.bill?.status === 'PAID' && (activeSession?.bill?.netAmount ? totalPaid >= Number(activeSession.bill.netAmount) - 0.01 : true);
+
       return {
         id: table.id,
         tableNumber: table.tableNumber,
         capacity: table.capacity,
-        status: activeSession ? 'OCCUPIED' : table.status,
+        status: activeSession && !isSettled ? 'OCCUPIED' : table.status,
         qrCodeToken: table.qrCodeToken,
-        activeSession: activeSession
+        activeSession: activeSession && !isSettled
           ? {
               id: activeSession.id,
               waiterName: activeSession.waiter?.name || 'Staff',
@@ -55,6 +62,7 @@ export async function listTables(_req: Request, res: Response): Promise<void> {
               itemCount,
               ordersCount: activeSession.orders.length,
               billStatus: activeSession.bill?.status || 'UNPAID',
+              totalPaid,
             }
           : null,
       };
@@ -197,3 +205,90 @@ export async function openTableSession(req: Request, res: Response): Promise<voi
     res.status(500).json({ error: 'Failed to open table session' });
   }
 }
+
+export async function getTableHistory(req: Request, res: Response): Promise<void> {
+  try {
+    const { tableId, limit = 50 } = req.query;
+
+    const where: any = {};
+    if (tableId) {
+      where.tableId = String(tableId);
+    }
+
+    const sessions = await prisma.tableSession.findMany({
+      where,
+      take: Number(limit),
+      orderBy: { openedAt: 'desc' },
+      include: {
+        table: true,
+        waiter: {
+          select: {
+            id: true,
+            name: true,
+            staffProfile: { select: { employeeCode: true } },
+          },
+        },
+        orders: {
+          include: {
+            items: true,
+            kotTickets: true,
+          },
+        },
+        bill: {
+          include: {
+            payments: true,
+          },
+        },
+      },
+    });
+
+    const formattedHistory = sessions.map((sess: any) => {
+      let totalAmount = 0;
+      let totalItems = 0;
+      const allItems: any[] = [];
+
+      sess.orders?.forEach((ord: any) => {
+        totalAmount += Number(ord.totalAmount || 0);
+        ord.items?.forEach((it: any) => {
+          totalItems += it.quantity;
+          allItems.push({
+            name: it.productName,
+            quantity: it.quantity,
+            price: Number(it.calculatedPrice || 0),
+          });
+        });
+      });
+
+      // Calculate duration in minutes
+      const openTime = new Date(sess.openedAt).getTime();
+      const closeTime = sess.closedAt ? new Date(sess.closedAt).getTime() : Date.now();
+      const durationMinutes = Math.max(1, Math.round((closeTime - openTime) / (1000 * 60)));
+
+      return {
+        id: sess.id,
+        tableId: sess.tableId,
+        tableNumber: sess.table?.tableNumber || 'Unknown',
+        status: sess.status, // ACTIVE | BILLED | COMPLETED | CANCELLED
+        guestCount: sess.guestCount,
+        waiterName: sess.waiter?.name || 'Staff',
+        waiterCode: sess.waiter?.staffProfile?.employeeCode || '-',
+        openedAt: sess.openedAt,
+        closedAt: sess.closedAt,
+        durationMinutes,
+        notes: sess.notes,
+        totalAmount: sess.bill ? Number(sess.bill.netAmount) : totalAmount,
+        totalItems,
+        billStatus: sess.bill?.status || (sess.status === 'COMPLETED' ? 'PAID' : 'UNPAID'),
+        paymentMethod: sess.bill?.payments?.[0]?.method || (sess.status === 'COMPLETED' ? 'CASH' : '-'),
+        items: allItems,
+        ordersCount: sess.orders?.length || 0,
+      };
+    });
+
+    res.json({ success: true, history: formattedHistory });
+  } catch (error) {
+    console.error('getTableHistory error:', error);
+    res.status(500).json({ error: 'Failed to fetch table occupancy history' });
+  }
+}
+

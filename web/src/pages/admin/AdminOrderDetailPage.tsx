@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, User, MapPin, Package, Phone, Loader2 } from "lucide-react";
+import { ArrowLeft, User, MapPin, Package, Phone, Loader2, Printer, Receipt } from "lucide-react";
 import StatusUpdater from "@/components/admin/StatusUpdater";
 import PaymentStatusToggle from "@/components/admin/PaymentStatusToggle";
 import StaticMapView from "@/components/StaticMapView";
+import ThermalReceiptModal from "@/components/admin/ThermalReceiptModal";
 import { api } from "@/lib/api";
 
 export default function AdminOrderDetailPage() {
@@ -11,6 +12,7 @@ export default function AdminOrderDetailPage() {
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -63,7 +65,7 @@ export default function AdminOrderDetailPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Link
             to="/admin/orders"
@@ -71,11 +73,20 @@ export default function AdminOrderDetailPage() {
           >
             <ArrowLeft className="w-5 h-5 text-stone-600" />
           </Link>
-          <h1 className="text-3xl font-black text-stone-900">
+          <h1 className="text-2xl sm:text-3xl font-black text-stone-900">
             Order #{order.orderNumber}
           </h1>
         </div>
-        <StatusUpdater orderId={order._id?.toString() || order.id?.toString()} currentStatus={order.status} />
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => setShowReceiptModal(true)}
+            className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-xs sm:text-sm font-black flex items-center gap-2 shadow-md cursor-pointer transition-transform active:scale-95"
+          >
+            <Printer className="w-4 h-4" />
+            <span>80mm Tax Invoice</span>
+          </button>
+          <StatusUpdater orderId={order._id?.toString() || order.id?.toString()} currentStatus={order.status} />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -132,14 +143,24 @@ export default function AdminOrderDetailPage() {
             </div>
             <div>
               <p className="text-xs font-bold text-stone-400">Payment Method</p>
-              <p className="font-bold text-stone-800 capitalize">
-                {order.paymentMethod === "qr" ? "QR Scan & Pay" : "Cash on Delivery"}
-              </p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="font-bold text-stone-800 capitalize">
+                  {order.paymentMethod === "qr" || order.paymentMethod === "fonepay_qr"
+                    ? "FonePay QR / Online"
+                    : "Cash on Delivery"}
+                </span>
+                {order.txRef && (
+                  <span className="text-[10px] font-mono bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-200">
+                    Tx: {order.txRef}
+                  </span>
+                )}
+              </div>
             </div>
             <div>
               <PaymentStatusToggle
                 orderId={order._id?.toString() || order.id?.toString()}
                 currentPaymentStatus={order.paymentStatus as "pending" | "paid"}
+                onStatusChange={(newStatus) => setOrder((prev: any) => ({ ...prev, paymentStatus: newStatus }))}
               />
             </div>
           </div>
@@ -227,6 +248,13 @@ export default function AdminOrderDetailPage() {
           </table>
         </div>
       </div>
+
+      {/* 80mm Thermal Receipt / Tax Invoice Modal */}
+      <ThermalReceiptModal
+        order={order}
+        isOpen={showReceiptModal}
+        onClose={() => setShowReceiptModal(false)}
+      />
     </div>
   );
 }

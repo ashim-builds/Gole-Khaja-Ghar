@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Locate, MapPin, Loader2 } from "lucide-react";
+import { Locate, MapPin, Loader2, AlertCircle, X } from "lucide-react";
 
 interface MapPickerProps {
   onAddressSelect: (address: string, coords: { lat: number; lng: number }) => void;
@@ -146,7 +146,7 @@ export default function MapPicker({ onAddressSelect, initialAddress }: MapPicker
         setIsLocating(false);
         if (err.code === err.PERMISSION_DENIED) {
           setLocationError({
-            message: "Location access blocked. Check: (1) Browser address bar 🔒 → Site settings → Location → Allow. (2) Windows: Settings → Privacy & security → Location → turn ON. Then refresh.",
+            message: "Location access blocked. Check: (1) Browser address bar lock icon → Site settings → Location → Allow. (2) Windows: Settings → Privacy & security → Location → turn ON. Then refresh.",
             showHelp: true,
           });
         } else if (err.code === err.POSITION_UNAVAILABLE) {
@@ -199,7 +199,7 @@ export default function MapPicker({ onAddressSelect, initialAddress }: MapPicker
       {/* Location error banner — inline, no popup */}
       {locationError && (
         <div className="flex items-start gap-2.5 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5">
-          <span className="text-amber-500 text-base mt-0.5 shrink-0">⚠</span>
+          <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
           <div className="flex-1">
             <p className="text-xs font-semibold text-amber-700 leading-snug">{locationError.message}</p>
             {locationError.showHelp && (
@@ -211,8 +211,10 @@ export default function MapPicker({ onAddressSelect, initialAddress }: MapPicker
           <button
             type="button"
             onClick={() => setLocationError(null)}
-            className="text-amber-400 hover:text-amber-600 font-bold text-sm shrink-0 cursor-pointer leading-none"
-          >✕</button>
+            className="text-amber-400 hover:text-amber-600 p-0.5 rounded transition-colors shrink-0 cursor-pointer"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
         </div>
       )}
 

@@ -1,25 +1,38 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
-import { Loader2, CheckCircle2, Clock } from "lucide-react";
+import { Loader2, CheckCircle2, Clock, Check } from "lucide-react";
 
 export default function PaymentStatusToggle({
   orderId,
   currentPaymentStatus,
+  onStatusChange,
 }: {
   orderId: string;
   currentPaymentStatus: "pending" | "paid";
+  onStatusChange?: (newStatus: "pending" | "paid") => void;
 }) {
-  const [status, setStatus] = useState(currentPaymentStatus);
+  const [status, setStatus] = useState<"pending" | "paid">(currentPaymentStatus || "pending");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    if (currentPaymentStatus) {
+      setStatus(currentPaymentStatus);
+    }
+  }, [currentPaymentStatus]);
+
   const toggle = async () => {
+    if (!orderId) return;
     const newStatus = status === "paid" ? "pending" : "paid";
     setLoading(true);
     setError("");
     try {
-      await api.orders.updatePayment(orderId, newStatus);
-      setStatus(newStatus);
+      const res = await api.orders.updatePayment(orderId, newStatus);
+      const updatedStatus = (res?.order?.paymentStatus || newStatus) as "pending" | "paid";
+      setStatus(updatedStatus);
+      if (onStatusChange) {
+        onStatusChange(updatedStatus);
+      }
     } catch (err: any) {
       setError(err.message || "Failed to update payment status.");
     } finally {
@@ -37,26 +50,27 @@ export default function PaymentStatusToggle({
         <span
           className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black uppercase transition-colors ${
             isPaid
-              ? "bg-green-100 text-green-700"
-              : "bg-amber-100 text-amber-700"
+              ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+              : "bg-amber-100 text-amber-800 border border-amber-300"
           }`}
         >
           {isPaid ? (
-            <CheckCircle2 className="w-3.5 h-3.5" />
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
           ) : (
-            <Clock className="w-3.5 h-3.5" />
+            <Clock className="w-3.5 h-3.5 text-amber-600" />
           )}
           {status}
         </span>
 
         {/* Toggle button */}
         <button
+          type="button"
           onClick={toggle}
           disabled={loading}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all disabled:opacity-50 cursor-pointer ${
             isPaid
               ? "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100"
-              : "bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+              : "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
           }`}
         >
           {loading ? (
@@ -64,7 +78,10 @@ export default function PaymentStatusToggle({
           ) : isPaid ? (
             "Mark Unpaid"
           ) : (
-            "Mark as Paid ✓"
+            <span className="flex items-center gap-1">
+              Mark as Paid
+              <Check className="w-3.5 h-3.5" />
+            </span>
           )}
         </button>
       </div>

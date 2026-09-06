@@ -29,6 +29,15 @@ export default function ItemQuantitySelector({ product, isAvailable }: ItemQuant
     hasVariants ? product.variants![0] : null
   );
 
+  // Sync selected variant if product changes
+  useState(() => {
+    if (hasVariants && product.variants && product.variants.length > 0) {
+      if (!selectedVariant || !product.variants.some(v => v.name === selectedVariant.name)) {
+        setSelectedVariant(product.variants[0]);
+      }
+    }
+  });
+
   const [qty, setQty] = useState<number>(1);
   const [isAdded, setIsAdded] = useState(false);
 
@@ -67,18 +76,18 @@ export default function ItemQuantitySelector({ product, isAvailable }: ItemQuant
       {hasVariants && (
         <div className="mb-6">
           <p className="font-bold text-black mb-3 text-[15px]">Select Portion / Option</p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2.5">
             {product.variants!.map((v, idx) => (
               <button
                 key={idx}
                 onClick={() => setSelectedVariant(v)}
-                className={`py-2 px-4 rounded-lg font-bold text-sm transition-all border cursor-pointer ${
+                className={`py-2.5 px-4 rounded-xl font-bold text-sm transition-all border-2 cursor-pointer ${
                   selectedVariant?.name === v.name
-                    ? "border-primary bg-primary/10 text-stone-900 shadow-sm"
-                    : "border-stone-200 bg-white text-stone-700 hover:border-stone-300"
+                    ? "border-orange-600 bg-orange-600 text-white font-black shadow-md shadow-orange-600/25"
+                    : "border-stone-200 bg-white text-stone-800 hover:border-stone-300 font-bold"
                 }`}
               >
-                {v.name} <span className="text-stone-500 font-normal ml-1">Rs. {v.price}</span>
+                {v.name} <span className={`font-semibold ml-1.5 ${selectedVariant?.name === v.name ? "text-orange-100" : "text-stone-500"}`}>Rs. {v.price}</span>
               </button>
             ))}
           </div>
@@ -120,12 +129,12 @@ export default function ItemQuantitySelector({ product, isAvailable }: ItemQuant
       <button
         onClick={handleAddToCart}
         disabled={!isAvailable || isAdded}
-        className={`w-full h-[52px] rounded-xl flex items-center justify-center transition-all cursor-pointer font-black uppercase text-sm tracking-wider shadow-md ${
+        className={`w-full h-[52px] rounded-xl flex items-center justify-center transition-all cursor-pointer font-black uppercase text-sm tracking-wider shadow-lg ${
           !isAvailable
             ? "bg-stone-200 text-stone-400 cursor-not-allowed shadow-none"
             : isAdded
-            ? "bg-green-600 text-white"
-            : "bg-primary text-black hover:bg-primary/90 active:scale-[0.99]"
+            ? "bg-emerald-600 text-white shadow-emerald-600/20"
+            : "bg-orange-600 text-white hover:bg-orange-500 shadow-orange-600/30 active:scale-[0.99]"
         }`}
       >
         {isAdded ? (

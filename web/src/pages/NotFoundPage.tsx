@@ -12,8 +12,8 @@ export default function NotFoundPage() {
             404
           </div>
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-28 h-28 md:w-36 md:h-36 bg-primary rounded-full flex items-center justify-center shadow-2xl shadow-primary/30 animate-bounce">
-              <ShoppingBag className="w-14 h-14 md:w-16 md:h-16 text-black" />
+            <div className="w-28 h-28 md:w-36 md:h-36 bg-orange-600 rounded-full flex items-center justify-center shadow-2xl shadow-orange-600/30 animate-bounce">
+              <ShoppingBag className="w-14 h-14 md:w-16 md:h-16 text-white" />
             </div>
           </div>
         </div>
@@ -32,9 +32,9 @@ export default function NotFoundPage() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <Link
             to="/"
-            className="flex items-center gap-2 px-6 py-3.5 bg-primary text-black font-black rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 w-full sm:w-auto justify-center cursor-pointer"
+            className="flex items-center gap-2 px-6 py-3.5 bg-orange-600 text-white font-black rounded-xl hover:bg-orange-500 transition-all shadow-lg shadow-orange-600/20 w-full sm:w-auto justify-center cursor-pointer uppercase text-xs tracking-wider"
           >
-            <Home className="w-5 h-5" />
+            <Home className="w-5 h-5 text-white" />
             Go Home
           </Link>
           <Link

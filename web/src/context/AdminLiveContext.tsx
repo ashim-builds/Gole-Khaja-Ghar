@@ -109,7 +109,12 @@ export function AdminLiveProvider({ children }: { children: React.ReactNode }) {
 
     async function fetchUpdates() {
       try {
-        const res = await fetch("/api/admin/live-updates");
+        const res = await fetch("/api/admin/live-updates", {
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
         if (!res.ok) return;
 
         const result = await res.json();

@@ -94,7 +94,7 @@ export async function login(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    if (user.role === 'WAITER' && user.staffProfile && !user.staffProfile.isActive) {
+    if ((user.role === 'WAITER' || user.role === 'KITCHEN') && user.staffProfile && !user.staffProfile.isActive) {
       res.status(403).json({ error: 'Your staff account is currently deactivated. Please contact admin.' });
       return;
     }

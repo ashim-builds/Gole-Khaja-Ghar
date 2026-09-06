@@ -19,10 +19,10 @@ export default function AdminDashboardClient({
 }: AdminDashboardClientProps) {
   const { stats, recentOrders } = useAdminLive();
 
-  const totalProducts = stats ? stats.totalProducts : initialTotalProducts;
-  const availableProducts = stats ? stats.availableProducts : initialAvailableProducts;
-  const totalOrders = stats ? stats.totalOrders : initialTotalOrders;
-  const pendingOrders = stats ? stats.pendingOrders : initialPendingOrders;
+  const totalProducts = typeof stats?.totalProducts === "number" ? stats.totalProducts : (initialTotalProducts ?? 0);
+  const availableProducts = typeof stats?.availableProducts === "number" ? stats.availableProducts : (initialAvailableProducts ?? 0);
+  const totalOrders = typeof stats?.totalOrders === "number" ? stats.totalOrders : (initialTotalOrders ?? 0);
+  const pendingOrders = typeof stats?.pendingOrders === "number" ? stats.pendingOrders : (initialPendingOrders ?? 0);
   const displayOrders = (recentOrders && recentOrders.length > 0) ? recentOrders : (initialRecentOrders || []);
 
   return (

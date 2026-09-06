@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   Zap,
   BellRing,
-  WifiOff,
   Sparkles,
   Share2,
 } from "lucide-react";
@@ -95,7 +94,7 @@ export default function InstallAppSection() {
             </p>
 
             {/* Feature Badges */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 text-left">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8 text-left">
               <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-start gap-3">
                 <div className="w-9 h-9 rounded-xl bg-primary/20 flex items-center justify-center text-primary shrink-0">
                   <Zap className="w-5 h-5" />
@@ -115,16 +114,6 @@ export default function InstallAppSection() {
                   <p className="text-[11px] text-stone-400 mt-0.5">Real-time cooking & delivery status</p>
                 </div>
               </div>
-
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-start gap-3">
-                <div className="w-9 h-9 rounded-xl bg-primary/20 flex items-center justify-center text-primary shrink-0">
-                  <WifiOff className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-xs uppercase tracking-wider text-white">Instant & Light</h3>
-                  <p className="text-[11px] text-stone-400 mt-0.5">Takes under 1MB of device storage</p>
-                </div>
-              </div>
             </div>
 
             {/* Install Button & Feedback */}
@@ -137,9 +126,9 @@ export default function InstallAppSection() {
               ) : (
                 <button
                   onClick={handleInstallClick}
-                  className="w-full sm:w-auto px-8 py-4 bg-primary text-black font-black text-sm uppercase tracking-wider rounded-2xl hover:bg-primary/90 transition-all transform active:scale-95 shadow-xl shadow-primary/25 flex items-center justify-center gap-3 cursor-pointer group"
+                  className="w-full sm:w-auto px-8 py-4 bg-orange-600 text-white font-black text-sm uppercase tracking-wider rounded-2xl hover:bg-orange-500 transition-all transform active:scale-95 shadow-xl shadow-orange-600/30 flex items-center justify-center gap-3 cursor-pointer group"
                 >
-                  <Download className="w-5 h-5 transition-transform group-hover:-translate-y-0.5" />
+                  <Download className="w-5 h-5 text-white transition-transform group-hover:-translate-y-0.5" />
                   Install Gole Khaja App
                 </button>
               )}
@@ -151,8 +140,8 @@ export default function InstallAppSection() {
 
             {/* iOS Guide Modal / Box */}
             {showIOSGuide && (
-              <div className="mt-6 p-4 bg-primary/10 border border-primary/30 rounded-2xl text-left animate-in fade-in">
-                <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider mb-1">
+              <div className="mt-6 p-4 bg-orange-950/60 border border-orange-700/40 rounded-2xl text-left animate-in fade-in">
+                <div className="flex items-center gap-2 text-orange-400 font-bold text-xs uppercase tracking-wider mb-1">
                   <Share2 className="w-4 h-4" />
                   Install on iPhone / iPad (Safari)
                 </div>
@@ -167,13 +156,13 @@ export default function InstallAppSection() {
 
           {/* Right Column: Visual Mockup Phone Card */}
           <div className="w-full lg:w-auto flex justify-center">
-            <div className="relative w-64 sm:w-72 bg-gradient-to-b from-stone-900 to-black p-4 rounded-[2.5rem] border-4 border-stone-700 shadow-2xl shadow-primary/20">
+            <div className="relative w-64 sm:w-72 bg-gradient-to-b from-stone-900 to-black p-4 rounded-[2.5rem] border-4 border-stone-700 shadow-2xl shadow-orange-600/20">
               {/* Speaker Notch */}
               <div className="w-24 h-4 bg-stone-800 rounded-full mx-auto mb-4" />
 
               {/* App Screen Preview */}
               <div className="bg-[#111111] rounded-2xl p-4 border border-white/10 text-center space-y-4">
-                <div className="w-16 h-16 rounded-2xl overflow-hidden mx-auto border-2 border-primary/40 bg-stone-900 shadow-md">
+                <div className="w-16 h-16 rounded-2xl overflow-hidden mx-auto border-2 border-orange-500/40 bg-stone-900 shadow-md">
                   <img
                     src="/favicon-circle.png"
                     alt="Gole Khaja Ghar App Icon"
@@ -183,7 +172,7 @@ export default function InstallAppSection() {
 
                 <div>
                   <h4 className="font-black text-white text-base">Gole Khaja Ghar</h4>
-                  <p className="text-[11px] text-primary font-bold uppercase tracking-wider mt-0.5">
+                  <p className="text-[11px] text-orange-400 font-bold uppercase tracking-wider mt-0.5">
                     Fast Food & Authentic Khaja
                   </p>
                 </div>
@@ -195,9 +184,9 @@ export default function InstallAppSection() {
 
                 <button
                   onClick={handleInstallClick}
-                  className="w-full py-2.5 bg-primary text-black font-black text-xs uppercase tracking-wider rounded-xl hover:bg-primary/90 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
+                  className="w-full py-3 bg-orange-600 text-white font-black text-xs uppercase tracking-wider rounded-xl hover:bg-orange-500 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-orange-600/25"
                 >
-                  <Smartphone className="w-4 h-4" />
+                  <Smartphone className="w-4 h-4 text-white" />
                   {isInstalled ? "Open App" : "Add to Home Screen"}
                 </button>
               </div>

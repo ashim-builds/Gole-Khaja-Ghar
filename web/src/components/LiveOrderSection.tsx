@@ -1,8 +1,7 @@
-"use client";
-
 import React, { useEffect, useState, useTransition } from "react";
-import { Ban, Loader2, CreditCard, Banknote } from "lucide-react";
+import { Ban, Loader2, CreditCard, Banknote, Check, AlertCircle } from "lucide-react";
 import { api } from "@/lib/api";
+import { subscribeToEvent, playAudioAlert } from "@/lib/socket";
 
 interface LiveOrderSectionProps {
   orderNumber: string;
@@ -15,32 +14,64 @@ export default function LiveOrderSection({
   orderNumber,
   initialStatus,
   paymentMethod,
-  paymentStatus,
+  paymentStatus: initialPaymentStatus,
 }: LiveOrderSectionProps) {
-  const [status, setStatus] = useState(initialStatus);
+  const [status, setStatus] = useState(initialStatus.toLowerCase());
+  const [currentPaymentStatus, setCurrentPaymentStatus] = useState(initialPaymentStatus.toLowerCase());
   const [isPending, startTransition] = useTransition();
   const [cancelError, setCancelError] = useState("");
+
+  const refreshStatus = async () => {
+    try {
+      const res = await api.orders.getStatus(orderNumber);
+      if (res.success && res.order) {
+        if (res.order.status) {
+          setStatus(res.order.status.toLowerCase());
+        }
+        if (res.order.paymentStatus) {
+          setCurrentPaymentStatus(res.order.paymentStatus.toLowerCase());
+        }
+      }
+    } catch (err) {
+      console.error("Failed to check live order status:", err);
+    }
+  };
 
   useEffect(() => {
     let active = true;
 
-    const terminalStatuses = ["delivered", "cancelled", "completed"];
-    if (terminalStatuses.includes(status)) return;
-
-    const interval = setInterval(async () => {
-      try {
-        const res = await api.orders.getStatus(orderNumber);
-        if (active && res.success && res.order?.status) {
-          setStatus(res.order.status);
-        }
-      } catch (err) {
-        console.error("Failed to check live order status:", err);
+    // Listen to real-time WebSocket broadcasts
+    const unsubOrder = subscribeToEvent("order:status_changed", (data: any) => {
+      if (data?.orderNumber === orderNumber || !data?.orderNumber) {
+        refreshStatus();
       }
-    }, 5000);
+    });
+
+    const unsubKot = subscribeToEvent("kot:status_changed", () => {
+      refreshStatus();
+    });
+
+    const unsubDelivered = subscribeToEvent("order:delivered", () => {
+      refreshStatus();
+    });
+
+    const unsubPayment = subscribeToEvent("payment:recorded", () => {
+      refreshStatus();
+    });
+
+    const terminalStatuses = ["delivered", "cancelled", "completed"];
+    let interval: NodeJS.Timeout | null = null;
+    if (!terminalStatuses.includes(status)) {
+      interval = setInterval(refreshStatus, 4000);
+    }
 
     return () => {
       active = false;
-      clearInterval(interval);
+      unsubOrder();
+      unsubKot();
+      unsubDelivered();
+      unsubPayment();
+      if (interval) clearInterval(interval);
     };
   }, [orderNumber, status]);
 
@@ -54,16 +85,18 @@ export default function LiveOrderSection({
       try {
         const res = await api.orders.cancel(orderNumber);
         if (res.success && res.status) {
-          setStatus(res.status);
+          setStatus(res.status.toLowerCase());
         }
       } catch (err: any) {
         setCancelError(err?.message || "Failed to cancel order.");
+        refreshStatus();
       }
     });
   };
 
   const isTerminalSuccess = status === "completed" || status === "delivered";
   const isTerminalFail = status === "cancelled";
+  const isCookingOrReady = status === "preparing" || status === "ready";
 
   return (
     <div className="space-y-6">
@@ -86,7 +119,7 @@ export default function LiveOrderSection({
               }`}
             />
             <span
-              className={`font-black text-xl uppercase tracking-wider ${
+              className={`font-black text-xl uppercase tracking-wider flex items-center gap-1.5 ${
                 isTerminalFail
                   ? "text-red-600"
                   : isTerminalSuccess
@@ -94,7 +127,14 @@ export default function LiveOrderSection({
                   : "text-stone-900"
               }`}
             >
-              {status === "delivered" ? "Delivered ✓" : status}
+              {status === "delivered" ? (
+                <>
+                  Delivered
+                  <Check className="w-5 h-5" />
+                </>
+              ) : (
+                status
+              )}
             </span>
           </div>
         </div>
@@ -148,7 +188,7 @@ export default function LiveOrderSection({
           <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center border border-stone-200 shrink-0">
             <span
               className={`w-2.5 h-2.5 rounded-full ${
-                paymentStatus === "paid" ? "bg-green-500" : "bg-amber-500"
+                currentPaymentStatus === "paid" ? "bg-green-500" : "bg-amber-500"
               }`}
             />
           </div>
@@ -158,12 +198,18 @@ export default function LiveOrderSection({
             </p>
             <span
               className={`inline-block text-xs font-black uppercase mt-1 px-2.5 py-0.5 rounded-md ${
-                paymentStatus === "paid"
-                  ? "bg-green-100 text-green-700"
-                  : "bg-amber-100 text-amber-700"
+                currentPaymentStatus === "paid"
+                  ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                  : paymentMethod === "qr"
+                  ? "bg-amber-100 text-amber-800 border border-amber-200"
+                  : "bg-stone-100 text-stone-700 border border-stone-200"
               }`}
             >
-              {paymentStatus}
+              {currentPaymentStatus === "paid"
+                ? "Paid (Verified)"
+                : paymentMethod === "qr"
+                ? "Verification Pending (Checking Bank SMS)"
+                : "Pay on Delivery / Pickup"}
             </span>
           </div>
         </div>

@@ -167,9 +167,9 @@ export default function AccountPage() {
               <button
                 disabled={pushLoading}
                 onClick={handleEnablePush}
-                className="px-4 py-2 bg-primary text-black font-black text-xs rounded-lg hover:bg-primary/90 transition-colors cursor-pointer flex items-center gap-1.5 shadow-sm shadow-primary/20 uppercase"
+                className="px-4 py-2.5 bg-orange-600 text-white font-black text-xs rounded-xl hover:bg-orange-500 transition-all cursor-pointer flex items-center gap-1.5 shadow-md shadow-orange-600/20 uppercase tracking-wider"
               >
-                {pushLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Bell className="w-3.5 h-3.5" />}
+                {pushLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin text-white" /> : <Bell className="w-3.5 h-3.5 text-white" />}
                 Allow Notifications
               </button>
             )}

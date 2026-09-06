@@ -5,6 +5,7 @@ import {
   updateProduct,
   deleteProduct,
   toggleProductStock,
+  adjustProductStock,
 } from '../controllers/productController.js';
 import {
   getAdminOrders,
@@ -64,6 +65,8 @@ router.put(
 
 router.delete('/products/:id', deleteProduct);
 router.patch('/products/:id/stock', toggleProductStock);
+router.post('/products/:id/adjust-stock', adjustProductStock);
+router.patch('/products/:id/adjust-stock', adjustProductStock);
 
 // Admin Order Management
 router.get('/orders', getAdminOrders);

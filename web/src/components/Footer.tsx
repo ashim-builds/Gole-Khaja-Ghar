@@ -20,20 +20,24 @@ const TiktokIcon = ({ className }: { className?: string }) => (
 );
 
 export default function Footer() {
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+  };
+
   return (
     <footer className="bg-white border-t border-stone-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-28 md:pb-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="md:col-span-2">
-            <div className="flex items-center gap-2 mb-4">
+            <Link to="/" onClick={scrollToTop} className="flex items-center gap-2 mb-4 group cursor-pointer inline-flex">
               <div className="w-10 h-10 relative rounded-full overflow-hidden border border-primary/20 bg-stone-900 flex items-center justify-center">
                 <img src="/images/logo.png" alt="Gole Khaja Ghar Logo" className="w-full h-full object-cover" />
               </div>
-              <span className="font-extrabold text-xl tracking-tight text-black">
+              <span className="font-extrabold text-xl tracking-tight text-black group-hover:text-primary transition-colors">
                 Gole Khaja Ghar
               </span>
-            </div>
+            </Link>
             <p className="text-stone-600 max-w-sm mb-6 leading-relaxed">
               Authentic Nepalese Restaurant & Khaja Ghar. Taste real traditional flavors! Freshly prepared Khaja sets, momos, chowmein, and local delicacies.
             </p>

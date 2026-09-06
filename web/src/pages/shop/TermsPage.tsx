@@ -60,8 +60,8 @@ export default function TermsPage() {
       {/* Hero */}
       <div className="bg-stone-900 text-white py-14 px-4">
         <div className="max-w-3xl mx-auto text-center">
-          <div className="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <FileText className="w-7 h-7 text-black" />
+          <div className="w-14 h-14 bg-orange-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-orange-600/20">
+            <FileText className="w-7 h-7 text-white" />
           </div>
           <h1 className="text-3xl md:text-4xl font-black mb-3">Terms & Conditions</h1>
           <p className="text-stone-400 font-medium text-sm md:text-base">

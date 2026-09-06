@@ -7,6 +7,9 @@ export interface Product {
   variants?: { name: string; price: number }[];
   weightOptions?: { value: number; unit: string }[];
   allowCustomWeight?: boolean;
+  trackStock?: boolean;
+  stockQuantity?: number;
+  lowStockAlert?: number;
   category: string;
   image: string;
   images: string[];
@@ -162,7 +165,8 @@ export const api = {
   // ── Admin Waiters & Management ──
   admin: {
     waiters: {
-      async list() {
+      async list(role?: string) {
+        const qs = role ? `?role=${role}` : '';
         return request<{
           success: boolean;
           waiters: Array<{
@@ -170,12 +174,24 @@ export const api = {
             name: string;
             email: string | null;
             phone: string | null;
+            role?: string;
             employeeCode: string;
             isActive: boolean;
             notes: string;
             createdAt: string;
           }>;
-        }>('/admin/waiters');
+          staff: Array<{
+            id: string;
+            name: string;
+            email: string | null;
+            phone: string | null;
+            role?: string;
+            employeeCode: string;
+            isActive: boolean;
+            notes: string;
+            createdAt: string;
+          }>;
+        }>(`/admin/waiters${qs}`);
       },
       async create(data: {
         name: string;
@@ -183,6 +199,7 @@ export const api = {
         email?: string;
         password: string;
         employeeCode: string;
+        role?: 'WAITER' | 'KITCHEN';
         notes?: string;
       }) {
         return request<{ success: boolean; waiter: any }>('/admin/waiters', {
@@ -251,6 +268,12 @@ export const api = {
       return request<{ success: boolean; product: Product }>(`/admin/products/${id}/stock`, {
         method: 'PATCH',
         body: JSON.stringify({ available }),
+      });
+    },
+    async adjustStock(id: string, data: { action: 'add' | 'reduce' | 'set'; quantity: number; notes?: string }) {
+      return request<{ success: boolean; product: Product; newStock: number }>(`/admin/products/${id}/adjust-stock`, {
+        method: 'POST',
+        body: JSON.stringify(data),
       });
     },
   },
@@ -371,6 +394,220 @@ export const api = {
     },
   },
 
+  // ── Tables Management ──
+  tables: {
+    async list() {
+      return request<{
+        success: boolean;
+        tables: Array<{
+          id: string;
+          tableNumber: string;
+          capacity: number;
+          status: 'AVAILABLE' | 'OCCUPIED' | 'RESERVED' | 'OUT_OF_SERVICE';
+          qrCodeToken?: string;
+          activeSession: {
+            id: string;
+            waiterName: string;
+            guestCount: number;
+            openedAt: string;
+            totalAmount: number;
+            itemCount: number;
+            ordersCount: number;
+            billStatus: string;
+          } | null;
+        }>;
+      }>('/tables', { cache: 'no-store' });
+    },
+    async create(data: { tableNumber: string; capacity: number }) {
+      return request<{ success: boolean; table: any }>('/tables', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    },
+    async update(id: string, data: any) {
+      return request<{ success: boolean; table: any }>(`/tables/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+    },
+    async delete(id: string) {
+      return request<{ success: boolean; message: string }>(`/tables/${id}`, {
+        method: 'DELETE',
+      });
+    },
+    async openSession(data: { tableId: string; waiterId?: string; guestCount?: number; notes?: string }) {
+      return request<{ success: boolean; session: any }>('/tables/open-session', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    },
+  },
+
+  // ── POS Terminal ──
+  pos: {
+    async createOrder(data: {
+      tableSessionId: string;
+      notes?: string;
+      items: Array<{
+        productId?: string;
+        productName: string;
+        variantName?: string;
+        selectedWeightInGrams?: number;
+        unitPrice?: number;
+        pricePerKg?: number;
+        calculatedPrice: number;
+        quantity: number;
+        specialInstructions?: string;
+      }>;
+    }) {
+      return request<{
+        success: boolean;
+        message: string;
+        order: any;
+        kotTicket: any;
+      }>('/pos/orders', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    },
+    async getSessionDetails(sessionId: string) {
+      return request<{ success: boolean; session: any }>(`/pos/sessions/${sessionId}`, {
+        cache: 'no-store',
+      });
+    },
+    async closeSession(sessionId: string) {
+      return request<{ success: boolean; message: string }>(`/pos/sessions/${sessionId}/close`, {
+        method: 'POST',
+      });
+    },
+  },
+
+  // ── Kitchen Display System (KDS) ──
+  kitchen: {
+    async getTickets() {
+      return request<{
+        success: boolean;
+        tickets: Array<{
+          id: string;
+          ticketNumber: number;
+          status: 'QUEUED' | 'PREPARING' | 'READY' | 'SERVED' | 'CANCELLED';
+          notes?: string;
+          createdAt: string;
+          tableSession?: {
+            table?: { tableNumber: string };
+            waiter?: { name: string };
+          };
+          order: {
+            id: string;
+            orderNumber: string;
+            orderType: string;
+            customerName: string;
+          };
+          items: Array<{
+            id: string;
+            itemName: string;
+            itemDetails?: string;
+            quantity: number;
+            status: string;
+          }>;
+        }>;
+      }>('/kitchen/tickets', { cache: 'no-store' });
+    },
+    async updateTicketStatus(id: string, status: string) {
+      return request<{ success: boolean; ticket: any }>(`/kitchen/tickets/${id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status }),
+      });
+    },
+    async updateItemStatus(itemId: string, status: string) {
+      return request<{ success: boolean; item: any }>(`/kitchen/items/${itemId}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status }),
+      });
+    },
+  },
+
+  // ── Billing & Settlements ──
+  billing: {
+    async generate(data: {
+      tableSessionId?: string;
+      orderId?: string;
+      discountAmount?: number;
+      taxAmount?: number;
+      deliveryCharge?: number;
+    }) {
+      return request<{ success: boolean; bill: any }>('/billing/generate', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    },
+    async recordPayment(data: {
+      billId: string;
+      amount: number;
+      method: 'CASH' | 'FONEPAY_QR' | 'ESEWA' | 'KHALTI' | 'CARD' | 'OTHER';
+      transactionReference?: string;
+      notes?: string;
+    }) {
+      return request<{
+        success: boolean;
+        message: string;
+        payment: any;
+        updatedBill: any;
+        totalPaid: number;
+        balanceRemaining: number;
+      }>('/billing/pay', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    },
+    async getDetails(id: string) {
+      return request<{ success: boolean; bill: any }>(`/billing/${id}`, { cache: 'no-store' });
+    },
+    async list(params?: { status?: string; limit?: number; page?: number }) {
+      const qs = new URLSearchParams();
+      if (params?.status) qs.set('status', params.status);
+      if (params?.limit) qs.set('limit', String(params.limit));
+      if (params?.page) qs.set('page', String(params.page));
+      const q = qs.toString() ? `?${qs.toString()}` : '';
+      return request<{
+        success: boolean;
+        bills: any[];
+        totalCount: number;
+        page: number;
+        totalPages: number;
+      }>(`/billing${q}`, { cache: 'no-store' });
+    },
+  },
+
+  // ── Sales & Reports ──
+  reports: {
+    async getDailySummary() {
+      return request<{
+        success: boolean;
+        summary: {
+          totalRevenueToday: number;
+          totalOrdersToday: number;
+          dineInOrders: number;
+          deliveryOrders: number;
+          dineInRevenue: number;
+          deliveryRevenue: number;
+          paymentBreakdown: Record<string, number>;
+          topItems: Array<{ name: string; count: number; revenue: number }>;
+          totalTables: number;
+          occupiedTables: number;
+          availableTables: number;
+          activeKotsCount: number;
+        };
+      }>('/reports/summary', { cache: 'no-store' });
+    },
+    async getSalesAnalytics(days = 7) {
+      return request<{
+        success: boolean;
+        chartData: Array<{ date: string; revenue: number; transactions: number }>;
+      }>(`/reports/analytics?days=${days}`, { cache: 'no-store' });
+    },
+  },
+
   // ── Push Subscriptions ──
   push: {
     async subscribe(subscription: any, type: 'customer' | 'admin' = 'customer') {
@@ -392,3 +629,4 @@ export const api = {
 };
 
 export default api;
+

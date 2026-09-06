@@ -46,7 +46,7 @@ export default function ProductDetailPage() {
       <div className="bg-white min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
         <h2 className="text-2xl font-black text-stone-900 mb-2">Product Not Found</h2>
         <p className="text-stone-500 mb-6">The menu item you are looking for does not exist or has been removed.</p>
-        <Link to="/shop" className="px-6 py-2.5 bg-primary text-black font-bold rounded-lg hover:bg-primary/90 transition-colors">
+        <Link to="/shop" className="px-6 py-3 bg-orange-600 text-white font-black uppercase text-xs tracking-wider rounded-xl hover:bg-orange-500 transition-all shadow-md shadow-orange-600/20">
           Browse Menu
         </Link>
       </div>

@@ -18,6 +18,8 @@ import AccountPage from "@/pages/shop/AccountPage";
 import PrivacyPolicyPage from "@/pages/shop/PrivacyPolicyPage";
 import TermsPage from "@/pages/shop/TermsPage";
 
+import PaymentPage from "@/pages/shop/PaymentPage";
+
 // Auth pages
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
@@ -32,6 +34,13 @@ import AdminNewProductPage from "@/pages/admin/AdminNewProductPage";
 import AdminEditProductPage from "@/pages/admin/AdminEditProductPage";
 import AdminWaitersPage from "@/pages/admin/AdminWaitersPage";
 import AdminSettingsPage from "@/pages/admin/AdminSettingsPage";
+import AdminTablesPage from "@/pages/admin/AdminTablesPage";
+import AdminBillingPage from "@/pages/admin/AdminBillingPage";
+import AdminReportsPage from "@/pages/admin/AdminReportsPage";
+
+// POS & Kitchen pages
+import PosTerminalPage from "@/pages/pos/PosTerminalPage";
+import KitchenDisplayPage from "@/pages/kitchen/KitchenDisplayPage";
 
 import NotFoundPage from "@/pages/NotFoundPage";
 import ScrollToTop from "@/components/ScrollToTop";
@@ -48,7 +57,9 @@ export default function App() {
             <Route path="/shop" element={<ShopPage />} />
             <Route path="/product/:slug" element={<ProductDetailPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/payment/:id" element={<PaymentPage />} />
             <Route path="/order/:orderNumber" element={<OrderTrackingPage />} />
+            <Route path="/track/:orderNumber" element={<OrderTrackingPage />} />
             <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/login" element={<LoginPage />} />
@@ -62,6 +73,10 @@ export default function App() {
             </Route>
           </Route>
 
+          {/* POS Terminal & Kitchen KDS (Direct Screen Terminals) */}
+          <Route path="/pos" element={<PosTerminalPage />} />
+          <Route path="/kitchen" element={<KitchenDisplayPage />} />
+
           {/* Admin Public Route */}
           <Route path="/admin/login" element={<AdminLoginPage />} />
 
@@ -69,6 +84,9 @@ export default function App() {
           <Route element={<AdminRoute />}>
             <Route element={<AdminLayout />}>
               <Route path="/admin" element={<AdminDashboardPage />} />
+              <Route path="/admin/tables" element={<AdminTablesPage />} />
+              <Route path="/admin/billing" element={<AdminBillingPage />} />
+              <Route path="/admin/reports" element={<AdminReportsPage />} />
               <Route path="/admin/orders" element={<AdminOrdersPage />} />
               <Route path="/admin/orders/:id" element={<AdminOrderDetailPage />} />
               <Route path="/admin/products" element={<AdminProductsPage />} />

@@ -29,14 +29,18 @@ function slugify(text: string): string {
 }
 
 function mapProduct(doc: any) {
-  const isWeightBased = doc.variants?.some((v: any) => v.name.includes('kg') || v.name.includes('g')) || false;
-  const primaryPrice = doc.variants && doc.variants.length > 0 ? Number(doc.variants[0].price) : 0;
+  const isWeightBased = doc.priceType === 'WEIGHT' || doc.variants?.some((v: any) => 
+    v.name.toLowerCase().includes('kg') || 
+    v.name.toLowerCase().includes('gram') ||
+    v.name.toLowerCase() === 'per kg'
+  ) || false;
+  const primaryPrice = doc.pricePerKg ? Number(doc.pricePerKg) : (doc.variants && doc.variants.length > 0 ? Number(doc.variants[0].price) : 0);
 
   return {
     id: doc.id,
     slug: doc.slug,
     name: doc.name,
-    priceType: isWeightBased ? 'weight' : (doc.variants?.length > 1 ? 'variant' : 'weight'),
+    priceType: isWeightBased ? 'weight' : 'variant',
     pricePerKg: primaryPrice,
     variants: (doc.variants || []).map((v: any) => ({
       id: v.id,
@@ -44,8 +48,15 @@ function mapProduct(doc: any) {
       price: Number(v.price),
       isAvailable: v.isAvailable,
     })),
-    weightOptions: [250, 500, 1000],
-    allowCustomWeight: true,
+    weightOptions: [
+      { value: 250, unit: "g" },
+      { value: 500, unit: "g" },
+      { value: 1000, unit: "g" },
+    ],
+    allowCustomWeight: doc.allowCustomWeight !== undefined ? doc.allowCustomWeight : true,
+    trackStock: doc.trackStock ?? false,
+    stockQuantity: doc.stockQuantity ?? 0,
+    lowStockAlert: doc.lowStockAlert ?? 5,
     category: doc.category?.name || 'Khaja Sets',
     categoryId: doc.categoryId,
     image: doc.image || '/images/logo.png',
@@ -245,6 +256,12 @@ export async function createProduct(req: Request, res: Response): Promise<void> 
     const images = [...existingGallery, ...uploadedGallery];
     const isAvailable = req.body.isAvailable !== 'false' && req.body.available !== 'false';
     const isFeatured = req.body.isFeatured === 'true' || req.body.featured === 'true';
+    const priceTypeEnum = priceType === 'weight' ? 'WEIGHT' : 'VARIANT';
+    const pricePerKgVal = priceType === 'weight' ? Number(req.body.pricePerKg) || null : null;
+    const allowCustomWeightVal = req.body.allowCustomWeight === 'true' || req.body.allowCustomWeight === true;
+    const trackStock = req.body.trackStock === 'true' || req.body.trackStock === true;
+    const stockQuantity = req.body.stockQuantity !== undefined ? Math.max(0, parseInt(req.body.stockQuantity, 10) || 0) : 0;
+    const lowStockAlert = req.body.lowStockAlert !== undefined ? Math.max(0, parseInt(req.body.lowStockAlert, 10) || 5) : 5;
 
     const product = await prisma.product.create({
       data: {
@@ -254,6 +271,12 @@ export async function createProduct(req: Request, res: Response): Promise<void> 
         categoryId: category.id,
         image: imageUrl,
         galleryImages: images,
+        priceType: priceTypeEnum,
+        pricePerKg: pricePerKgVal,
+        allowCustomWeight: allowCustomWeightVal,
+        trackStock,
+        stockQuantity,
+        lowStockAlert,
         isAvailable,
         isFeatured,
         variants: {
@@ -348,6 +371,12 @@ export async function updateProduct(req: Request, res: Response): Promise<void> 
     const images = [...existingGallery, ...uploadedGallery];
     const isAvailable = req.body.isAvailable !== 'false' && req.body.available !== 'false';
     const isFeatured = req.body.isFeatured === 'true' || req.body.featured === 'true';
+    const priceTypeEnum = priceType === 'weight' ? 'WEIGHT' : 'VARIANT';
+    const pricePerKgVal = priceType === 'weight' ? Number(req.body.pricePerKg) || null : null;
+    const allowCustomWeightVal = req.body.allowCustomWeight === 'true' || req.body.allowCustomWeight === true;
+    const trackStock = req.body.trackStock !== undefined ? (req.body.trackStock === 'true' || req.body.trackStock === true) : undefined;
+    const stockQuantity = req.body.stockQuantity !== undefined ? Math.max(0, parseInt(req.body.stockQuantity, 10) || 0) : undefined;
+    const lowStockAlert = req.body.lowStockAlert !== undefined ? Math.max(0, parseInt(req.body.lowStockAlert, 10) || 5) : undefined;
 
     // Update variants
     if (variants.length > 0) {
@@ -361,6 +390,12 @@ export async function updateProduct(req: Request, res: Response): Promise<void> 
         slug,
         description,
         categoryId: category.id,
+        priceType: priceTypeEnum,
+        pricePerKg: pricePerKgVal,
+        allowCustomWeight: allowCustomWeightVal,
+        ...(trackStock !== undefined ? { trackStock } : {}),
+        ...(stockQuantity !== undefined ? { stockQuantity } : {}),
+        ...(lowStockAlert !== undefined ? { lowStockAlert } : {}),
         ...(imageUrl ? { image: imageUrl } : {}),
         galleryImages: images,
         isAvailable,
@@ -421,3 +456,59 @@ export async function toggleProductStock(req: Request, res: Response): Promise<v
     res.status(500).json({ error: 'Failed to toggle product stock' });
   }
 }
+
+export async function adjustProductStock(req: Request, res: Response): Promise<void> {
+  try {
+    const { id } = req.params;
+    const { action, quantity } = req.body; // action: 'add' | 'reduce' | 'set'
+    const qty = parseInt(quantity, 10);
+
+    if (isNaN(qty) || qty < 0) {
+      res.status(400).json({ error: 'Quantity must be a non-negative number' });
+      return;
+    }
+
+    const product = await prisma.product.findUnique({
+      where: { id },
+    });
+
+    if (!product) {
+      res.status(404).json({ error: 'Product not found' });
+      return;
+    }
+
+    let newStock = product.stockQuantity;
+    if (action === 'add') {
+      newStock += qty;
+    } else if (action === 'reduce') {
+      newStock = Math.max(0, newStock - qty);
+    } else if (action === 'set') {
+      newStock = qty;
+    } else {
+      res.status(400).json({ error: 'Invalid action. Must be add, reduce, or set' });
+      return;
+    }
+
+    // Automatically keep available if stock > 0, or mark out of stock if stock is 0
+    const isAvailable = newStock > 0 ? (product.isAvailable !== false) : false;
+
+    const updated = await prisma.product.update({
+      where: { id },
+      data: {
+        trackStock: true,
+        stockQuantity: newStock,
+        isAvailable,
+      },
+      include: {
+        category: true,
+        variants: true,
+      },
+    });
+
+    res.json({ success: true, product: mapProduct(updated), newStock });
+  } catch (error: any) {
+    console.error('adjustProductStock error:', error);
+    res.status(500).json({ error: error?.message || 'Failed to adjust product stock' });
+  }
+}
+

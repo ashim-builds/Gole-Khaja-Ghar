@@ -172,7 +172,7 @@ export default function WeightSelector({ product, isAvailable }: WeightSelectorP
               step="1"
               value={customWeightStr}
               onChange={handleCustomChange}
-              className="w-[120px] py-2 px-3 rounded-md border border-stone-200 bg-white focus:outline-none focus:border-primary text-black font-semibold text-sm"
+              className="w-[120px] py-2 px-3 rounded-lg border border-stone-300 bg-white focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 text-stone-900 font-bold text-sm shadow-sm"
             />
             <div className="text-[14px] text-stone-600">
               Total: <span className="font-black text-black">Rs. {finalPrice}</span>
@@ -215,7 +215,7 @@ export default function WeightSelector({ product, isAvailable }: WeightSelectorP
             ? "bg-stone-200 text-stone-400 cursor-not-allowed"
             : isAdded
             ? "bg-green-500 text-white"
-            : "bg-primary text-black hover:bg-primary/90 font-black uppercase text-sm tracking-wide"
+            : "bg-orange-600 text-white hover:bg-orange-500 font-black uppercase text-sm tracking-wider shadow-md shadow-orange-600/20"
         }`}
       >
         {isAdded ? (

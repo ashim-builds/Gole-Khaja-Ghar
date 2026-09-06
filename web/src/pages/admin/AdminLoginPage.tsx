@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Lock, Loader2 } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
+import { Lock, Loader2, ArrowLeft, Home } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { api } from "@/lib/api";
 
@@ -68,14 +68,31 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f5f5f5] px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#f5f5f5] px-4 py-8 relative">
+      {/* Top Floating Back to Home button */}
+      <div className="w-full max-w-md mb-4 flex justify-between items-center">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-stone-100 text-stone-700 font-bold rounded-xl border border-stone-200 shadow-sm text-xs transition-all active:scale-95 cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4 text-orange-600" />
+          <span>Back to Home</span>
+        </Link>
+      </div>
+
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-stone-100">
         <div className="bg-[#111111] p-8 text-center flex flex-col items-center">
-          <div className="w-16 h-16 relative rounded-full overflow-hidden border-2 border-primary mb-4">
+          <div className="w-16 h-16 relative rounded-full overflow-hidden border-2 border-orange-500 bg-stone-900 mb-4 flex items-center justify-center shadow-lg shadow-orange-500/20">
             <img
               src="/images/logo.png"
-              alt="Logo"
+              alt="Gole Khaja Ghar Logo"
               className="w-full h-full object-cover"
+              onError={(e) => {
+                const target = e.currentTarget;
+                if (!target.src.includes('favicon-circle.png')) {
+                  target.src = '/favicon-circle.png';
+                }
+              }}
             />
           </div>
           <h1 className="text-2xl font-black text-white">
@@ -102,7 +119,7 @@ export default function AdminLoginPage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full text-black pl-10 pr-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary font-medium"
+                  className="w-full text-stone-900 pl-10 pr-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 focus:bg-white font-semibold placeholder:text-stone-400 transition-all"
                   placeholder="Enter password..."
                   required
                 />
@@ -112,11 +129,11 @@ export default function AdminLoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-primary text-black font-black rounded-xl hover:bg-primary/90 transition-colors flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed shadow-md shadow-primary/20 cursor-pointer"
+              className="w-full py-3.5 bg-orange-600 text-white font-black rounded-xl hover:bg-orange-500 transition-all flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed shadow-lg shadow-orange-600/25 cursor-pointer text-sm uppercase tracking-wider"
             >
               {loading ? (
                 <>
-                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin text-white" />
                   Authenticating...
                 </>
               ) : (
@@ -124,6 +141,16 @@ export default function AdminLoginPage() {
               )}
             </button>
           </form>
+
+          <div className="mt-6 pt-4 border-t border-stone-100 text-center">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-stone-500 hover:text-stone-900 transition-colors"
+            >
+              <Home className="w-3.5 h-3.5" />
+              <span>Return to Customer Storefront</span>
+            </Link>
+          </div>
         </div>
       </div>
     </div>

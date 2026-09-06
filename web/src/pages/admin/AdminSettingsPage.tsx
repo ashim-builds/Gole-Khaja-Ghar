@@ -194,7 +194,7 @@ export default function AdminSettingsPage() {
               className={`px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 ${
                 pushStatus.isSubscribed
                   ? "bg-stone-100 hover:bg-red-50 text-stone-700 hover:text-red-600 border border-stone-200"
-                  : "bg-primary text-black hover:bg-primary/90 shadow-md shadow-primary/20"
+                  : "bg-orange-600 text-white hover:bg-orange-500 shadow-md shadow-orange-600/20"
               }`}
             >
               {loadingPush ? (
@@ -218,8 +218,9 @@ export default function AdminSettingsPage() {
         <div className="pt-6 flex flex-wrap items-center justify-between gap-4">
           <div className="text-xs text-stone-500">
             {pushStatus.permission === "denied" ? (
-              <span className="text-red-600 font-semibold">
-                ⚠️ Notifications are blocked in your browser settings. Please click the padlock / tune icon near the URL bar to allow notifications.
+              <span className="text-red-600 font-semibold flex items-center gap-1.5">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                Notifications are blocked in your browser settings. Please click the padlock / tune icon near the URL bar to allow notifications.
               </span>
             ) : pushStatus.isSubscribed ? (
               <span>Your browser is currently registered for background order pushes.</span>

@@ -8,10 +8,43 @@ import {
   notifyCustomerStatusChange,
   notifyCustomerPaymentConfirmed,
 } from '../integrations/whatsapp.js';
-import { OrderStatus, OrderType, UserRole } from '@prisma/client';
+import { BillStatus, PaymentMethod, PaymentStatus, OrderStatus, OrderType, UserRole } from '@prisma/client';
+import { emitEvent, emitPaymentRecorded, emitOrderStatusChanged } from '../lib/socket.js';
 
 function mapOrder(doc: any) {
   if (!doc) return null;
+  const isTableSettled = doc.tableSession?.status === 'COMPLETED';
+  const payments = doc.bill?.payments || doc.tableSession?.bill?.payments || [];
+  const latestPayment = payments.length > 0 ? payments[payments.length - 1] : null;
+
+  // Check explicit bill status or payments
+  const billStatus = doc.bill?.status || doc.tableSession?.bill?.status;
+  let isPaid = false;
+  if (billStatus === 'PAID') {
+    isPaid = true;
+  } else if (billStatus === 'UNPAID') {
+    isPaid = false;
+  } else if (payments.some((p: any) => p.status === 'PAID')) {
+    isPaid = true;
+  } else if (isTableSettled) {
+    isPaid = true;
+  }
+
+  const isCompleted = doc.status === 'COMPLETED' || isTableSettled;
+  const effectiveStatus = isCompleted ? 'completed' : (doc.status ? doc.status.toLowerCase() : 'pending');
+
+  const isQrNote = doc.notes?.toLowerCase().includes('qr') || doc.notes?.toLowerCase().includes('fonepay') || doc.notes?.toLowerCase().includes('esewa') || doc.notes?.toLowerCase().includes('khalti');
+  let paymentMethod = 'cod';
+  if (latestPayment?.method) {
+    paymentMethod = latestPayment.method.toLowerCase();
+  } else if (isQrNote) {
+    paymentMethod = 'qr';
+  } else if (doc.paymentMethod) {
+    paymentMethod = doc.paymentMethod.toLowerCase();
+  }
+
+  const txRef = latestPayment?.transactionReference || (doc.notes?.match(/Tx Ref:\s*([^\s|]+)/i)?.[1] || null);
+
   return {
     id: doc.id,
     _id: doc.id,
@@ -24,9 +57,18 @@ function mapOrder(doc: any) {
     },
     orderType: doc.orderType ? doc.orderType.toLowerCase() : 'delivery',
     orderSource: doc.orderSource || 'CUSTOMER_WEB',
-    status: doc.status ? doc.status.toLowerCase() : 'pending',
-    paymentMethod: 'cod',
-    paymentStatus: doc.status === 'COMPLETED' ? 'paid' : 'pending',
+    status: effectiveStatus,
+    paymentMethod,
+    paymentStatus: isPaid ? 'paid' : 'pending',
+    txRef,
+    payments: payments.map((p: any) => ({
+      id: p.id,
+      amount: Number(p.amount),
+      method: p.method,
+      status: p.status,
+      transactionReference: p.transactionReference,
+      createdAt: p.createdAt,
+    })),
     deliveryAddress: doc.deliveryAddress,
     address: doc.deliveryAddress,
     notes: doc.notes,
@@ -73,8 +115,12 @@ export async function checkout(req: AuthenticatedRequest, res: Response): Promis
       return;
     }
 
-    const { customerInfo, orderType: rawOrderType, paymentMethod, address, notes, items } = validation.data;
+    const { customerInfo, orderType: rawOrderType, paymentMethod, address, notes, txRef, items } = validation.data as any;
     const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ error: 'Please log in to your account to place an order.' });
+      return;
+    }
 
     let subtotalAmount = 0;
     const validatedItems: any[] = [];
@@ -88,6 +134,17 @@ export async function checkout(req: AuthenticatedRequest, res: Response): Promis
       if (!product || !product.isAvailable) {
         res.status(400).json({ error: `Product "${product?.name || 'Item'}" is unavailable or out of stock.` });
         return;
+      }
+
+      if (product.trackStock) {
+        if (product.stockQuantity < item.qty) {
+          res.status(400).json({
+            error: product.stockQuantity <= 0
+              ? `"${product.name}" is currently out of stock.`
+              : `Only ${product.stockQuantity} units available for "${product.name}". Please reduce quantity.`
+          });
+          return;
+        }
       }
 
       let calculatedPrice = 0;
@@ -162,10 +219,15 @@ export async function checkout(req: AuthenticatedRequest, res: Response): Promis
       }
     }
     const orderNumber = `GKG-${nextNumber}`;
-
     const orderTypeEnum: OrderType = rawOrderType === 'pickup' ? 'PICKUP' : 'DELIVERY';
 
-    // Transactional Order + Items + KOT + Notification creation
+    const isQr = paymentMethod === 'qr';
+    let finalNotes = notes || null;
+    if (txRef && txRef.trim()) {
+      finalNotes = finalNotes ? `${finalNotes} | Tx Ref: ${txRef.trim()}` : `Tx Ref: ${txRef.trim()}`;
+    }
+
+    // Transactional Order + Items + KOT + Bill/Payment + Stock Deduction
     const newOrder = await prisma.$transaction(async (tx) => {
       const order = await tx.order.create({
         data: {
@@ -178,7 +240,7 @@ export async function checkout(req: AuthenticatedRequest, res: Response): Promis
           orderSource: 'CUSTOMER_WEB',
           status: 'PENDING',
           deliveryAddress: rawOrderType === 'delivery' ? address || null : null,
-          notes: notes || null,
+          notes: finalNotes,
           subtotalAmount,
           deliveryCharge,
           discountAmount: 0,
@@ -201,6 +263,23 @@ export async function checkout(req: AuthenticatedRequest, res: Response): Promis
         },
       });
 
+      // Deduct stock for tracked products
+      for (const vi of validatedItems) {
+        if (vi.productId) {
+          const prod = await tx.product.findUnique({ where: { id: vi.productId } });
+          if (prod && prod.trackStock) {
+            const newStock = Math.max(0, prod.stockQuantity - vi.quantity);
+            await tx.product.update({
+              where: { id: vi.productId },
+              data: {
+                stockQuantity: newStock,
+                isAvailable: newStock > 0 ? prod.isAvailable : false,
+              },
+            });
+          }
+        }
+      }
+
       // Automatic Kitchen Order Ticket (KOT)
       await tx.kotTicket.create({
         data: {
@@ -220,14 +299,44 @@ export async function checkout(req: AuthenticatedRequest, res: Response): Promis
         },
       });
 
+      // If user paid online via QR, create Bill and Payment in PENDING status (Admin must verify before confirming Paid)
+      if (isQr) {
+        const bill = await tx.bill.create({
+          data: {
+            billNumber: `INV-${Date.now().toString().slice(-6)}`,
+            orderId: order.id,
+            grossAmount: totalAmount,
+            discountAmount: 0,
+            taxAmount: 0,
+            deliveryCharge,
+            netAmount: totalAmount,
+            status: BillStatus.UNPAID,
+            settledAt: null,
+          },
+        });
+
+        await tx.payment.create({
+          data: {
+            billId: bill.id,
+            amount: totalAmount,
+            method: PaymentMethod.FONEPAY_QR,
+            status: PaymentStatus.PENDING,
+            transactionReference: txRef ? txRef.trim() : 'FONEPAY-QR',
+            notes: 'Online FonePay QR payment at checkout (Awaiting Admin Bank Verification)',
+          },
+        });
+      }
+
       // Role broadcast notification for Admin & Kitchen
       await tx.notification.create({
         data: {
           targetRole: 'ADMIN',
           recipientType: 'ROLE_BROADCAST',
-          type: 'ORDER_CREATED',
-          title: 'New Order Received',
-          body: `Order #${orderNumber} • ${customerInfo.name} • Rs. ${totalAmount.toFixed(2)}`,
+          type: isQr ? 'PAYMENT_RECEIVED' : 'ORDER_CREATED',
+          title: isQr ? 'FonePay Payment To Verify' : 'New Order Received',
+          body: isQr
+            ? `Order #${orderNumber} • ${customerInfo.name} submitted FonePay payment (Rs. ${totalAmount.toFixed(2)})${txRef ? ` | Ref: ${txRef}` : ''} - Check bank & confirm.`
+            : `Order #${orderNumber} • ${customerInfo.name} • Rs. ${totalAmount.toFixed(2)}`,
           linkUrl: `/admin/orders/${order.id}`,
         },
       });
@@ -237,12 +346,35 @@ export async function checkout(req: AuthenticatedRequest, res: Response): Promis
 
     // Send push notification & alerts asynchronously
     sendPushToAdmin({
-      title: `🛎 New Order — ${orderNumber}`,
-      body: `${customerInfo.name} • Rs. ${totalAmount.toFixed(2)} • ${rawOrderType}`,
+      title: isQr ? `Online Payment — ${orderNumber}` : `New Order — ${orderNumber}`,
+      body: isQr
+        ? `${customerInfo.name} paid Rs. ${totalAmount.toFixed(2)} via FonePay QR${txRef ? ` (Ref: ${txRef})` : ''}`
+        : `${customerInfo.name} • Rs. ${totalAmount.toFixed(2)} • ${rawOrderType}`,
       url: `/admin/orders/${newOrder.id}`,
     }).catch(() => {});
 
     notifyAdminNewOrder(orderNumber, customerInfo.name, totalAmount, rawOrderType).catch(() => {});
+
+    emitEvent('order:status_changed', {
+      orderId: newOrder.id,
+      orderNumber,
+      status: 'PENDING',
+      paymentMethod: isQr ? 'qr' : 'cod',
+      paymentStatus: isQr ? 'paid' : 'pending',
+    });
+
+    if (isQr) {
+      emitPaymentRecorded({
+        orderId: newOrder.id,
+        orderNumber,
+        customerName: customerInfo.name,
+        amount: totalAmount,
+        paymentMethod: 'FONEPAY_QR',
+        status: 'PAID',
+        txRef: txRef || undefined,
+        isOnline: true,
+      });
+    }
 
     res.status(201).json({
       success: true,
@@ -258,6 +390,29 @@ export async function checkout(req: AuthenticatedRequest, res: Response): Promis
   }
 }
 
+const orderInclude = {
+  items: {
+    include: {
+      product: true,
+    },
+  },
+  bill: {
+    include: {
+      payments: true,
+    },
+  },
+  tableSession: {
+    include: {
+      table: true,
+      bill: {
+        include: {
+          payments: true,
+        },
+      },
+    },
+  },
+};
+
 export async function getOrderStatus(req: Request, res: Response): Promise<void> {
   try {
     const { orderNumber } = req.params;
@@ -269,13 +424,7 @@ export async function getOrderStatus(req: Request, res: Response): Promise<void>
     const cleanNumber = orderNumber.trim();
     const order = await prisma.order.findUnique({
       where: { orderNumber: cleanNumber },
-      include: {
-        items: {
-          include: {
-            product: true,
-          },
-        },
-      },
+      include: orderInclude,
     });
 
     if (!order) {
@@ -299,13 +448,7 @@ export async function getUserOrders(req: AuthenticatedRequest, res: Response): P
 
     const orders = await prisma.order.findMany({
       where: { userId: req.user.userId },
-      include: {
-        items: {
-          include: {
-            product: true,
-          },
-        },
-      },
+      include: orderInclude,
       orderBy: { createdAt: 'desc' },
     });
 
@@ -356,6 +499,10 @@ export async function cancelOrder(req: AuthenticatedRequest, res: Response): Pro
         where: { id: order.id },
         data: { status: 'CANCELLED' },
       }),
+      prisma.kotTicket.updateMany({
+        where: { orderId: order.id, status: 'QUEUED' },
+        data: { status: 'CANCELLED' },
+      }),
       prisma.notification.create({
         data: {
           targetRole: 'ADMIN',
@@ -377,6 +524,12 @@ export async function cancelOrder(req: AuthenticatedRequest, res: Response): Pro
         },
       }),
     ]);
+
+    emitOrderStatusChanged({
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      status: 'CANCELLED',
+    });
 
     sendPushToAdmin({
       title: 'Order Cancelled',
@@ -422,13 +575,7 @@ export async function getAdminOrders(req: Request, res: Response): Promise<void>
     const [orders, total] = await Promise.all([
       prisma.order.findMany({
         where,
-        include: {
-          items: {
-            include: {
-              product: true,
-            },
-          },
-        },
+        include: orderInclude,
         orderBy: { createdAt: 'desc' },
         skip,
         take: pageSize,
@@ -457,13 +604,7 @@ export async function getAdminOrderById(req: Request, res: Response): Promise<vo
     const { id } = req.params;
     const order = await prisma.order.findUnique({
       where: { id },
-      include: {
-        items: {
-          include: {
-            product: true,
-          },
-        },
-      },
+      include: orderInclude,
     });
 
     if (!order) {
@@ -547,15 +688,25 @@ export async function updateOrderStatus(req: Request, res: Response): Promise<vo
 
 export async function updatePaymentStatus(req: Request, res: Response): Promise<void> {
   try {
-    const { id, paymentStatus } = req.body;
+    const id = req.params.id || req.body.id;
+    const { paymentStatus } = req.body;
     if (paymentStatus !== 'pending' && paymentStatus !== 'paid') {
       res.status(400).json({ error: 'Invalid payment status. Must be pending or paid.' });
       return;
     }
 
+    if (!id) {
+      res.status(400).json({ error: 'Order ID is required' });
+      return;
+    }
+
     const order = await prisma.order.findUnique({
       where: { id },
-      include: { items: { include: { product: true } } },
+      include: {
+        items: { include: { product: true } },
+        bill: { include: { payments: true } },
+        tableSession: { include: { bill: { include: { payments: true } } } },
+      },
     });
 
     if (!order) {
@@ -563,7 +714,89 @@ export async function updatePaymentStatus(req: Request, res: Response): Promise<
       return;
     }
 
-    if (paymentStatus === 'paid' && order.userId) {
+    const isPaid = paymentStatus === 'paid';
+
+    await prisma.$transaction(async (tx) => {
+      if (order.bill) {
+        await tx.bill.update({
+          where: { id: order.bill.id },
+          data: {
+            status: isPaid ? BillStatus.PAID : BillStatus.UNPAID,
+            settledAt: isPaid ? new Date() : null,
+          },
+        });
+        if (isPaid) {
+          const existingPayments = await tx.payment.findMany({
+            where: { billId: order.bill.id },
+          });
+          if (existingPayments.length > 0) {
+            await tx.payment.updateMany({
+              where: { billId: order.bill.id },
+              data: { status: PaymentStatus.PAID },
+            });
+          } else {
+            const isQr = order.notes?.toLowerCase().includes('qr') || order.notes?.toLowerCase().includes('fonepay');
+            await tx.payment.create({
+              data: {
+                billId: order.bill.id,
+                amount: order.totalAmount,
+                method: isQr ? PaymentMethod.FONEPAY_QR : PaymentMethod.CASH,
+                status: PaymentStatus.PAID,
+                notes: 'Payment confirmed by Admin',
+              },
+            });
+          }
+        } else {
+          await tx.payment.updateMany({
+            where: { billId: order.bill.id },
+            data: { status: PaymentStatus.PENDING },
+          });
+        }
+      } else if (order.tableSessionId) {
+        await tx.bill.updateMany({
+          where: { tableSessionId: order.tableSessionId },
+          data: { status: isPaid ? BillStatus.PAID : BillStatus.UNPAID, settledAt: isPaid ? new Date() : null },
+        });
+      } else {
+        const isQr = order.notes?.toLowerCase().includes('qr') || order.notes?.toLowerCase().includes('fonepay');
+        const bill = await tx.bill.create({
+          data: {
+            billNumber: `INV-${Date.now().toString().slice(-6)}`,
+            orderId: order.id,
+            grossAmount: order.totalAmount,
+            discountAmount: order.discountAmount,
+            taxAmount: 0,
+            deliveryCharge: order.deliveryCharge,
+            netAmount: order.totalAmount,
+            status: isPaid ? BillStatus.PAID : BillStatus.UNPAID,
+            settledAt: isPaid ? new Date() : null,
+          },
+        });
+
+        if (isPaid) {
+          await tx.payment.create({
+            data: {
+              billId: bill.id,
+              amount: order.totalAmount,
+              method: isQr ? PaymentMethod.FONEPAY_QR : PaymentMethod.CASH,
+              status: PaymentStatus.PAID,
+              notes: 'Payment confirmed by Admin',
+            },
+          });
+        }
+      }
+    });
+
+    const updated = await prisma.order.findUnique({
+      where: { id },
+      include: {
+        items: { include: { product: true } },
+        bill: { include: { payments: true } },
+        tableSession: { include: { bill: { include: { payments: true } } } },
+      },
+    });
+
+    if (isPaid && order.userId) {
       await prisma.notification.create({
         data: {
           userId: order.userId,
@@ -576,25 +809,196 @@ export async function updatePaymentStatus(req: Request, res: Response): Promise<
       }).catch(() => {});
 
       sendPushToUser(order.userId, {
-        title: '💳 Payment Confirmed!',
+        title: 'Payment Confirmed',
         body: `Payment received for order #${order.orderNumber}.`,
         url: `/order/${order.orderNumber}`,
       }).catch(() => {});
     }
 
-    res.json({ success: true, order: mapOrder(order) });
+    emitEvent('order:status_changed', { id: order.id, orderNumber: order.orderNumber, paymentStatus });
+    emitPaymentRecorded({
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      amount: Number(order.totalAmount),
+      paymentMethod: 'CASH',
+      status: isPaid ? 'PAID' : 'PENDING',
+    });
+
+    res.json({ success: true, order: mapOrder(updated) });
   } catch (error) {
     console.error('updatePaymentStatus error:', error);
     res.status(500).json({ error: 'Failed to update payment status' });
   }
 }
 
-export async function getAdminLiveUpdates(_req: Request, res: Response): Promise<void> {
+export async function getOrderForPayment(req: Request, res: Response): Promise<void> {
   try {
-    const [recentOrders, unreadCount, pendingOrdersCount] = await Promise.all([
+    const { identifier } = req.params;
+    if (!identifier) {
+      res.status(400).json({ error: 'Order ID or number is required' });
+      return;
+    }
+
+    const order = await prisma.order.findFirst({
+      where: {
+        OR: [{ id: identifier }, { orderNumber: identifier }],
+      },
+      include: orderInclude,
+    });
+
+    if (!order) {
+      res.status(404).json({ error: 'Order not found' });
+      return;
+    }
+
+    res.json({ success: true, order: mapOrder(order) });
+  } catch (error) {
+    console.error('getOrderForPayment error:', error);
+    res.status(500).json({ error: 'Failed to fetch order for payment' });
+  }
+}
+
+export async function settleOnlinePayment(req: Request, res: Response): Promise<void> {
+  try {
+    const { id } = req.params;
+    const { paymentMethod, txRef, amount } = req.body;
+
+    const order = await prisma.order.findFirst({
+      where: {
+        OR: [{ id }, { orderNumber: id }],
+      },
+      include: orderInclude,
+    });
+
+    if (!order) {
+      res.status(404).json({ error: 'Order not found' });
+      return;
+    }
+
+    const method = paymentMethod || 'FONEPAY_QR';
+    const validMethod = Object.values(PaymentMethod).includes(method) ? method : PaymentMethod.FONEPAY_QR;
+    const paymentAmount = Number(amount) || Number(order.totalAmount);
+
+    const updated = await prisma.$transaction(async (tx) => {
+      const updatedOrder = await tx.order.update({
+        where: { id: order.id },
+        data: {
+          notes: txRef ? `${order.notes ? order.notes + ' | ' : ''}Tx Ref: ${txRef}` : order.notes,
+        },
+        include: orderInclude,
+      });
+
+      if (order.bill) {
+        await tx.bill.update({
+          where: { id: order.bill.id },
+          data: { status: BillStatus.UNPAID, settledAt: null },
+        });
+        await tx.payment.create({
+          data: {
+            billId: order.bill.id,
+            amount: paymentAmount,
+            method: validMethod,
+            status: PaymentStatus.PENDING,
+            transactionReference: txRef ? String(txRef).trim() : 'FONEPAY-SUBMITTED',
+            notes: 'Submitted online by customer, awaiting admin verification',
+          },
+        });
+      } else {
+        const bill = await tx.bill.create({
+          data: {
+            billNumber: `INV-${Date.now().toString().slice(-6)}`,
+            orderId: order.id,
+            grossAmount: order.totalAmount,
+            discountAmount: order.discountAmount,
+            taxAmount: 0,
+            deliveryCharge: order.deliveryCharge,
+            netAmount: order.totalAmount,
+            status: BillStatus.UNPAID,
+            settledAt: null,
+          },
+        });
+        await tx.payment.create({
+          data: {
+            billId: bill.id,
+            amount: paymentAmount,
+            method: validMethod,
+            status: PaymentStatus.PENDING,
+            transactionReference: txRef ? String(txRef).trim() : 'FONEPAY-SUBMITTED',
+            notes: 'Submitted online by customer, awaiting admin verification',
+          },
+        });
+      }
+
+      return updatedOrder;
+    });
+
+    const refreshedOrder = await prisma.order.findUnique({
+      where: { id: order.id },
+      include: orderInclude,
+    });
+
+    // Broadcast payment and order status
+    emitPaymentRecorded({
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      amount: paymentAmount,
+      paymentMethod: method,
+      status: 'PAID',
+      txRef: txRef || undefined,
+      isOnline: true,
+    });
+
+    emitEvent('order:status_changed', {
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      status: refreshedOrder?.status || order.status,
+      paymentMethod: method,
+      paymentStatus: 'paid',
+    });
+
+    // Notify Super Admin
+    await prisma.notification.create({
+      data: {
+        targetRole: 'ADMIN',
+        recipientType: 'ROLE_BROADCAST',
+        type: 'PAYMENT_RECEIVED',
+        title: `Payment Received: #${order.orderNumber}`,
+        body: `Rs. ${paymentAmount.toFixed(2)} via ${method}${txRef ? ` (Ref: ${txRef})` : ''}`,
+        linkUrl: `/admin/orders/${order.id}`,
+      },
+    }).catch(() => {});
+
+    res.json({
+      success: true,
+      message: 'Payment recorded successfully',
+      order: mapOrder(refreshedOrder),
+    });
+  } catch (error) {
+    console.error('settleOnlinePayment error:', error);
+    res.status(500).json({ error: 'Failed to settle online payment' });
+  }
+}
+
+export async function getAdminLiveUpdates(req: Request, res: Response): Promise<void> {
+  try {
+    const [
+      totalProducts,
+      availableProducts,
+      totalOrders,
+      pendingOrders,
+      preparingOrders,
+      readyOrders,
+      recentOrders,
+    ] = await Promise.all([
+      prisma.product.count(),
+      prisma.product.count({ where: { isAvailable: true } }),
+      prisma.order.count(),
+      prisma.order.count({ where: { status: 'PENDING' } }),
+      prisma.order.count({ where: { status: 'PREPARING' } }),
+      prisma.order.count({ where: { status: 'READY' } }),
       prisma.order.findMany({
+        take: 5,
         orderBy: { createdAt: 'desc' },
-        take: 10,
         include: {
           items: {
             include: {
@@ -603,28 +1007,24 @@ export async function getAdminLiveUpdates(_req: Request, res: Response): Promise
           },
         },
       }),
-      prisma.notification.count({
-        where: {
-          targetRole: 'ADMIN',
-          isRead: false,
-        },
-      }),
-      prisma.order.count({
-        where: { status: 'PENDING' },
-      }),
     ]);
 
     res.json({
       success: true,
-      data: {
-        recentOrders: recentOrders.map(mapOrder),
-        unreadCount,
-        pendingOrdersCount,
-        timestamp: new Date().toISOString(),
+      stats: {
+        totalProducts,
+        availableProducts,
+        totalOrders,
+        pendingOrders,
+        preparing: preparingOrders,
+        ready: readyOrders,
       },
+      recentOrders: recentOrders.map(mapOrder),
     });
   } catch (error) {
     console.error('getAdminLiveUpdates error:', error);
     res.status(500).json({ error: 'Failed to fetch live updates' });
   }
 }
+
+

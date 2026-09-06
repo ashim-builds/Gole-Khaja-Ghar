@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bell, BellOff, X } from "lucide-react";
+import { Bell, BellOff, X, AlertCircle } from "lucide-react";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -159,8 +159,9 @@ export default function PushNotificationSetup({ userId }: Props) {
           Enable notifications to track your order status in real time.
         </p>
         {error && (
-          <p className="text-[10px] text-red-400 font-semibold mt-1 bg-red-950/40 p-1.5 rounded-md border border-red-900/30">
-            ⚠️ {error}
+          <p className="text-[10px] text-red-400 font-semibold mt-1 bg-red-950/40 p-1.5 rounded-md border border-red-900/30 flex items-center gap-1">
+            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+            {error}
           </p>
         )}
         <button

@@ -105,11 +105,11 @@ export default function ShopFilters({ categories, allProducts }: ShopFiltersProp
         <form onSubmit={handleSearchSubmit} className="relative">
           <input
             type="text"
-            placeholder="Search snacks..."
+            placeholder="Search snacks, momo, chowmein, khaja..."
             value={searchValue}
             onChange={handleSearchChange}
             onFocus={() => { if(searchValue) setShowSuggestions(true) }}
-            className="w-full h-12 pl-12 pr-10 rounded-[8px] border border-stone-200 bg-white focus:outline-none focus:border-primary text-black transition-all shadow-sm font-medium"
+            className="w-full h-12 pl-12 pr-10 rounded-xl border border-stone-300 bg-white focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 text-stone-900 placeholder:text-stone-400 transition-all shadow-sm font-semibold"
           />
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
           {searchValue && (
@@ -150,10 +150,10 @@ export default function ShopFilters({ categories, allProducts }: ShopFiltersProp
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => handleCategoryClick("")}
-            className={`px-4 py-1.5 rounded-[4px] text-[13px] font-bold transition-all border cursor-pointer ${
+            className={`px-4 py-1.5 rounded-lg text-[13px] transition-all border cursor-pointer ${
               currentCategory === "" 
-                ? "bg-primary border-primary text-black" 
-                : "bg-white border-stone-200 text-stone-600 hover:border-stone-300"
+                ? "bg-orange-600 border-orange-600 text-white font-black shadow-md shadow-orange-600/20" 
+                : "bg-white border-stone-200 text-stone-600 hover:border-stone-300 font-bold"
             }`}
           >
             All
@@ -162,10 +162,10 @@ export default function ShopFilters({ categories, allProducts }: ShopFiltersProp
             <button
               key={cat}
               onClick={() => handleCategoryClick(cat)}
-              className={`px-4 py-1.5 rounded-[4px] text-[13px] font-bold transition-all border cursor-pointer ${
+              className={`px-4 py-1.5 rounded-lg text-[13px] transition-all border cursor-pointer ${
                 currentCategory === cat 
-                  ? "bg-primary border-primary text-black" 
-                  : "bg-white border-stone-200 text-stone-600 hover:border-stone-300"
+                  ? "bg-orange-600 border-orange-600 text-white font-black shadow-md shadow-orange-600/20" 
+                  : "bg-white border-stone-200 text-stone-600 hover:border-stone-300 font-bold"
               }`}
             >
               {cat}

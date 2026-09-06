@@ -12,6 +12,11 @@ import cartRoutes from './routes/cartRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import pushRoutes from './routes/pushRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import tableRoutes from './routes/tableRoutes.js';
+import posRoutes from './routes/posRoutes.js';
+import kitchenRoutes from './routes/kitchenRoutes.js';
+import billingRoutes from './routes/billingRoutes.js';
+import reportRoutes from './routes/reportRoutes.js';
 
 dotenv.config();
 
@@ -41,6 +46,8 @@ if (!fs.existsSync(uploadsDir)) {
 }
 app.use('/uploads', express.static(uploadsDir));
 
+import prisma from './lib/prisma.js';
+
 // Health Check
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', service: 'golu-khaja-ghar-services', timestamp: new Date().toISOString() });
@@ -55,16 +62,27 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/push', pushRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/tables', tableRoutes);
+app.use('/api/pos', posRoutes);
+app.use('/api/kitchen', kitchenRoutes);
+app.use('/api/billing', billingRoutes);
+app.use('/api/reports', reportRoutes);
+
+import http from 'http';
+import { initSocket } from './lib/socket.js';
 
 // Centralized Error Handler
 app.use(errorHandler);
+
+const httpServer = http.createServer(app);
+initSocket(httpServer, CLIENT_URL);
 
 // Start Server
 async function startServer() {
   try {
     await connectToDatabase();
-    app.listen(PORT, () => {
-      console.log(`🚀 [Backend Service] Running on http://localhost:${PORT}`);
+    httpServer.listen(PORT, () => {
+      console.log(`🚀 [Backend Service & WebSockets] Running on http://localhost:${PORT}`);
       console.log(`📡 [CORS] Configured for frontend origin: ${CLIENT_URL}`);
     });
   } catch (error) {

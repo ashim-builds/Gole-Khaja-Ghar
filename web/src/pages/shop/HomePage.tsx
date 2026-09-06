@@ -114,7 +114,7 @@ export default function HomePage() {
             <div className="flex flex-wrap items-center gap-3 mt-4 md:mt-0">
               <Link
                 to="/shop"
-                className="px-6 py-2.5 md:px-8 md:py-3 bg-primary text-black font-extrabold rounded md:rounded-md hover:bg-primary/90 transition-all text-sm tracking-wide shadow-lg cursor-pointer"
+                className="px-6 py-2.5 md:px-8 md:py-3.5 bg-orange-600 text-white font-black rounded-xl hover:bg-orange-500 transition-all text-sm tracking-wider uppercase shadow-xl shadow-orange-600/30 cursor-pointer"
               >
                 EXPLORE MENU
               </Link>
@@ -266,7 +266,7 @@ export default function HomePage() {
             <div className="flex justify-center mt-10 md:mt-12">
               <Link
                 to="/shop"
-                className="bg-primary hover:bg-primary/90 text-black font-black text-[13px] uppercase tracking-wider px-8 py-3 rounded-md transition-colors shadow-sm"
+                className="bg-orange-600 hover:bg-orange-500 text-white font-black text-[13px] uppercase tracking-wider px-8 py-3.5 rounded-xl transition-all shadow-lg shadow-orange-600/25"
               >
                 VIEW FULL MENU
               </Link>
@@ -281,10 +281,10 @@ export default function HomePage() {
 
         {/* 5. PROCESS BANNER */}
         <ScrollAnimation delay={0.2} className="mt-auto">
-          <section className="bg-primary w-full py-10 md:py-12 border-t-[8px] md:border-t-[10px] border-primary rounded-t-[2.5rem] md:rounded-t-[3rem] -mt-[2rem] md:-mt-[3rem] relative z-20 shadow-2xl">
+          <section className="bg-orange-600 w-full py-10 md:py-12 border-t-[8px] md:border-t-[10px] border-orange-500 rounded-t-[2.5rem] md:rounded-t-[3rem] -mt-[2rem] md:-mt-[3rem] relative z-20 shadow-2xl">
             <div className="max-w-7xl mx-auto px-4 md:px-8 flex flex-col md:flex-row justify-between items-center md:items-start gap-10 md:gap-0">
               <div className="w-full md:w-[35%] text-center md:text-left flex flex-col items-center md:items-start">
-                <h2 className="text-[28px] md:text-[2.2rem] lg:text-4xl font-black text-[#111111] uppercase leading-[1.1] tracking-tight">
+                <h2 className="text-[28px] md:text-[2.2rem] lg:text-4xl font-black text-white uppercase leading-[1.1] tracking-tight">
                   Order Your Favorite
                   <br className="hidden md:block" />
                   Khaja Easily
@@ -311,43 +311,45 @@ export default function HomePage() {
                   {
                     title: "Browse Menu",
                     icon: (
-                      <ShoppingBag className="w-6 h-6 md:w-8 md:h-8 text-black" />
+                      <ShoppingBag className="w-6 h-6 md:w-8 md:h-8 text-orange-600" />
                     ),
                   },
                   {
                     title: "Select Portion",
                     icon: (
-                      <Scale className="w-6 h-6 md:w-8 md:h-8 text-black" />
+                      <Scale className="w-6 h-6 md:w-8 md:h-8 text-orange-600" />
                     ),
                   },
                   {
                     title: "Add to Cart",
                     icon: (
-                      <ShoppingCart className="w-6 h-6 md:w-8 md:h-8 text-black" />
+                      <ShoppingCart className="w-6 h-6 md:w-8 md:h-8 text-orange-600" />
                     ),
                   },
                   {
                     title: "Place Order",
                     icon: (
-                      <ClipboardList className="w-6 h-6 md:w-8 md:h-8 text-black" />
+                      <ClipboardList className="w-6 h-6 md:w-8 md:h-8 text-orange-600" />
                     ),
                   },
                   {
                     title: "Fresh Delivery",
-                    icon: <Bike className="w-6 h-6 md:w-8 md:h-8 text-black" />,
+                    icon: (
+                      <Bike className="w-6 h-6 md:w-8 md:h-8 text-orange-600" />
+                    ),
                   },
                 ].map((step, index) => (
                   <React.Fragment key={index}>
                     <div className="flex flex-col items-center text-center gap-3 w-[30%] md:w-auto md:min-w-0 flex-shrink-0">
-                      <div className="w-14 h-14 md:w-16 md:h-16 lg:w-20 lg:h-20 bg-white rounded-full flex items-center justify-center shadow-sm">
+                      <div className="w-14 h-14 md:w-16 md:h-16 lg:w-20 lg:h-20 bg-white rounded-full flex items-center justify-center shadow-md">
                         {step.icon}
                       </div>
-                      <span className="font-bold text-black text-[11px] md:text-xs lg:text-sm leading-tight">
+                      <span className="font-bold text-white text-[11px] md:text-xs lg:text-sm leading-tight drop-shadow-sm">
                         {step.title}
                       </span>
                     </div>
                     {index < 4 && (
-                      <ArrowRight className="hidden md:block w-4 h-4 md:w-4 md:h-4 lg:w-5 lg:h-5 text-black mb-8 flex-shrink-0" />
+                      <ArrowRight className="hidden md:block w-4 h-4 md:w-4 md:h-4 lg:w-5 lg:h-5 text-white/80 mb-8 flex-shrink-0" />
                     )}
                   </React.Fragment>
                 ))}
