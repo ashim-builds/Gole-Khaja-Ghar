@@ -1622,16 +1622,18 @@ export default function PosTerminalPage() {
 
       {/* Modal: Open Table Session */}
       {openModalTable && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-stone-900 border border-stone-800 w-full max-w-md rounded-3xl p-6 shadow-2xl space-y-5 animate-scale-in">
-            <div className="flex justify-between items-center">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-stone-900 border border-stone-800 w-full max-w-md max-h-[calc(100dvh-2rem)] flex flex-col rounded-3xl shadow-2xl animate-scale-in overflow-hidden">
+            {/* Modal Header */}
+            <div className="flex justify-between items-center px-5 py-4 border-b border-stone-800 shrink-0">
               <div>
-                <h3 className="text-lg font-black text-white">Open Table {openModalTable.tableNumber}</h3>
+                <h3 className="text-base sm:text-lg font-black text-white">Open Table {openModalTable.tableNumber}</h3>
                 <p className="text-xs text-stone-400">
                   Capacity: <strong className="text-orange-400">{openModalTable.capacity} Guests</strong>
                 </p>
               </div>
               <button
+                type="button"
                 onClick={() => setOpenModalTable(null)}
                 className="p-1.5 text-stone-400 hover:text-white rounded-lg hover:bg-stone-800 cursor-pointer"
               >
@@ -1639,7 +1641,8 @@ export default function PosTerminalPage() {
               </button>
             </div>
 
-            <div className="space-y-4">
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 custom-scrollbar">
               {/* Dynamic Number of Guests with Unlimited / Extra Chairs Support */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
@@ -1813,11 +1816,12 @@ export default function PosTerminalPage() {
               </div>
             </div>
 
-            <div className="flex gap-3 pt-2">
+            {/* Modal Footer */}
+            <div className="p-3.5 sm:p-4 border-t border-stone-800 bg-stone-900 flex gap-2.5 shrink-0">
               <button
                 type="button"
                 onClick={() => setOpenModalTable(null)}
-                className="flex-1 py-3 bg-stone-800 hover:bg-stone-700 text-stone-300 font-bold text-xs rounded-xl transition-colors cursor-pointer"
+                className="flex-1 py-2.5 bg-stone-800 hover:bg-stone-700 text-stone-300 font-bold text-xs rounded-xl transition-colors cursor-pointer active:scale-95"
               >
                 Cancel
               </button>
@@ -1825,7 +1829,7 @@ export default function PosTerminalPage() {
                 type="button"
                 disabled={openingSession}
                 onClick={handleOpenTableSession}
-                className="flex-1 py-3 bg-orange-600 hover:bg-orange-500 text-white font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-orange-600/30 cursor-pointer disabled:opacity-60"
+                className="flex-1 py-2.5 bg-orange-600 hover:bg-orange-500 text-white font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-orange-600/30 cursor-pointer disabled:opacity-60 active:scale-95"
               >
                 {openingSession ? "Opening..." : "Seat Table"}
               </button>
@@ -1836,156 +1840,162 @@ export default function PosTerminalPage() {
 
       {/* Modal: Product Weight / Portion Customizer */}
       {activeProduct && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-stone-900 border border-stone-800 w-full max-w-md rounded-3xl p-6 shadow-2xl space-y-5 animate-scale-in">
-            <div className="flex justify-between items-start">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-stone-900 border border-stone-800 w-full max-w-md max-h-[calc(100dvh-2rem)] flex flex-col rounded-3xl shadow-2xl animate-scale-in overflow-hidden">
+            {/* Header */}
+            <div className="flex justify-between items-start px-5 py-4 border-b border-stone-800 shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-stone-800 overflow-hidden shrink-0">
+                <div className="w-11 h-11 rounded-xl bg-stone-800 overflow-hidden shrink-0">
                   <img src={activeProduct.image || "/images/logo.png"} alt={activeProduct.name} className="w-full h-full object-cover" />
                 </div>
                 <div>
-                  <h3 className="text-base font-black text-white">{activeProduct.name}</h3>
+                  <h3 className="text-base font-black text-white leading-tight">{activeProduct.name}</h3>
                   <p className="text-xs text-stone-400">{activeProduct.category}</p>
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setActiveProduct(null)}
-                className="p-1.5 text-stone-400 hover:text-white rounded-lg hover:bg-stone-800"
+                className="p-1.5 text-stone-400 hover:text-white rounded-lg hover:bg-stone-800 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Price Type Specific Options */}
-            {activeProduct.priceType === "weight" ? (
-              <div className="space-y-4">
-                <div className="p-3 bg-stone-850 rounded-2xl border border-stone-800 flex justify-between items-center">
-                  <span className="text-xs font-bold text-stone-400">Price Rate:</span>
-                  <span className="text-sm font-black text-orange-400">Rs. {activeProduct.pricePerKg} / kg</span>
-                </div>
+            {/* Scrollable Body */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 custom-scrollbar">
+              {/* Price Type Specific Options */}
+              {activeProduct.priceType === "weight" ? (
+                <div className="space-y-4">
+                  <div className="p-3 bg-stone-850 rounded-2xl border border-stone-800 flex justify-between items-center">
+                    <span className="text-xs font-bold text-stone-400">Price Rate:</span>
+                    <span className="text-sm font-black text-orange-400">Rs. {activeProduct.pricePerKg} / kg</span>
+                  </div>
 
+                  <div>
+                    <label className="block text-xs font-bold text-stone-300 mb-1.5">Select Weight Portion</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(activeProduct.weightOptions || [{ value: 250, unit: "g" }, { value: 500, unit: "g" }, { value: 1000, unit: "g" }]).map((opt) => {
+                        const isSelected = selectedWeightGrams === opt.value && !customWeightInput;
+                        const price = Math.round(((activeProduct.pricePerKg || 0) * opt.value) / 1000);
+                        return (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => {
+                              setSelectedWeightGrams(opt.value);
+                              setCustomWeightInput("");
+                            }}
+                            className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer active:scale-95 ${
+                              isSelected
+                                ? "bg-orange-600 border-orange-500 text-white shadow-md shadow-orange-600/30"
+                                : "bg-stone-850 border-stone-700 text-stone-300 hover:border-stone-600"
+                            }`}
+                          >
+                            <div className="text-xs font-black">{opt.value}g</div>
+                            <div className="text-[10px] opacity-80 mt-0.5">Rs. {price}</div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {activeProduct.allowCustomWeight && (
+                    <div>
+                      <label className="block text-xs font-bold text-stone-300 mb-1.5">Or Custom Weight (Grams)</label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 750"
+                        value={customWeightInput}
+                        onChange={(e) => setCustomWeightInput(e.target.value)}
+                        className="w-full bg-stone-800 border border-stone-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500"
+                      />
+                    </div>
+                  )}
+                </div>
+              ) : (
                 <div>
-                  <label className="block text-xs font-bold text-stone-300 mb-1.5">Select Weight Portion</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {(activeProduct.weightOptions || [{ value: 250, unit: "g" }, { value: 500, unit: "g" }, { value: 1000, unit: "g" }]).map((opt) => {
-                      const isSelected = selectedWeightGrams === opt.value && !customWeightInput;
-                      const price = Math.round(((activeProduct.pricePerKg || 0) * opt.value) / 1000);
+                  <label className="block text-xs font-bold text-stone-300 mb-2">Select Serving Portion</label>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    {(activeProduct.variants && activeProduct.variants.length > 0 
+                      ? activeProduct.variants 
+                      : [{ name: "Full Plate / Standard", price: activeProduct.pricePerKg || 0 }]
+                    ).map((v) => {
+                      const isSelected = selectedVariant?.name === v.name;
                       return (
                         <button
-                          key={opt.value}
+                          key={v.name}
                           type="button"
-                          onClick={() => {
-                            setSelectedWeightGrams(opt.value);
-                            setCustomWeightInput("");
-                          }}
-                          className={`p-2.5 rounded-xl border text-center transition-all ${
+                          onClick={() => setSelectedVariant(v)}
+                          className={`p-3 rounded-2xl border text-left transition-all cursor-pointer active:scale-95 ${
                             isSelected
-                              ? "bg-orange-600 border-orange-500 text-white shadow-md shadow-orange-600/30"
-                              : "bg-stone-850 border-stone-700 text-stone-300 hover:border-stone-600"
+                              ? "bg-orange-600/20 border-orange-500 text-white shadow-sm"
+                              : "bg-stone-850 border-stone-700 hover:border-stone-600 text-stone-300"
                           }`}
                         >
-                          <div className="text-xs font-black">{opt.value}g</div>
-                          <div className="text-[10px] opacity-80 mt-0.5">Rs. {price}</div>
+                          <div className="flex items-center justify-between">
+                            <div className="text-xs font-black line-clamp-1">{v.name}</div>
+                            {isSelected && <Check className="w-3.5 h-3.5 text-orange-400" />}
+                          </div>
+                          <div className={`text-sm font-black mt-1 ${isSelected ? "text-orange-400" : "text-stone-400"}`}>
+                            Rs. {v.price}
+                          </div>
                         </button>
                       );
                     })}
                   </div>
                 </div>
+              )}
 
-                {activeProduct.allowCustomWeight && (
-                  <div>
-                    <label className="block text-xs font-bold text-stone-300 mb-1.5">Or Custom Weight (Grams)</label>
-                    <input
-                      type="number"
-                      placeholder="e.g. 750"
-                      value={customWeightInput}
-                      onChange={(e) => setCustomWeightInput(e.target.value)}
-                      className="w-full bg-stone-800 border border-stone-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500"
-                    />
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div>
-                <label className="block text-xs font-bold text-stone-300 mb-2">Select Serving Portion</label>
-                <div className="grid grid-cols-2 gap-2.5">
-                  {(activeProduct.variants && activeProduct.variants.length > 0 
-                    ? activeProduct.variants 
-                    : [{ name: "Full Plate / Standard", price: activeProduct.pricePerKg || 0 }]
-                  ).map((v) => {
-                    const isSelected = selectedVariant?.name === v.name;
-                    return (
-                      <button
-                        key={v.name}
-                        type="button"
-                        onClick={() => setSelectedVariant(v)}
-                        className={`p-3.5 rounded-2xl border-2 text-left transition-all relative ${
-                          isSelected
-                            ? "bg-orange-600 border-orange-400 text-white shadow-lg shadow-orange-600/30 scale-[1.02]"
-                            : "bg-stone-850 border-stone-700/80 text-stone-300 hover:border-stone-500 hover:bg-stone-800"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="text-xs font-black line-clamp-1">{v.name}</div>
-                          {isSelected && <Check className="w-3.5 h-3.5" />}
-                        </div>
-                        <div className={`text-sm font-black mt-1 ${isSelected ? "text-white" : "text-orange-400"}`}>
-                          Rs. {v.price}
-                        </div>
-                      </button>
-                    );
-                  })}
+              {/* Special Instructions & Quantity */}
+              <div className="space-y-3 pt-2 border-t border-stone-800">
+                <div>
+                  <label className="block text-xs font-bold text-stone-300 mb-1.5">Special Cooking Note</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Extra spicy, no onion, well done..."
+                    value={itemInstructions}
+                    onChange={(e) => setItemInstructions(e.target.value)}
+                    className="w-full bg-stone-800 border border-stone-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500"
+                  />
                 </div>
-              </div>
-            )}
 
-            {/* Special Instructions & Quantity */}
-            <div className="space-y-3 pt-2 border-t border-stone-800">
-              <div>
-                <label className="block text-xs font-bold text-stone-300 mb-1.5">Special Cooking Note</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Extra spicy, no onion, well done..."
-                  value={itemInstructions}
-                  onChange={(e) => setItemInstructions(e.target.value)}
-                  className="w-full bg-stone-800 border border-stone-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500"
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-stone-300">Quantity</span>
-                <div className="flex items-center gap-3 bg-stone-800 px-3 py-1.5 rounded-xl border border-stone-700">
-                  <button
-                    type="button"
-                    onClick={() => setItemQty(Math.max(1, itemQty - 1))}
-                    className="text-stone-400 hover:text-white"
-                  >
-                    <Minus className="w-4 h-4" />
-                  </button>
-                  <span className="text-sm font-black text-white w-6 text-center">{itemQty}</span>
-                  <button
-                    type="button"
-                    onClick={() => setItemQty(itemQty + 1)}
-                    className="text-stone-400 hover:text-white"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-stone-300">Quantity</span>
+                  <div className="flex items-center gap-3 bg-stone-800 px-3 py-1.5 rounded-xl border border-stone-700">
+                    <button
+                      type="button"
+                      onClick={() => setItemQty(Math.max(1, itemQty - 1))}
+                      className="text-stone-400 hover:text-white cursor-pointer active:scale-95"
+                    >
+                      <Minus className="w-4 h-4" />
+                    </button>
+                    <span className="text-sm font-black text-white w-6 text-center">{itemQty}</span>
+                    <button
+                      type="button"
+                      onClick={() => setItemQty(itemQty + 1)}
+                      className="text-stone-400 hover:text-white cursor-pointer active:scale-95"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex gap-3 pt-2">
+            {/* Fixed Footer */}
+            <div className="p-3.5 sm:p-4 border-t border-stone-800 bg-stone-900 flex gap-2.5 shrink-0">
               <button
                 type="button"
                 onClick={() => setActiveProduct(null)}
-                className="flex-1 py-3 bg-stone-800 hover:bg-stone-700 text-stone-300 font-bold text-xs rounded-xl"
+                className="flex-1 py-2.5 bg-stone-800 hover:bg-stone-700 text-stone-300 font-bold text-xs rounded-xl transition-colors cursor-pointer active:scale-95"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleAddToCart}
-                className="flex-1 py-3 bg-orange-600 hover:bg-orange-500 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-orange-600/30"
+                className="flex-1 py-2.5 bg-orange-600 hover:bg-orange-500 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-orange-600/30 cursor-pointer active:scale-95"
               >
                 Add to KOT
               </button>

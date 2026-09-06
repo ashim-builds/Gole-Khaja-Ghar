@@ -447,19 +447,21 @@ export default function AdminWaitersPage() {
 
       {/* Add Staff Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-stone-200 animate-scale-in text-stone-900">
-            <div className="flex items-center justify-between pb-4 border-b border-stone-100">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full max-h-[calc(100dvh-2rem)] flex flex-col shadow-2xl border border-stone-200 animate-scale-in text-stone-900 overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-stone-100 shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
+                <div className="p-2 rounded-xl bg-orange-50 text-orange-600 border border-orange-200/80">
                   <UserPlus className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-black text-lg text-stone-900">Add New Staff Member</h3>
-                  <p className="text-xs text-stone-500">Create login credentials for restaurant staff</p>
+                  <h3 className="font-black text-base sm:text-lg text-stone-900 leading-tight">Add New Staff Member</h3>
+                  <p className="text-[11px] text-stone-500">Create login credentials for restaurant staff</p>
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setModalOpen(false)}
                 className="text-stone-400 hover:text-stone-900 p-1.5 rounded-lg hover:bg-stone-100 cursor-pointer"
               >
@@ -467,168 +469,171 @@ export default function AdminWaitersPage() {
               </button>
             </div>
 
-            <form onSubmit={handleCreateStaff} className="space-y-4 pt-4">
-              {/* Role Picker */}
-              <div>
-                <label className="block text-xs font-bold text-stone-700 uppercase mb-1.5">Staff Role</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setRole("WAITER");
-                      if (!employeeCode || employeeCode.startsWith("CHEF-")) setEmployeeCode(`W-${staff.length + 1}`);
-                    }}
-                    className={`p-3 rounded-xl border flex items-center justify-center gap-2 text-xs font-bold transition-all cursor-pointer ${
-                      role === "WAITER"
-                        ? "bg-stone-900 border-stone-900 text-white shadow-md"
-                        : "bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100"
-                    }`}
-                  >
-                    <UtensilsCrossed className="w-4 h-4 text-orange-400" />
-                    Waiter / Server
-                  </button>
+            {/* Form */}
+            <form onSubmit={handleCreateStaff} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+              {/* Scrollable Fields */}
+              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 custom-scrollbar">
+                {/* Role Picker */}
+                <div>
+                  <label className="block text-xs font-bold text-stone-700 uppercase mb-1.5">Staff Role</label>
+                  <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRole("WAITER");
+                        if (!employeeCode || employeeCode.startsWith("CHEF-")) setEmployeeCode(`W-${staff.length + 1}`);
+                      }}
+                      className={`py-2 px-3 rounded-xl border flex items-center justify-center gap-2 text-xs font-bold transition-all cursor-pointer ${
+                        role === "WAITER"
+                          ? "bg-stone-900 border-stone-900 text-white shadow-xs"
+                          : "bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100"
+                      }`}
+                    >
+                      <UtensilsCrossed className="w-4 h-4 text-orange-400" />
+                      Waiter / Server
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setRole("KITCHEN");
-                      if (!employeeCode || employeeCode.startsWith("W-")) setEmployeeCode(`CHEF-${staff.length + 1}`);
-                    }}
-                    className={`p-3 rounded-xl border flex items-center justify-center gap-2 text-xs font-bold transition-all cursor-pointer ${
-                      role === "KITCHEN"
-                        ? "bg-stone-900 border-stone-900 text-white shadow-md"
-                        : "bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100"
-                    }`}
-                  >
-                    <ChefHat className="w-4 h-4 text-amber-400" />
-                    Kitchen Chef
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRole("KITCHEN");
+                        if (!employeeCode || employeeCode.startsWith("W-")) setEmployeeCode(`CHEF-${staff.length + 1}`);
+                      }}
+                      className={`py-2 px-3 rounded-xl border flex items-center justify-center gap-2 text-xs font-bold transition-all cursor-pointer ${
+                        role === "KITCHEN"
+                          ? "bg-stone-900 border-stone-900 text-white shadow-xs"
+                          : "bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100"
+                      }`}
+                    >
+                      <ChefHat className="w-4 h-4 text-amber-400" />
+                      Kitchen Chef
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              {/* Full Name Input */}
-              <div>
-                <label className="block text-xs font-bold text-stone-700 uppercase mb-1">
-                  Full Name * <span className="text-[10px] text-stone-400 font-normal">(Letters only, no numbers)</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Ramesh Thapa"
-                  value={name}
-                  onChange={(e) => {
-                    // Only allow letters, spaces, dots, hyphens
-                    const filtered = e.target.value.replace(/[^a-zA-Z\s.'-]/g, "");
-                    setName(filtered);
-                  }}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 bg-white text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm font-semibold"
-                />
-              </div>
+                {/* Full Name & Employee Code in 2-column */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-stone-700 uppercase mb-1">
+                      Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Ramesh Thapa"
+                      value={name}
+                      onChange={(e) => {
+                        const filtered = e.target.value.replace(/[^a-zA-Z\s.'-]/g, "");
+                        setName(filtered);
+                      }}
+                      className="w-full px-3 py-2 rounded-xl border border-stone-300 bg-white text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-xs sm:text-sm font-semibold"
+                    />
+                  </div>
 
-              {/* Employee Code & Phone Number */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-stone-700 uppercase mb-1">
+                      Employee Code *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder={role === "KITCHEN" ? "e.g. CHEF-1" : "e.g. W-101"}
+                      value={employeeCode}
+                      onChange={(e) => {
+                        const filtered = e.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, "").slice(0, 15);
+                        setEmployeeCode(filtered);
+                      }}
+                      className="w-full px-3 py-2 rounded-xl border border-stone-300 bg-white text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-xs sm:text-sm font-mono font-bold uppercase"
+                    />
+                  </div>
+                </div>
+
+                {/* Phone & Password */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-stone-700 uppercase mb-1">
+                      Phone Number * <span className="text-[10px] text-stone-400 font-normal">(10 digits)</span>
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="98XXXXXXXX"
+                      value={phone}
+                      onChange={(e) => {
+                        const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
+                        setPhone(digits);
+                      }}
+                      className="w-full px-3 py-2 rounded-xl border border-stone-300 bg-white text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-xs sm:text-sm font-semibold font-mono"
+                    />
+                    {phone && !phone.startsWith("9") && (
+                      <p className="text-[10px] text-red-500 font-medium mt-0.5 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3 shrink-0" />
+                        Must start with 9
+                      </p>
+                    )}
+                    {phone && phone.startsWith("9") && phone.length < 10 && (
+                      <p className="text-[10px] text-amber-600 font-medium mt-0.5">
+                        {10 - phone.length} digits left
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-stone-700 uppercase mb-1">Password *</label>
+                    <div className="relative">
+                      <KeyRound className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+                      <input
+                        type="password"
+                        required
+                        placeholder="Min 6 chars"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full pl-9 pr-3 py-2 rounded-xl border border-stone-300 bg-white text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-xs sm:text-sm font-medium"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Email (Optional) */}
                 <div>
                   <label className="block text-xs font-bold text-stone-700 uppercase mb-1">
-                    Employee Code *
+                    Email <span className="text-[10px] text-stone-400 font-normal">(Optional)</span>
                   </label>
+                  <input
+                    type="email"
+                    placeholder="ramesh@gmail.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-stone-300 bg-white text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-xs sm:text-sm font-medium"
+                  />
+                </div>
+
+                {/* Notes */}
+                <div>
+                  <label className="block text-xs font-bold text-stone-700 uppercase mb-1">Notes (Optional)</label>
                   <input
                     type="text"
-                    required
-                    placeholder={role === "KITCHEN" ? "e.g. CHEF-1" : "e.g. W-101"}
-                    value={employeeCode}
-                    onChange={(e) => {
-                      const filtered = e.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, "").slice(0, 15);
-                      setEmployeeCode(filtered);
-                    }}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 bg-white text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm font-mono font-bold uppercase"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-stone-700 uppercase mb-1">
-                    Phone Number * <span className="text-[10px] text-stone-400 font-normal">(10 digits starting with 9)</span>
-                  </label>
-                  <input
-                    type="tel"
-                    required
-                    placeholder="98XXXXXXXX"
-                    value={phone}
-                    onChange={(e) => {
-                      // Only allow digits, max 10
-                      const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
-                      setPhone(digits);
-                    }}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 bg-white text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm font-semibold font-mono"
-                  />
-                  {phone && !phone.startsWith("9") && (
-                    <p className="text-[11px] text-red-500 font-medium mt-1 flex items-center gap-1">
-                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                      Phone number must start with 9
-                    </p>
-                  )}
-                  {phone && phone.startsWith("9") && phone.length < 10 && (
-                    <p className="text-[11px] text-amber-600 font-medium mt-1">
-                      {10 - phone.length} more digit{10 - phone.length > 1 ? "s" : ""} required (10 total)
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Password */}
-              <div>
-                <label className="block text-xs font-bold text-stone-700 uppercase mb-1">Password *</label>
-                <div className="relative">
-                  <KeyRound className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
-                  <input
-                    type="password"
-                    required
-                    placeholder="Enter login password (min 6 chars)"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-stone-300 bg-white text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm font-medium"
+                    placeholder="e.g. Head chef / Evening shift server"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-stone-300 bg-white text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-xs sm:text-sm font-medium"
                   />
                 </div>
               </div>
 
-              {/* Email (Optional) */}
-              <div>
-                <label className="block text-xs font-bold text-stone-700 uppercase mb-1">
-                  Email <span className="text-[10px] text-stone-400 font-normal">(Optional, valid format e.g. name@gmail.com)</span>
-                </label>
-                <input
-                  type="email"
-                  placeholder="ramesh@gmail.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 bg-white text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm font-medium"
-                />
-              </div>
-
-              {/* Notes */}
-              <div>
-                <label className="block text-xs font-bold text-stone-700 uppercase mb-1">Notes (Optional)</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Head chef / Evening shift server"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 bg-white text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm font-medium"
-                />
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-3 pt-3">
+              {/* Sticky Action Footer */}
+              <div className="p-3.5 sm:p-4 border-t border-stone-100 bg-stone-50 flex gap-2.5 shrink-0">
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
-                  className="flex-1 py-3 border border-stone-200 text-stone-600 font-bold text-xs rounded-xl hover:bg-stone-50 cursor-pointer"
+                  className="flex-1 py-2.5 border border-stone-200 bg-white hover:bg-stone-100 text-stone-700 font-bold text-xs rounded-xl cursor-pointer transition-colors active:scale-95"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={creating}
-                  className="flex-1 py-3 bg-orange-600 text-white font-black uppercase text-xs tracking-wider rounded-xl hover:bg-orange-500 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-orange-600/20 disabled:opacity-50"
+                  className="flex-1 py-2.5 bg-orange-600 hover:bg-orange-500 text-white font-black uppercase text-xs tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-orange-600/20 disabled:opacity-50 active:scale-95"
                 >
                   {creating ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : "Save Account"}
                 </button>
