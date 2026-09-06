@@ -26,7 +26,7 @@ function AdminProtectedLayoutContent() {
   const location = useLocation();
   const navigate = useNavigate();
   const pathname = location.pathname;
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const { newOrderNotification, dismissNotification, stats } = useAdminLive();
 
   const handleLogout = async () => {
@@ -131,115 +131,84 @@ function AdminProtectedLayoutContent() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        {/* Mobile Header */}
-        <header className="md:hidden flex items-center justify-between p-4 bg-[#111111] text-white">
-          <Link to="/admin" className="flex items-center gap-2">
-            <div className="relative w-7 h-7 rounded-full overflow-hidden border border-white/20 flex-shrink-0 bg-stone-900 flex items-center justify-center">
-              <img
-                src="/images/logo.png"
-                alt="Gole Khaja Ghar"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <span className="text-lg font-black text-white">
-              Gole <span className="text-primary">Admin</span>
-            </span>
-          </Link>
-          <div className="flex items-center gap-2">
-            <Link
-              to="/"
-              className="px-2.5 py-1 text-[11px] font-bold bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 rounded-lg flex items-center gap-1 transition-colors"
-            >
-              <Store className="w-3.5 h-3.5 text-emerald-400" />
-              Store
-            </Link>
-            <NotificationBell type="admin" />
-            {stats && stats.pendingOrders > 0 && (
-              <span className="px-2 py-0.5 bg-red-500 text-white text-[10px] rounded-full font-black animate-pulse">
-                {stats.pendingOrders}
-              </span>
-            )}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 cursor-pointer text-stone-300 hover:text-white"
-            >
-              {mobileMenuOpen ? (
-                <X className="w-6 h-6" />
-              ) : (
-                <Menu className="w-6 h-6" />
-              )}
-            </button>
-          </div>
-        </header>
+        {/* Page Content */}
+        <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-8 bg-stone-50 pb-28 md:pb-8 custom-scrollbar">
+          <Outlet />
+        </main>
 
-        {/* Mobile Dropdown Menu */}
-        {mobileMenuOpen && (
+        {/* Mobile "More" Bottom Sheet Drawer */}
+        {moreOpen && (
           <>
             {/* Backdrop */}
             <div
-              className="md:hidden fixed inset-0 top-16 bg-black/60 backdrop-blur-sm z-40 animate-fade-in"
-              onClick={() => setMobileMenuOpen(false)}
+              className="md:hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 animate-fade-in"
+              onClick={() => setMoreOpen(false)}
             />
-            {/* Scrollable Menu Panel */}
-            <div className="md:hidden bg-[#111111] text-white absolute top-16 left-0 right-0 z-50 border-t border-white/10 p-4 space-y-1.5 shadow-2xl max-h-[calc(100dvh-4.5rem)] overflow-y-auto custom-scrollbar overscroll-contain pb-24">
-              {navItems.map((item) => {
-                const isActive =
-                  item.href === "/admin"
-                    ? pathname === "/admin"
-                    : pathname === item.href ||
-                      pathname.startsWith(`${item.href}/`);
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all text-sm ${
-                      isActive
-                        ? "bg-orange-600 text-white font-black shadow-md shadow-orange-600/30"
-                        : "text-stone-400 hover:text-white hover:bg-white/5 active:bg-white/10"
-                    }`}
+            {/* Slide-Up Sheet */}
+            <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#111111] border-t border-white/15 rounded-t-3xl p-5 shadow-2xl max-h-[85vh] overflow-y-auto custom-scrollbar overscroll-contain animate-in slide-in-from-bottom-6 duration-200">
+              {/* Sheet Drag Handle & Header */}
+              <div className="flex flex-col items-center mb-4">
+                <div className="w-10 h-1 rounded-full bg-white/20 mb-3" />
+                <div className="flex items-center justify-between w-full px-1">
+                  <h3 className="text-base font-black text-white flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-orange-500" />
+                    More Management Options
+                  </h3>
+                  <button
+                    onClick={() => setMoreOpen(false)}
+                    className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-stone-300 hover:text-white cursor-pointer"
                   >
-                    <item.icon className="w-5 h-5 shrink-0" />
-                    <span className="flex-1">{item.name}</span>
-                    {item.name === "Orders" && stats && stats.pendingOrders > 0 && (
-                      <span className="px-2 py-0.5 bg-red-500 text-white rounded-full text-[10px] font-black animate-pulse">
-                        {stats.pendingOrders}
-                      </span>
-                    )}
-                  </Link>
-                );
-              })}
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
 
-              <div className="pt-3 border-t border-white/10 mt-3 space-y-1.5">
-                <Link
-                  to="/"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-emerald-400 hover:bg-emerald-500/10 border border-emerald-500/20 bg-emerald-500/5 text-sm transition-colors"
-                >
-                  <Store className="w-5 h-5 text-emerald-400 shrink-0" />
-                  <span className="flex-1">Go to Customer Store</span>
-                  <ExternalLink className="w-4 h-4 text-emerald-400/70 shrink-0" />
-                </Link>
+              {/* 2-Column Grid of More Admin Tools */}
+              <div className="grid grid-cols-2 gap-2.5">
+                {[
+                  { name: "Kitchen (KDS)", href: "/kitchen", icon: ChefHat, color: "text-amber-400" },
+                  { name: "Tables", href: "/admin/tables", icon: Grid, color: "text-emerald-400" },
+                  { name: "Billing", href: "/admin/billing", icon: Receipt, color: "text-cyan-400" },
+                  { name: "Staff", href: "/admin/waiters", icon: Users, color: "text-purple-400" },
+                  { name: "Reports", href: "/admin/reports", icon: TrendingUp, color: "text-blue-400" },
+                  { name: "Settings", href: "/admin/settings", icon: Settings, color: "text-stone-300" },
+                ].map((item) => {
+                  const isActive =
+                    pathname === item.href || pathname.startsWith(`${item.href}/`);
+                  return (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      onClick={() => setMoreOpen(false)}
+                      className={`p-3.5 rounded-2xl border flex flex-col justify-between transition-all active:scale-95 ${
+                        isActive
+                          ? "bg-orange-600/20 border-orange-500 text-white shadow-md shadow-orange-600/20 ring-1 ring-orange-500/50"
+                          : "bg-white/5 border-white/10 hover:border-white/20 text-stone-200 hover:bg-white/10"
+                      }`}
+                    >
+                      <item.icon className={`w-5 h-5 mb-2 ${item.color}`} />
+                      <span className="text-xs font-black">{item.name}</span>
+                    </Link>
+                  );
+                })}
+              </div>
 
+              {/* Logout Action (No Store link as requested) */}
+              <div className="pt-4 border-t border-white/10 mt-4">
                 <button
                   onClick={() => {
-                    setMobileMenuOpen(false);
+                    setMoreOpen(false);
                     handleLogout();
                   }}
-                  className="flex items-center gap-3 w-full px-4 py-3 text-stone-400 hover:text-red-400 font-bold hover:bg-white/5 rounded-xl cursor-pointer text-sm transition-colors"
+                  className="flex items-center justify-center gap-2.5 w-full py-3 px-4 text-red-400 hover:text-red-300 font-black text-xs uppercase tracking-wider bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-xl cursor-pointer transition-all active:scale-95"
                 >
-                  <LogOut className="w-5 h-5 shrink-0" />
+                  <LogOut className="w-4 h-4" />
                   <span>Logout</span>
                 </button>
               </div>
             </div>
           </>
         )}
-
-        {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-8 bg-stone-50 pb-36 md:pb-8 custom-scrollbar">
-          <Outlet />
-        </main>
 
         {/* Admin Mobile Bottom Navigation */}
         <div
@@ -248,40 +217,55 @@ function AdminProtectedLayoutContent() {
             paddingBottom: "max(0.75rem, env(safe-area-inset-bottom, 0px))",
           }}
         >
-          <div className="flex justify-around items-center px-1 pt-2.5">
+          <div className="flex justify-around items-center px-1 pt-2">
+            {/* 1. Dashboard */}
             <Link
               to="/admin"
-              className="flex flex-col items-center gap-1 group py-1 px-1.5"
+              className="flex flex-col items-center gap-1 group py-1 px-2"
             >
               <LayoutDashboard
-                className={`w-5 h-5 transition-transform group-active:scale-90 ${pathname === "/admin" ? "text-primary" : "text-white/60 group-hover:text-primary"}`}
+                className={`w-5 h-5 transition-transform group-active:scale-90 ${
+                  pathname === "/admin" ? "text-orange-500 font-bold" : "text-white/60 group-hover:text-orange-500"
+                }`}
               />
               <span
-                className={`text-[9px] font-bold ${pathname === "/admin" ? "text-primary" : "text-white/60 group-hover:text-primary"}`}
+                className={`text-[9px] font-bold ${
+                  pathname === "/admin" ? "text-orange-500" : "text-white/60 group-hover:text-orange-500"
+                }`}
               >
                 Dashboard
               </span>
             </Link>
+
+            {/* 2. Dine-In POS */}
             <Link
-              to="/admin/products"
-              className="flex flex-col items-center gap-1 group py-1 px-1.5"
+              to="/pos"
+              className="flex flex-col items-center gap-1 group py-1 px-2"
             >
-              <Package
-                className={`w-5 h-5 transition-transform group-active:scale-90 ${pathname.startsWith("/admin/products") ? "text-primary" : "text-white/60 group-hover:text-primary"}`}
+              <UtensilsCrossed
+                className={`w-5 h-5 transition-transform group-active:scale-90 ${
+                  pathname.startsWith("/pos") ? "text-orange-500 font-bold" : "text-white/60 group-hover:text-orange-500"
+                }`}
               />
               <span
-                className={`text-[9px] font-bold ${pathname.startsWith("/admin/products") ? "text-primary" : "text-white/60 group-hover:text-primary"}`}
+                className={`text-[9px] font-bold ${
+                  pathname.startsWith("/pos") ? "text-orange-500" : "text-white/60 group-hover:text-orange-500"
+                }`}
               >
-                Products
+                POS
               </span>
             </Link>
+
+            {/* 3. Orders */}
             <Link
               to="/admin/orders"
-              className="flex flex-col items-center gap-1 group py-1 px-1.5 relative"
+              className="flex flex-col items-center gap-1 group py-1 px-2 relative"
             >
               <div className="relative">
                 <ShoppingCart
-                  className={`w-5 h-5 transition-transform group-active:scale-90 ${pathname.startsWith("/admin/orders") ? "text-primary" : "text-white/60 group-hover:text-primary"}`}
+                  className={`w-5 h-5 transition-transform group-active:scale-90 ${
+                    pathname.startsWith("/admin/orders") ? "text-orange-500 font-bold" : "text-white/60 group-hover:text-orange-500"
+                  }`}
                 />
                 {stats && stats.pendingOrders > 0 && (
                   <span className="absolute -top-1.5 -right-2.5 bg-red-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center animate-pulse shadow-md">
@@ -290,46 +274,68 @@ function AdminProtectedLayoutContent() {
                 )}
               </div>
               <span
-                className={`text-[9px] font-bold ${pathname.startsWith("/admin/orders") ? "text-primary" : "text-white/60 group-hover:text-primary"}`}
+                className={`text-[9px] font-bold ${
+                  pathname.startsWith("/admin/orders") ? "text-orange-500" : "text-white/60 group-hover:text-orange-500"
+                }`}
               >
                 Orders
               </span>
             </Link>
+
+            {/* 4. Products */}
             <Link
-              to="/admin/waiters"
-              className="flex flex-col items-center gap-1 group py-1 px-1.5"
+              to="/admin/products"
+              className="flex flex-col items-center gap-1 group py-1 px-2"
             >
-              <Users
-                className={`w-5 h-5 transition-transform group-active:scale-90 ${pathname.startsWith("/admin/waiters") ? "text-primary" : "text-white/60 group-hover:text-primary"}`}
+              <Package
+                className={`w-5 h-5 transition-transform group-active:scale-90 ${
+                  pathname.startsWith("/admin/products") ? "text-orange-500 font-bold" : "text-white/60 group-hover:text-orange-500"
+                }`}
               />
               <span
-                className={`text-[9px] font-bold ${pathname.startsWith("/admin/waiters") ? "text-primary" : "text-white/60 group-hover:text-primary"}`}
+                className={`text-[9px] font-bold ${
+                  pathname.startsWith("/admin/products") ? "text-orange-500" : "text-white/60 group-hover:text-orange-500"
+                }`}
               >
-                Staff
+                Products
               </span>
             </Link>
-            <Link
-              to="/admin/settings"
-              className="flex flex-col items-center gap-1 group py-1 px-1.5"
+
+            {/* 5. More (Bottom Drawer Trigger) */}
+            <button
+              type="button"
+              onClick={() => setMoreOpen(!moreOpen)}
+              className="flex flex-col items-center gap-1 group py-1 px-2 cursor-pointer"
             >
-              <Settings
-                className={`w-5 h-5 transition-transform group-active:scale-90 ${pathname.startsWith("/admin/settings") ? "text-primary" : "text-white/60 group-hover:text-primary"}`}
+              <Menu
+                className={`w-5 h-5 transition-transform group-active:scale-90 ${
+                  moreOpen ||
+                  pathname.startsWith("/kitchen") ||
+                  pathname.startsWith("/admin/tables") ||
+                  pathname.startsWith("/admin/billing") ||
+                  pathname.startsWith("/admin/waiters") ||
+                  pathname.startsWith("/admin/reports") ||
+                  pathname.startsWith("/admin/settings")
+                    ? "text-orange-500 font-bold"
+                    : "text-white/60 group-hover:text-orange-500"
+                }`}
               />
               <span
-                className={`text-[9px] font-bold ${pathname.startsWith("/admin/settings") ? "text-primary" : "text-white/60 group-hover:text-primary"}`}
+                className={`text-[9px] font-bold ${
+                  moreOpen ||
+                  pathname.startsWith("/kitchen") ||
+                  pathname.startsWith("/admin/tables") ||
+                  pathname.startsWith("/admin/billing") ||
+                  pathname.startsWith("/admin/waiters") ||
+                  pathname.startsWith("/admin/reports") ||
+                  pathname.startsWith("/admin/settings")
+                    ? "text-orange-500"
+                    : "text-white/60 group-hover:text-orange-500"
+                }`}
               >
-                Settings
+                More
               </span>
-            </Link>
-            <Link
-              to="/"
-              className="flex flex-col items-center gap-1 group py-1 px-1.5 text-emerald-400 hover:text-emerald-300 transition-colors"
-            >
-              <Store className="w-5 h-5 text-emerald-400 transition-transform group-active:scale-90" />
-              <span className="text-[9px] font-bold text-emerald-400">
-                Store
-              </span>
-            </Link>
+            </button>
           </div>
         </div>
       </div>
