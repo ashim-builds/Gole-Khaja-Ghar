@@ -68,170 +68,173 @@ export default function Navbar() {
   }
 
   return (
-    <header
-      className={`sticky top-0 z-50 w-full transition-all duration-500 ease-out ${
-        scrolled
-          ? "bg-[#0c0a09]/90 backdrop-blur-2xl border-b border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.45)]"
-          : "bg-[#111111]/95 backdrop-blur-md border-b border-[#222222]/80"
-      }`}
-    >
-      {/* Top micro orange accent gradient line when scrolled */}
-      <div
-        className={`w-full h-[2px] bg-gradient-to-r from-orange-600 via-amber-500 to-orange-600 transition-opacity duration-500 ${
-          scrolled ? "opacity-100" : "opacity-0"
+    <header className="sticky top-0 z-50 w-full flex flex-col items-center pointer-events-none px-2 sm:px-4 lg:px-6 transition-all duration-500 ease-out">
+      {/* Floating Apple-Style Blur Capsule Navbar */}
+      <nav
+        className={`pointer-events-auto relative w-full flex items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          scrolled
+            ? "max-w-5xl my-2.5 h-14 sm:h-15 px-3.5 sm:px-6 rounded-full bg-[#0c0a09]/85 backdrop-blur-2xl border border-white/20 shadow-[0_12px_40px_rgba(0,0,0,0.65)] ring-1 ring-white/10"
+            : "max-w-7xl my-1 sm:my-2 h-16 sm:h-18 px-4 sm:px-7 rounded-2xl sm:rounded-3xl bg-[#111111]/90 backdrop-blur-xl border border-white/10 shadow-lg shadow-black/30"
         }`}
-      />
+      >
+        {/* Subtle Ambient Radial Glow when in floating pill mode */}
+        {scrolled && (
+          <div className="absolute inset-0 -z-10 rounded-full bg-gradient-to-r from-orange-500/10 via-amber-500/5 to-orange-500/10 blur-xl pointer-events-none" />
+        )}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div
-          className={`flex justify-between items-center gap-3 sm:gap-6 transition-all duration-300 ease-out ${
-            scrolled ? "h-14 sm:h-16" : "h-16 sm:h-20"
-          }`}
-        >
-          {/* Brand Logo */}
-          <div className="shrink-0 flex items-center">
-            <Link to="/" onClick={scrollToTop} className="flex items-center gap-2.5 group">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 relative rounded-full overflow-hidden border border-primary/40 bg-stone-900 flex items-center justify-center shrink-0 shadow-md group-hover:scale-105 transition-transform duration-200">
-                <img src="/images/logo.png" alt="Gole Khaja Ghar Logo" className="w-full h-full object-cover" />
-              </div>
-              <span className="font-extrabold text-base sm:text-xl lg:text-2xl tracking-tight text-white whitespace-nowrap">
-                Gole <span className="text-primary">Khaja Ghar</span>
-              </span>
-            </Link>
-          </div>
-
-          {/* Desktop Center Navigation (>= 1024px) */}
-          <div className="hidden lg:flex items-center gap-6 xl:gap-8">
-            <div className="flex items-center gap-5 xl:gap-7">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  to={link.href}
-                  onClick={link.onClick}
-                  className={`relative font-semibold text-sm xl:text-base whitespace-nowrap py-1 transition-colors duration-200 group ${
-                    isActive(link.href) ? "text-primary font-bold" : "text-stone-300 hover:text-primary"
-                  }`}
-                >
-                  {link.name}
-                  <span
-                    className={`absolute -bottom-1 left-0 h-0.5 bg-primary transition-all duration-300 ${
-                      isActive(link.href) ? "w-full" : "w-0 group-hover:w-full"
-                    }`}
-                  />
-                </Link>
-              ))}
+        {/* Brand Logo */}
+        <div className="shrink-0 flex items-center">
+          <Link to="/" onClick={scrollToTop} className="flex items-center gap-2 sm:gap-2.5 group">
+            <div
+              className={`relative rounded-full overflow-hidden border border-primary/40 bg-stone-900 flex items-center justify-center shrink-0 shadow-md group-hover:scale-105 transition-all duration-300 ${
+                scrolled ? "w-8 h-8 sm:w-9 sm:h-9" : "w-8 h-8 sm:w-10 sm:h-10"
+              }`}
+            >
+              <img src="/images/logo.png" alt="Gole Khaja Ghar Logo" className="w-full h-full object-cover" />
             </div>
+            <span
+              className={`font-extrabold tracking-tight text-white whitespace-nowrap transition-all duration-300 ${
+                scrolled ? "text-sm sm:text-lg lg:text-xl" : "text-base sm:text-xl lg:text-2xl"
+              }`}
+            >
+              Gole <span className="text-primary">Khaja Ghar</span>
+            </span>
+          </Link>
+        </div>
 
-            {/* Right Side Desktop Actions */}
-            <div className="flex items-center gap-3 xl:gap-4 border-l border-white/10 pl-4 xl:pl-6 shrink-0">
-              {/* Admin or Staff prominent action button */}
-              {isAdmin ? (
-                <Link
-                  to="/admin"
-                  className="flex items-center gap-2 text-white bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600 hover:from-orange-500 hover:to-amber-500 transition-all text-xs xl:text-sm font-black px-3.5 py-2 rounded-full border border-orange-400/40 shadow-lg shadow-orange-600/25 tracking-wide group active:scale-95 duration-200"
-                  title="Open Admin Control Panel"
-                >
-                  <LayoutDashboard className="w-4 h-4 text-white group-hover:rotate-6 transition-transform duration-200" />
-                  <span>Admin Dashboard</span>
-                </Link>
-              ) : isWaiterOrCashier ? (
-                <Link
-                  to="/pos"
-                  className="flex items-center gap-2 text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 transition-all text-xs xl:text-sm font-black px-3.5 py-2 rounded-full border border-emerald-400/40 shadow-lg shadow-emerald-600/25 tracking-wide group active:scale-95 duration-200"
-                  title="Open POS Terminal"
-                >
-                  <Store className="w-4 h-4 text-white group-hover:scale-110 transition-transform duration-200" />
-                  <span>Dine-In POS</span>
-                </Link>
-              ) : isKitchen ? (
-                <Link
-                  to="/kitchen"
-                  className="flex items-center gap-2 text-white bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 transition-all text-xs xl:text-sm font-black px-3.5 py-2 rounded-full border border-amber-400/40 shadow-lg shadow-amber-600/25 tracking-wide group active:scale-95 duration-200"
-                  title="Open Kitchen Display System"
-                >
-                  <ChefHat className="w-4 h-4 text-white group-hover:rotate-6 transition-transform duration-200" />
-                  <span>Kitchen KDS</span>
-                </Link>
-              ) : (
-                <a
-                  href="tel:+9779846011810"
-                  className="flex items-center gap-2 text-white hover:text-primary transition-colors duration-200 text-xs xl:text-sm font-bold bg-white/5 hover:bg-white/10 px-3.5 py-2 rounded-full border border-white/10 active:scale-95"
-                >
-                  <Phone className="w-3.5 h-3.5 text-primary" />
-                  <span>Order Now</span>
-                </a>
-              )}
-
-              {/* Push Notification Bell */}
-              <NotificationBell type="customer" />
-
-              {/* Cart Button */}
-              <button
-                onClick={openCart}
-                className="relative p-2 text-white hover:text-primary transition-colors duration-200 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 flex items-center justify-center shrink-0 active:scale-95"
-                aria-label="View Cart"
+        {/* Desktop Center Navigation (>= 1024px) */}
+        <div className="hidden lg:flex items-center gap-5 xl:gap-8">
+          <div className="flex items-center gap-4 xl:gap-6">
+            {navLinks.map((link) => (
+              <Link
+                key={link.name}
+                to={link.href}
+                onClick={link.onClick}
+                className={`relative font-semibold whitespace-nowrap py-1 transition-colors duration-200 group ${
+                  scrolled ? "text-xs xl:text-sm" : "text-sm xl:text-base"
+                } ${isActive(link.href) ? "text-primary font-bold" : "text-stone-300 hover:text-primary"}`}
               >
-                <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
-                {totalItems > 0 && (
-                  <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1 text-[11px] font-black leading-none text-white bg-orange-600 rounded-full shadow-md border-2 border-black animate-pulse">
-                    {totalItems}
-                  </span>
-                )}
-              </button>
-            </div>
+                {link.name}
+                <span
+                  className={`absolute -bottom-1 left-0 h-0.5 bg-primary transition-all duration-300 ${
+                    isActive(link.href) ? "w-full" : "w-0 group-hover:w-full"
+                  }`}
+                />
+              </Link>
+            ))}
           </div>
 
-          {/* Mobile / Tablet Actions (< 1024px) */}
-          <div className="lg:hidden flex items-center gap-1.5 sm:gap-2">
-            {/* Quick Admin Icon Shortcut on mobile header */}
-            {isAdmin && (
+          {/* Right Side Desktop Actions */}
+          <div className="flex items-center gap-2.5 xl:gap-3.5 border-l border-white/10 pl-3.5 xl:pl-5 shrink-0">
+            {/* Admin or Staff prominent action button */}
+            {isAdmin ? (
               <Link
                 to="/admin"
-                className="flex items-center gap-1 text-white bg-gradient-to-r from-orange-600 to-amber-600 px-2.5 py-1.5 rounded-full border border-orange-400/40 text-[11px] font-black shadow-md shadow-orange-600/20 active:scale-95 transition-all"
-                title="Admin Dashboard"
+                className="flex items-center gap-2 text-white bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600 hover:from-orange-500 hover:to-amber-500 transition-all text-xs xl:text-sm font-black px-3.5 py-1.5 sm:py-2 rounded-full border border-orange-400/40 shadow-lg shadow-orange-600/25 tracking-wide group active:scale-95 duration-200"
+                title="Open Admin Control Panel"
               >
-                <LayoutDashboard className="w-3.5 h-3.5" />
-                <span className="hidden xs:inline">Admin</span>
+                <LayoutDashboard className="w-4 h-4 text-white group-hover:rotate-6 transition-transform duration-200" />
+                <span>Admin Dashboard</span>
               </Link>
+            ) : isWaiterOrCashier ? (
+              <Link
+                to="/pos"
+                className="flex items-center gap-2 text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 transition-all text-xs xl:text-sm font-black px-3.5 py-1.5 sm:py-2 rounded-full border border-emerald-400/40 shadow-lg shadow-emerald-600/25 tracking-wide group active:scale-95 duration-200"
+                title="Open POS Terminal"
+              >
+                <Store className="w-4 h-4 text-white group-hover:scale-110 transition-transform duration-200" />
+                <span>Dine-In POS</span>
+              </Link>
+            ) : isKitchen ? (
+              <Link
+                to="/kitchen"
+                className="flex items-center gap-2 text-white bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 transition-all text-xs xl:text-sm font-black px-3.5 py-1.5 sm:py-2 rounded-full border border-amber-400/40 shadow-lg shadow-amber-600/25 tracking-wide group active:scale-95 duration-200"
+                title="Open Kitchen Display System"
+              >
+                <ChefHat className="w-4 h-4 text-white group-hover:rotate-6 transition-transform duration-200" />
+                <span>Kitchen KDS</span>
+              </Link>
+            ) : (
+              <a
+                href="tel:+9779846011810"
+                className="flex items-center gap-2 text-white hover:text-primary transition-colors duration-200 text-xs xl:text-sm font-bold bg-white/5 hover:bg-white/10 px-3.5 py-1.5 sm:py-2 rounded-full border border-white/10 active:scale-95"
+              >
+                <Phone className="w-3.5 h-3.5 text-primary" />
+                <span>Order Now</span>
+              </a>
             )}
 
+            {/* Push Notification Bell */}
             <NotificationBell type="customer" />
 
+            {/* Cart Button */}
             <button
               onClick={openCart}
-              className="relative p-2 text-white hover:text-primary transition-colors bg-white/5 hover:bg-white/10 rounded-full border border-white/10 flex items-center justify-center shrink-0 active:scale-95"
+              className="relative p-2 text-white hover:text-primary transition-colors duration-200 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 flex items-center justify-center shrink-0 active:scale-95"
               aria-label="View Cart"
             >
               <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
               {totalItems > 0 && (
-                <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-black leading-none text-white bg-orange-600 rounded-full shadow-md border border-black">
+                <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1 text-[11px] font-black leading-none text-white bg-orange-600 rounded-full shadow-md border-2 border-black animate-pulse">
                   {totalItems}
                 </span>
               )}
             </button>
-
-            <button
-              onClick={toggleMenu}
-              className="text-white hover:text-primary p-2 focus:outline-none rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center shrink-0 active:scale-95 transition-colors"
-              aria-label="Toggle navigation menu"
-            >
-              {isOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <Menu className="w-5 h-5 sm:w-6 sm:h-6" />}
-            </button>
           </div>
         </div>
-      </div>
+
+        {/* Mobile / Tablet Actions (< 1024px) */}
+        <div className="lg:hidden flex items-center gap-1.5 sm:gap-2">
+          {/* Quick Admin Icon Shortcut on mobile header */}
+          {isAdmin && (
+            <Link
+              to="/admin"
+              className="flex items-center gap-1 text-white bg-gradient-to-r from-orange-600 to-amber-600 px-2.5 py-1.5 rounded-full border border-orange-400/40 text-[11px] font-black shadow-md shadow-orange-600/20 active:scale-95 transition-all"
+              title="Admin Dashboard"
+            >
+              <LayoutDashboard className="w-3.5 h-3.5" />
+              <span className="hidden xs:inline">Admin</span>
+            </Link>
+          )}
+
+          <NotificationBell type="customer" />
+
+          <button
+            onClick={openCart}
+            className="relative p-2 text-white hover:text-primary transition-colors bg-white/5 hover:bg-white/10 rounded-full border border-white/10 flex items-center justify-center shrink-0 active:scale-95"
+            aria-label="View Cart"
+          >
+            <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
+            {totalItems > 0 && (
+              <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-black leading-none text-white bg-orange-600 rounded-full shadow-md border border-black">
+                {totalItems}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={toggleMenu}
+            className="text-white hover:text-primary p-2 focus:outline-none rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center shrink-0 active:scale-95 transition-colors"
+            aria-label="Toggle navigation menu"
+          >
+            {isOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <Menu className="w-5 h-5 sm:w-6 sm:h-6" />}
+          </button>
+        </div>
+      </nav>
 
       {/* Animated Glassmorphism Mobile Menu Drawer */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: "easeInOut" }}
-            className="lg:hidden overflow-hidden w-full bg-[#0c0a09]/95 backdrop-blur-2xl border-t border-white/10 shadow-2xl"
+            initial={{ height: 0, opacity: 0, y: -6 }}
+            animate={{ height: "auto", opacity: 1, y: 0 }}
+            exit={{ height: 0, opacity: 0, y: -6 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            className={`pointer-events-auto lg:hidden overflow-hidden w-full mt-2 ${
+              scrolled ? "max-w-5xl" : "max-w-7xl"
+            }`}
           >
-            <div className="max-w-7xl mx-auto px-4 pt-3 pb-6 space-y-3">
+            <div className="p-4 space-y-3 bg-[#0c0a09]/95 backdrop-blur-2xl rounded-3xl border border-white/15 shadow-2xl ring-1 ring-white/10">
               {/* If Admin or Staff, show quick access hub */}
               {isAdmin && (
                 <div className="bg-stone-900/90 border border-orange-500/30 rounded-2xl p-3 mb-3 shadow-inner">
