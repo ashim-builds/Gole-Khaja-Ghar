@@ -441,29 +441,6 @@ export async function checkout(req: AuthenticatedRequest, res: Response): Promis
   }
 }
 
-const orderInclude = {
-  items: {
-    include: {
-      product: true,
-    },
-  },
-  bill: {
-    include: {
-      payments: true,
-    },
-  },
-  tableSession: {
-    include: {
-      table: true,
-      bill: {
-        include: {
-          payments: true,
-        },
-      },
-    },
-  },
-};
-
 export async function getOrderStatus(req: Request, res: Response): Promise<void> {
   try {
     const { orderNumber } = req.params;
