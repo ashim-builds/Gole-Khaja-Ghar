@@ -11,14 +11,19 @@ import {
   ShoppingCart,
   ClipboardList,
   Bike,
+  Smartphone,
+  Download,
 } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
 import ScrollAnimation from "@/components/ScrollAnimation";
+import InstallAppSection from "@/components/InstallAppSection";
 import { getFeaturedProducts, Product } from "@/lib/data";
 
 export default function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -35,10 +40,39 @@ export default function HomePage() {
       }
     }
     loadData();
+
+    // Check standalone mode
+    if (
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as any).standalone === true
+    ) {
+      setIsInstalled(true);
+    }
+
+    const handlePrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener("beforeinstallprompt", handlePrompt);
+
     return () => {
       active = false;
+      window.removeEventListener("beforeinstallprompt", handlePrompt);
     };
   }, []);
+
+  const handleHeroInstall = () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      setDeferredPrompt(null);
+    } else {
+      const installSection = document.getElementById("install-app");
+      if (installSection) {
+        installSection.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  };
 
   return (
     <div className="flex flex-col bg-background">
@@ -76,12 +110,25 @@ export default function HomePage() {
               Taste the authentic flavors of Nepal. Freshly prepared Khaja sets,
               momos, chowmein, and local delicacies.
             </p>
-            <Link
-              to="/shop"
-              className="px-6 py-2.5 md:px-8 md:py-3 bg-primary text-black font-extrabold rounded md:rounded-md hover:bg-primary/90 transition-all text-sm tracking-wide shadow-lg mt-4 md:mt-0"
-            >
-              EXPLORE MENU
-            </Link>
+
+            <div className="flex flex-wrap items-center gap-3 mt-4 md:mt-0">
+              <Link
+                to="/shop"
+                className="px-6 py-2.5 md:px-8 md:py-3 bg-primary text-black font-extrabold rounded md:rounded-md hover:bg-primary/90 transition-all text-sm tracking-wide shadow-lg cursor-pointer"
+              >
+                EXPLORE MENU
+              </Link>
+
+              {!isInstalled && (
+                <button
+                  onClick={handleHeroInstall}
+                  className="px-4 py-2.5 md:px-5 md:py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded md:rounded-md border border-white/20 transition-all text-sm flex items-center gap-2 backdrop-blur-sm cursor-pointer"
+                >
+                  <Download className="w-4 h-4 text-primary" />
+                  Install App
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </section>
@@ -150,7 +197,7 @@ export default function HomePage() {
         <ScrollAnimation delay={0.1}>
           <section
             id="shop"
-            className="pt-6 pb-12 md:pt-16 md:pb-32 w-full max-w-7xl mx-auto md:px-4 sm:px-6 lg:px-8"
+            className="pt-6 pb-12 md:pt-16 md:pb-24 w-full max-w-7xl mx-auto md:px-4 sm:px-6 lg:px-8"
           >
             {/* Mobile Header */}
             <div className="flex md:hidden justify-between items-center px-4 mb-4 mt-4">
@@ -227,7 +274,12 @@ export default function HomePage() {
           </section>
         </ScrollAnimation>
 
-        {/* 4. PROCESS BANNER */}
+        {/* 4. INSTALL APP SECTION */}
+        <div id="install-app">
+          <InstallAppSection />
+        </div>
+
+        {/* 5. PROCESS BANNER */}
         <ScrollAnimation delay={0.2} className="mt-auto">
           <section className="bg-primary w-full py-10 md:py-12 border-t-[8px] md:border-t-[10px] border-primary rounded-t-[2.5rem] md:rounded-t-[3rem] -mt-[2rem] md:-mt-[3rem] relative z-20 shadow-2xl">
             <div className="max-w-7xl mx-auto px-4 md:px-8 flex flex-col md:flex-row justify-between items-center md:items-start gap-10 md:gap-0">
