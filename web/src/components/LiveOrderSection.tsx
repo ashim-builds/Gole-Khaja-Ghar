@@ -62,7 +62,7 @@ export default function LiveOrderSection({
     const terminalStatuses = ["delivered", "cancelled", "completed"];
     let interval: NodeJS.Timeout | null = null;
     if (!terminalStatuses.includes(status)) {
-      interval = setInterval(refreshStatus, 4000);
+      interval = setInterval(refreshStatus, 20000);
     }
 
     return () => {

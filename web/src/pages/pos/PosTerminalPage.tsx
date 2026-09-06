@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   UtensilsCrossed,
@@ -169,8 +169,13 @@ export default function PosTerminalPage() {
   const [itemInstructions, setItemInstructions] = useState<string>("");
   const [itemQty, setItemQty] = useState<number>(1);
 
+  const selectedTableRef = useRef<TableData | null>(null);
+  useEffect(() => {
+    selectedTableRef.current = selectedTable;
+  }, [selectedTable]);
+
   // Load Tables & Products
-  const loadInitialData = async () => {
+  const loadInitialData = useCallback(async () => {
     try {
       setLoadingTables(true);
       const [tablesRes, prodsRes, catsRes, waitersRes] = await Promise.all([
@@ -189,15 +194,16 @@ export default function PosTerminalPage() {
     } finally {
       setLoadingTables(false);
     }
-  };
+  }, []);
 
-  const refreshTables = async () => {
+  const refreshTables = useCallback(async () => {
     try {
       const res = await api.tables.list();
       if (res.success) {
         setTables(res.tables);
-        if (selectedTable) {
-          const updated = res.tables.find((t) => t.id === selectedTable.id);
+        const currentSelected = selectedTableRef.current;
+        if (currentSelected) {
+          const updated = res.tables.find((t) => t.id === currentSelected.id);
           if (updated) {
             setSelectedTable(updated);
             if (updated.activeSession) {
@@ -208,7 +214,7 @@ export default function PosTerminalPage() {
         }
       }
     } catch (e) {}
-  };
+  }, []);
 
   useEffect(() => {
     loadInitialData();
@@ -241,7 +247,7 @@ export default function PosTerminalPage() {
       refreshTables();
     });
 
-    const timer = setInterval(refreshTables, 15000);
+    const timer = setInterval(refreshTables, 30000);
 
     return () => {
       unsubReady();
@@ -250,7 +256,7 @@ export default function PosTerminalPage() {
       unsubTable();
       clearInterval(timer);
     };
-  }, [selectedTable?.id]);
+  }, [loadInitialData, refreshTables]);
 
   // Mark KOT ticket as delivered / served by waiter
   const handleMarkDelivered = async (ticketId: string) => {
@@ -412,27 +418,40 @@ export default function PosTerminalPage() {
     }
   };
 
-  const filteredProducts = products.filter((p) => {
-    const matchesCategory = selectedCategory === "All" || p.category === selectedCategory;
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const filteredProducts = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+    return products.filter((p) => {
+      const matchesCategory = selectedCategory === "All" || p.category === selectedCategory;
+      const matchesSearch = !q || p.name.toLowerCase().includes(q);
+      return matchesCategory && matchesSearch;
+    });
+  }, [products, selectedCategory, searchQuery]);
 
-  const cartSubtotal = cartItems.reduce((sum, it) => sum + it.calculatedPrice * it.quantity, 0);
+  const cartSubtotal = useMemo(() => {
+    return cartItems.reduce((sum, it) => sum + it.calculatedPrice * it.quantity, 0);
+  }, [cartItems]);
 
   const userRole = (user?.role || "").toUpperCase();
   const isAdmin = userRole === "ADMIN" || userRole === "SUPER_ADMIN";
   const isChefOrAdmin = isAdmin || userRole === "CHEF" || userRole === "KITCHEN";
   const backPath = isAdmin ? "/admin" : "/";
   const backLabel = isAdmin ? "Admin" : "Home";
-  const freeTablesCount = tables.filter((t) => t.status !== "OCCUPIED" || !t.activeSession).length;
-  const occupiedTablesCount = tables.filter((t) => t.status === "OCCUPIED" && t.activeSession).length;
 
-  const filteredTables = tables.filter((t) => {
-    if (tableFilter === "FREE") return t.status !== "OCCUPIED" || !t.activeSession;
-    if (tableFilter === "OCCUPIED") return t.status === "OCCUPIED" && t.activeSession;
-    return true;
-  });
+  const freeTablesCount = useMemo(() => {
+    return tables.filter((t) => t.status !== "OCCUPIED" || !t.activeSession).length;
+  }, [tables]);
+
+  const occupiedTablesCount = useMemo(() => {
+    return tables.filter((t) => t.status === "OCCUPIED" && t.activeSession).length;
+  }, [tables]);
+
+  const filteredTables = useMemo(() => {
+    return tables.filter((t) => {
+      if (tableFilter === "FREE") return t.status !== "OCCUPIED" || !t.activeSession;
+      if (tableFilter === "OCCUPIED") return t.status === "OCCUPIED" && t.activeSession;
+      return true;
+    });
+  }, [tables, tableFilter]);
 
   return (
     <div className="h-screen flex flex-col bg-stone-950 text-stone-100 font-sans select-none overflow-hidden">

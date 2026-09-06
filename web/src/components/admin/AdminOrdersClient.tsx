@@ -71,7 +71,7 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
       fetchOrders();
     });
 
-    const interval = setInterval(fetchOrders, 10000);
+    const interval = setInterval(fetchOrders, 25000);
 
     return () => {
       unsubOrder();

@@ -18,6 +18,8 @@ import kitchenRoutes from './routes/kitchenRoutes.js';
 import billingRoutes from './routes/billingRoutes.js';
 import reportRoutes from './routes/reportRoutes.js';
 
+import compression from 'compression';
+
 dotenv.config();
 
 const app = express();
@@ -25,6 +27,7 @@ const PORT = process.env.PORT || 4000;
 const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:3000';
 
 // Global Middlewares
+app.use(compression());
 app.use(
   cors({
     origin: CLIENT_URL,
@@ -44,7 +47,7 @@ const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
-app.use('/uploads', express.static(uploadsDir));
+app.use('/uploads', express.static(uploadsDir, { maxAge: '1d', etag: true }));
 
 import prisma from './lib/prisma.js';
 

@@ -100,7 +100,7 @@ export default function AdminBillingPage() {
       fetchTablesAndBills();
     });
 
-    const interval = setInterval(fetchTablesAndBills, 8000);
+    const interval = setInterval(fetchTablesAndBills, 25000);
 
     return () => {
       unsubTable();

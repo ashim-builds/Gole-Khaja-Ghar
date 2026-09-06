@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from "react";
+import { subscribeToEvent } from "@/lib/socket";
 
 interface AdminStats {
   totalProducts: number;
@@ -156,11 +157,29 @@ export function AdminLiveProvider({ children }: { children: React.ReactNode }) {
     // Fetch immediately on mount
     fetchUpdates();
 
-    // Poll every 5 seconds
-    const interval = setInterval(fetchUpdates, 5000);
+    // Subscribe to real-time order and payment broadcasts
+    const unsubCreated = subscribeToEvent("order:created", () => {
+      fetchUpdates();
+    });
+    const unsubStatus = subscribeToEvent("order:status_changed", () => {
+      fetchUpdates();
+    });
+    const unsubPayment = subscribeToEvent("payment:recorded", () => {
+      fetchUpdates();
+    });
+    const unsubKot = subscribeToEvent("kot:status_changed", () => {
+      fetchUpdates();
+    });
+
+    // Fallback sync every 25 seconds instead of 5 seconds
+    const interval = setInterval(fetchUpdates, 25000);
 
     return () => {
       active = false;
+      unsubCreated();
+      unsubStatus();
+      unsubPayment();
+      unsubKot();
       clearInterval(interval);
     };
   }, []);

@@ -108,12 +108,16 @@ export default function KitchenDisplayPage() {
     const unsubKot = subscribeToEvent("kot:status_changed", () => {
       fetchTickets();
     });
+    const unsubCreated = subscribeToEvent("order:created", () => {
+      fetchTickets();
+    });
     const unsubDelivered = subscribeToEvent("order:delivered", () => {
       fetchTickets();
     });
-    const interval = setInterval(fetchTickets, 5000);
+    const interval = setInterval(fetchTickets, 20000);
     return () => {
       unsubKot();
+      unsubCreated();
       unsubDelivered();
       clearInterval(interval);
     };

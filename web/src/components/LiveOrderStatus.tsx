@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Clock } from "lucide-react";
 import { api } from "@/lib/api";
+import { subscribeToEvent } from "@/lib/socket";
 
 interface LiveOrderStatusProps {
   orderNumber: string;
@@ -13,7 +14,7 @@ export default function LiveOrderStatus({ orderNumber, initialStatus }: LiveOrde
   const [status, setStatus] = useState(initialStatus);
 
   useEffect(() => {
-    const interval = setInterval(async () => {
+    const fetchStatus = async () => {
       try {
         const res = await api.orders.getStatus(orderNumber);
         if (res.success && res.order?.status) {
@@ -22,9 +23,20 @@ export default function LiveOrderStatus({ orderNumber, initialStatus }: LiveOrde
       } catch {
         // Ignore polling errors
       }
-    }, 5000);
+    };
 
-    return () => clearInterval(interval);
+    const unsub = subscribeToEvent("order:status_changed", (data: any) => {
+      if (!data?.orderNumber || data.orderNumber === orderNumber) {
+        fetchStatus();
+      }
+    });
+
+    const interval = setInterval(fetchStatus, 25000);
+
+    return () => {
+      unsub();
+      clearInterval(interval);
+    };
   }, [orderNumber]);
 
   return (
