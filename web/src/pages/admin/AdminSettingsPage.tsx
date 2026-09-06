@@ -416,64 +416,64 @@ export default function AdminSettingsPage() {
           </a>
         </div>
 
-        {/* Info Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-          <div className="p-3 bg-stone-50 rounded-xl border border-stone-200/60 flex items-start gap-2.5">
-            <MapPin className="w-4 h-4 text-orange-600 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-bold text-stone-400 text-[10px] uppercase">
+        {/* Info Grid - 2 Column Horizontal on all screens */}
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 text-xs">
+          <div className="p-2.5 sm:p-3 bg-stone-50 rounded-xl border border-stone-200/60 flex items-start gap-2">
+            <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-600 shrink-0 mt-0.5" />
+            <div className="min-w-0">
+              <p className="font-bold text-stone-400 text-[9px] sm:text-[10px] uppercase truncate">
                 Location
               </p>
-              <p className="font-extrabold text-stone-800 mt-0.5">
-                Sisuwa, Pokhara-29, Kaski, Nepal
+              <p className="font-extrabold text-stone-800 text-[11px] sm:text-xs mt-0.5 leading-snug">
+                Sisuwa, Pokhara-29, Nepal
               </p>
             </div>
           </div>
 
-          <div className="p-3 bg-stone-50 rounded-xl border border-stone-200/60 flex items-start gap-2.5">
-            <Phone className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-bold text-stone-400 text-[10px] uppercase">
-                WhatsApp & Hotline
+          <div className="p-2.5 sm:p-3 bg-stone-50 rounded-xl border border-stone-200/60 flex items-start gap-2">
+            <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 shrink-0 mt-0.5" />
+            <div className="min-w-0">
+              <p className="font-bold text-stone-400 text-[9px] sm:text-[10px] uppercase truncate">
+                WhatsApp / Call
               </p>
               <a
                 href="tel:+9779846011810"
-                className="font-extrabold text-stone-800 mt-0.5 hover:text-emerald-600 block"
+                className="font-extrabold text-stone-800 text-[11px] sm:text-xs mt-0.5 hover:text-emerald-600 block truncate"
               >
-                +977 984-6011810
+                984-6011810
               </a>
             </div>
           </div>
 
-          <div className="p-3 bg-stone-50 rounded-xl border border-stone-200/60 flex items-start gap-2.5">
-            <Clock className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-bold text-stone-400 text-[10px] uppercase">
-                Operating Hours
+          <div className="p-2.5 sm:p-3 bg-stone-50 rounded-xl border border-stone-200/60 flex items-start gap-2">
+            <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-600 shrink-0 mt-0.5" />
+            <div className="min-w-0">
+              <p className="font-bold text-stone-400 text-[9px] sm:text-[10px] uppercase truncate">
+                Hours
               </p>
-              <p className="font-extrabold text-stone-800 mt-0.5">
+              <p className="font-extrabold text-stone-800 text-[11px] sm:text-xs mt-0.5 leading-tight">
                 8:00 AM – 9:00 PM
               </p>
-              <span className="text-[10px] font-semibold text-amber-800 bg-amber-100/70 px-1.5 py-0.2 rounded mt-0.5 inline-block">
-                Closed 1st Tuesday of month
+              <span className="text-[9px] font-semibold text-amber-800 bg-amber-100/80 px-1 rounded mt-0.5 inline-block truncate max-w-full">
+                Closed 1st Tue
               </span>
             </div>
           </div>
 
-          <div className="p-3 bg-stone-50 rounded-xl border border-stone-200/60 flex items-start gap-2.5">
-            <Share2 className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-bold text-stone-400 text-[10px] uppercase">
-                Social Media
+          <div className="p-2.5 sm:p-3 bg-stone-50 rounded-xl border border-stone-200/60 flex items-start gap-2">
+            <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600 shrink-0 mt-0.5" />
+            <div className="min-w-0">
+              <p className="font-bold text-stone-400 text-[9px] sm:text-[10px] uppercase truncate">
+                Social
               </p>
               <a
                 href="https://www.facebook.com/raju.tamang.59406"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-extrabold text-blue-600 mt-0.5 hover:underline flex items-center gap-1"
+                className="font-extrabold text-blue-600 text-[11px] sm:text-xs mt-0.5 hover:underline flex items-center gap-1 truncate"
               >
-                <span>Raju Tamang (Facebook)</span>
-                <ExternalLink className="w-3 h-3" />
+                <span className="truncate">Raju Tamang</span>
+                <ExternalLink className="w-2.5 h-2.5 shrink-0" />
               </a>
             </div>
           </div>
