@@ -174,45 +174,66 @@ function AdminProtectedLayoutContent() {
 
         {/* Mobile Dropdown Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-[#111111] text-white absolute top-16 left-0 right-0 z-50 border-t border-white/10 p-4 space-y-2 shadow-xl">
-            {navItems.map((item) => {
-              const isActive =
-                item.href === "/admin"
-                  ? pathname === "/admin"
-                  : pathname === item.href ||
-                    pathname.startsWith(`${item.href}/`);
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold ${
-                    isActive
-                      ? "bg-orange-600 text-white font-black"
-                      : "text-stone-400"
-                  }`}
-                >
-                  <item.icon className="w-5 h-5" />
-                  {item.name}
-                </Link>
-              );
-            })}
-            <Link
-              to="/"
+          <>
+            {/* Backdrop */}
+            <div
+              className="md:hidden fixed inset-0 top-16 bg-black/60 backdrop-blur-sm z-40 animate-fade-in"
               onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-emerald-400 hover:bg-white/5"
-            >
-              <Store className="w-5 h-5 text-emerald-400" />
-              Go to Customer Store
-            </Link>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-3 w-full px-4 py-3 text-stone-400 hover:text-red-400 font-bold cursor-pointer"
-            >
-              <LogOut className="w-5 h-5" />
-              Logout
-            </button>
-          </div>
+            />
+            {/* Scrollable Menu Panel */}
+            <div className="md:hidden bg-[#111111] text-white absolute top-16 left-0 right-0 z-50 border-t border-white/10 p-4 space-y-1.5 shadow-2xl max-h-[calc(100dvh-4.5rem)] overflow-y-auto custom-scrollbar overscroll-contain pb-24">
+              {navItems.map((item) => {
+                const isActive =
+                  item.href === "/admin"
+                    ? pathname === "/admin"
+                    : pathname === item.href ||
+                      pathname.startsWith(`${item.href}/`);
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all text-sm ${
+                      isActive
+                        ? "bg-orange-600 text-white font-black shadow-md shadow-orange-600/30"
+                        : "text-stone-400 hover:text-white hover:bg-white/5 active:bg-white/10"
+                    }`}
+                  >
+                    <item.icon className="w-5 h-5 shrink-0" />
+                    <span className="flex-1">{item.name}</span>
+                    {item.name === "Orders" && stats && stats.pendingOrders > 0 && (
+                      <span className="px-2 py-0.5 bg-red-500 text-white rounded-full text-[10px] font-black animate-pulse">
+                        {stats.pendingOrders}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+
+              <div className="pt-3 border-t border-white/10 mt-3 space-y-1.5">
+                <Link
+                  to="/"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-emerald-400 hover:bg-emerald-500/10 border border-emerald-500/20 bg-emerald-500/5 text-sm transition-colors"
+                >
+                  <Store className="w-5 h-5 text-emerald-400 shrink-0" />
+                  <span className="flex-1">Go to Customer Store</span>
+                  <ExternalLink className="w-4 h-4 text-emerald-400/70 shrink-0" />
+                </Link>
+
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="flex items-center gap-3 w-full px-4 py-3 text-stone-400 hover:text-red-400 font-bold hover:bg-white/5 rounded-xl cursor-pointer text-sm transition-colors"
+                >
+                  <LogOut className="w-5 h-5 shrink-0" />
+                  <span>Logout</span>
+                </button>
+              </div>
+            </div>
+          </>
         )}
 
         {/* Page Content */}
