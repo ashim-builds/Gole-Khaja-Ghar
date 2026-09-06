@@ -1,0 +1,495 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// -----------------------------------------------------------------------------
+// ENUMS
+// -----------------------------------------------------------------------------
+
+enum UserRole {
+  CUSTOMER
+  WAITER
+  KITCHEN
+  CASHIER
+  ADMIN
+}
+
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+}
+
+enum TableStatus {
+  AVAILABLE
+  OCCUPIED
+  RESERVED
+  OUT_OF_SERVICE
+}
+
+enum SessionStatus {
+  ACTIVE
+  BILLED
+  COMPLETED
+  CANCELLED
+}
+
+enum OrderSource {
+  CUSTOMER_WEB
+  WAITER
+  ADMIN
+  QR
+}
+
+enum OrderType {
+  DINE_IN
+  TAKEAWAY
+  PICKUP
+  DELIVERY
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  DELIVERED
+  COMPLETED
+  CANCELLED
+}
+
+enum KotStatus {
+  QUEUED
+  PREPARING
+  READY
+  SERVED
+  CANCELLED
+}
+
+enum KotItemStatus {
+  PENDING
+  COOKING
+  READY
+  SERVED
+}
+
+enum BillStatus {
+  UNPAID
+  PARTIALLY_PAID
+  PAID
+  VOID
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CASH
+  FONEPAY_QR
+  ESEWA
+  KHALTI
+  CARD
+  OTHER
+}
+
+enum NotificationRecipientType {
+  USER
+  ROLE_BROADCAST
+}
+
+enum NotificationType {
+  ORDER_CREATED
+  ORDER_STATUS_CHANGED
+  KOT_NEW
+  KOT_READY
+  BILL_REQUESTED
+  PAYMENT_RECEIVED
+  SYSTEM_ALERT
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  STATUS_CHANGE
+  PAYMENT_RECORD
+  VOID_BILL
+}
+
+// -----------------------------------------------------------------------------
+// USER & STAFF
+// -----------------------------------------------------------------------------
+
+model User {
+  id           String       @id @default(uuid()) @db.VarChar(36)
+  email        String?      @unique @db.VarChar(191)
+  passwordHash String?      @db.VarChar(255)
+  name         String       @db.VarChar(100)
+  phone        String?      @unique @db.VarChar(20)
+  role         UserRole     @default(CUSTOMER)
+  authProvider AuthProvider @default(LOCAL)
+  googleId     String?      @unique @db.VarChar(100)
+  image        String?      @db.VarChar(500)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  staffProfile      StaffProfile?
+  orders            Order[]            @relation("CustomerOrders")
+  sessionsCreated   TableSession[]     @relation("WaiterSessions")
+  billsCreated      Bill[]             @relation("StaffBills")
+  paymentsRecorded  Payment[]          @relation("StaffPayments")
+  notifications     Notification[]
+  pushSubscriptions PushSubscription[]
+  auditLogs         AuditLog[]
+
+  @@index([role])
+  @@index([phone])
+  @@map("users")
+}
+
+model StaffProfile {
+  id           String    @id @default(uuid()) @db.VarChar(36)
+  userId       String    @unique @db.VarChar(36)
+  employeeCode String    @unique @db.VarChar(50)
+  quickPinHash String?   @db.VarChar(255)
+  isActive     Boolean   @default(true)
+  hiredAt      DateTime?
+  notes        String?   @db.Text
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("staff_profiles")
+}
+
+// -----------------------------------------------------------------------------
+// TABLE & SESSION (DINE-IN POS)
+// -----------------------------------------------------------------------------
+
+model RestaurantTable {
+  id          String      @id @default(uuid()) @db.VarChar(36)
+  tableNumber String      @unique @db.VarChar(20)
+  qrCodeToken String?     @unique @db.VarChar(64)
+  capacity    Int         @default(4)
+  status      TableStatus @default(AVAILABLE)
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  sessions TableSession[]
+
+  @@index([status])
+  @@map("restaurant_tables")
+}
+
+model TableSession {
+  id         String        @id @default(uuid()) @db.VarChar(36)
+  tableId    String        @db.VarChar(36)
+  waiterId   String?       @db.VarChar(36)
+  guestCount Int           @default(1)
+  status     SessionStatus @default(ACTIVE)
+  notes      String?       @db.VarChar(255)
+  openedAt   DateTime      @default(now())
+  closedAt   DateTime?
+
+  table      RestaurantTable @relation(fields: [tableId], references: [id], onDelete: Restrict)
+  waiter     User?           @relation("WaiterSessions", fields: [waiterId], references: [id], onDelete: SetNull)
+  orders     Order[]
+  bills      Bill[]
+  kotTickets KotTicket[]
+
+  @@index([tableId, status])
+  @@index([status])
+  @@index([openedAt])
+  @@map("table_sessions")
+}
+
+// -----------------------------------------------------------------------------
+// MENU & CATALOG
+// -----------------------------------------------------------------------------
+
+model Category {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  name        String   @unique @db.VarChar(100)
+  slug        String   @unique @db.VarChar(120)
+  description String?  @db.Text
+  image       String?  @db.VarChar(500)
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products Product[]
+
+  @@index([slug])
+  @@index([sortOrder])
+  @@map("categories")
+}
+
+model Product {
+  id            String   @id @default(uuid()) @db.VarChar(36)
+  categoryId    String   @db.VarChar(36)
+  name          String   @db.VarChar(150)
+  slug          String   @unique @db.VarChar(180)
+  description   String?  @db.Text
+  image         String   @db.VarChar(500)
+  galleryImages Json? // Array of image URLs
+  isAvailable   Boolean  @default(true)
+  isFeatured    Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  category   Category         @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  variants   ProductVariant[]
+  orderItems OrderItem[]
+
+  @@index([slug])
+  @@index([categoryId, isAvailable])
+  @@index([isFeatured])
+  @@map("products")
+}
+
+model ProductVariant {
+  id          String   @id @default(uuid()) @db.VarChar(36)
+  productId   String   @db.VarChar(36)
+  name        String   @db.VarChar(100)
+  price       Decimal  @db.Decimal(10, 2)
+  isAvailable Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, isAvailable])
+  @@map("product_variants")
+}
+
+// -----------------------------------------------------------------------------
+// ORDERS & KOT
+// -----------------------------------------------------------------------------
+
+model Order {
+  id             String      @id @default(uuid()) @db.VarChar(36)
+  orderNumber    String      @unique @db.VarChar(30)
+  userId         String?     @db.VarChar(36)
+  tableSessionId String?     @db.VarChar(36)
+  orderSource    OrderSource @default(CUSTOMER_WEB)
+  orderType      OrderType   @default(DELIVERY)
+  status         OrderStatus @default(PENDING)
+
+  subtotalAmount Decimal @db.Decimal(10, 2)
+  deliveryCharge Decimal @default(0.00) @db.Decimal(10, 2)
+  discountAmount Decimal @default(0.00) @db.Decimal(10, 2)
+  totalAmount    Decimal @db.Decimal(10, 2)
+
+  customerName    String   @db.VarChar(100)
+  customerPhone   String   @db.VarChar(20)
+  customerEmail   String?  @db.VarChar(191)
+  deliveryAddress String?  @db.Text
+  notes           String?  @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user         User?         @relation("CustomerOrders", fields: [userId], references: [id], onDelete: SetNull)
+  tableSession TableSession? @relation(fields: [tableSessionId], references: [id], onDelete: SetNull)
+  items        OrderItem[]
+  kotTickets   KotTicket[]
+  bills        Bill[]
+
+  @@index([orderNumber])
+  @@index([userId])
+  @@index([status])
+  @@index([orderSource])
+  @@index([orderType])
+  @@index([createdAt])
+  @@index([tableSessionId])
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String  @id @default(uuid()) @db.VarChar(36)
+  orderId   String  @db.VarChar(36)
+  productId String? @db.VarChar(36)
+
+  // Historical Snapshot fields (Immutable)
+  productName           String   @db.VarChar(150)
+  variantName           String?  @db.VarChar(100)
+  selectedWeightInGrams Int?
+  unitPrice             Decimal? @db.Decimal(10, 2)
+  pricePerKg            Decimal? @db.Decimal(10, 2)
+  calculatedPrice       Decimal  @db.Decimal(10, 2)
+  quantity              Int      @default(1)
+  specialInstructions   String?  @db.VarChar(255)
+
+  order    Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product  Product?  @relation(fields: [productId], references: [id], onDelete: SetNull)
+  kotItems KotItem[]
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+model KotTicket {
+  id             String    @id @default(uuid()) @db.VarChar(36)
+  orderId        String    @db.VarChar(36)
+  tableSessionId String?   @db.VarChar(36)
+  ticketNumber   Int       @unique @default(autoincrement())
+  status         KotStatus @default(QUEUED)
+  notes          String?   @db.VarChar(255)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  order        Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  tableSession TableSession? @relation(fields: [tableSessionId], references: [id], onDelete: SetNull)
+  items        KotItem[]
+
+  @@index([orderId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([tableSessionId])
+  @@map("kot_tickets")
+}
+
+model KotItem {
+  id          String        @id @default(uuid()) @db.VarChar(36)
+  kotTicketId String        @db.VarChar(36)
+  orderItemId String        @db.VarChar(36)
+  itemName    String        @db.VarChar(150)
+  itemDetails String?       @db.VarChar(100) // e.g. "500g" or "Large"
+  quantity    Int           @default(1)
+  status      KotItemStatus @default(PENDING)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  kotTicket KotTicket @relation(fields: [kotTicketId], references: [id], onDelete: Cascade)
+  orderItem OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+
+  @@index([kotTicketId])
+  @@map("kot_items")
+}
+
+// -----------------------------------------------------------------------------
+// BILLING & MULTI-TENDER PAYMENTS
+// -----------------------------------------------------------------------------
+
+model Bill {
+  id             String  @id @default(uuid()) @db.VarChar(36)
+  billNumber     String  @unique @db.VarChar(30)
+  tableSessionId String? @db.VarChar(36)
+  orderId        String? @db.VarChar(36)
+  createdById    String? @db.VarChar(36)
+
+  grossAmount    Decimal    @db.Decimal(10, 2)
+  discountAmount Decimal    @default(0.00) @db.Decimal(10, 2)
+  deliveryCharge Decimal    @default(0.00) @db.Decimal(10, 2)
+  taxAmount      Decimal    @default(0.00) @db.Decimal(10, 2)
+  netAmount      Decimal    @db.Decimal(10, 2)
+  status         BillStatus @default(UNPAID)
+
+  createdAt DateTime  @default(now())
+  settledAt DateTime?
+
+  tableSession TableSession? @relation(fields: [tableSessionId], references: [id], onDelete: SetNull)
+  order        Order?        @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  createdBy    User?         @relation("StaffBills", fields: [createdById], references: [id], onDelete: SetNull)
+  payments     Payment[]
+
+  @@index([status, createdAt])
+  @@index([tableSessionId])
+  @@index([orderId])
+  @@map("bills")
+}
+
+model Payment {
+  id                   String        @id @default(uuid()) @db.VarChar(36)
+  billId               String        @db.VarChar(36)
+  recordedById         String?       @db.VarChar(36)
+  amount               Decimal       @db.Decimal(10, 2)
+  method               PaymentMethod @default(CASH)
+  status               PaymentStatus @default(PAID)
+  transactionReference String?       @db.VarChar(100)
+  notes                String?       @db.VarChar(255)
+  createdAt            DateTime      @default(now())
+
+  bill       Bill  @relation(fields: [billId], references: [id], onDelete: Restrict)
+  recordedBy User? @relation("StaffPayments", fields: [recordedById], references: [id], onDelete: SetNull)
+
+  @@index([billId])
+  @@index([status])
+  @@map("payments")
+}
+
+// -----------------------------------------------------------------------------
+// NOTIFICATIONS & PWA PUSH
+// -----------------------------------------------------------------------------
+
+model Notification {
+  id            String                    @id @default(uuid()) @db.VarChar(36)
+  userId        String?                   @db.VarChar(36)
+  targetRole    UserRole?
+  recipientType NotificationRecipientType @default(USER)
+  type          NotificationType          @default(SYSTEM_ALERT)
+  title         String                    @db.VarChar(150)
+  body          String                    @db.Text
+  linkUrl       String?                   @db.VarChar(255)
+  metadata      Json?
+  isRead        Boolean                   @default(false)
+  createdAt     DateTime                  @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([targetRole, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model PushSubscription {
+  id         String   @id @default(uuid()) @db.VarChar(36)
+  userId     String?  @db.VarChar(36)
+  clientType UserRole @default(CUSTOMER)
+  endpoint   String   @unique @db.VarChar(500)
+  p256dhKey  String   @db.VarChar(255)
+  authKey    String   @db.VarChar(255)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([clientType])
+  @@map("push_subscriptions")
+}
+
+// -----------------------------------------------------------------------------
+// AUDIT LOG
+// -----------------------------------------------------------------------------
+
+model AuditLog {
+  id        String      @id @default(uuid()) @db.VarChar(36)
+  userId    String?     @db.VarChar(36)
+  action    AuditAction
+  entity    String      @db.VarChar(50)
+  entityId  String      @db.VarChar(36)
+  details   Json?
+  ipAddress String?     @db.VarChar(45)
+  createdAt DateTime    @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([entity, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}

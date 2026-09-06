@@ -1,0 +1,16 @@
+{
+  "name": "golu-khaja-ghar-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "web",
+    "services"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace=web",
+    "dev:services": "npm run dev --workspace=services",
+    "build:web": "npm run build --workspace=web",
+    "build:services": "npm run build --workspace=services",
+    "build": "npm run build:services && npm run build:web"
+  }
+}
