@@ -14,6 +14,7 @@ import {
   AlertCircle,
   Flame,
   ArrowLeft,
+  ArrowRight,
   X,
   Minus,
   ChefHat,
