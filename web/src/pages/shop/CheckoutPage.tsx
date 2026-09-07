@@ -140,7 +140,8 @@ export default function CheckoutPage() {
     );
   }
 
-  const DELIVERY_FEE = cartTotal < 100 ? 10 : 0;
+  const DELIVERY_THRESHOLD = 500;
+  const DELIVERY_FEE = cartTotal < DELIVERY_THRESHOLD ? 50 : 0;
   const grandTotal = cartTotal + (formData.orderType === "delivery" ? DELIVERY_FEE : 0);
 
   const handleChange = (
@@ -601,8 +602,8 @@ export default function CheckoutPage() {
                       </span>
                     ) : (
                       <div className="text-right">
-                        <span className="font-bold text-stone-800">Rs. 10.00</span>
-                        <p className="text-[10px] text-stone-400">Min. order Rs. 100</p>
+                        <span className="font-bold text-stone-800">Rs. {DELIVERY_FEE.toFixed(2)}</span>
+                        <p className="text-[10px] text-stone-400">Min. Rs. {DELIVERY_THRESHOLD} for free delivery</p>
                       </div>
                     )}
                   </div>
@@ -610,7 +611,7 @@ export default function CheckoutPage() {
 
                 {formData.orderType === "delivery" && DELIVERY_FEE > 0 && (
                   <p className="text-[11px] text-primary font-semibold bg-orange-50 px-3 py-1.5 rounded-lg flex items-center gap-1.5 border border-orange-100">
-                    <Truck className="w-3.5 h-3.5 shrink-0" /> Add Rs. {(100 - cartTotal).toFixed(0)} more
+                    <Truck className="w-3.5 h-3.5 shrink-0" /> Add Rs. {(DELIVERY_THRESHOLD - cartTotal).toFixed(0)} more
                     for free delivery!
                   </p>
                 )}
