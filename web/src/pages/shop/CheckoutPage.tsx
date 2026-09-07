@@ -141,7 +141,7 @@ export default function CheckoutPage() {
   }
 
   const DELIVERY_THRESHOLD = 100;
-  const DELIVERY_FEE = cartTotal < DELIVERY_THRESHOLD ? 50 : 0;
+  const DELIVERY_FEE = cartTotal < DELIVERY_THRESHOLD ? 20 : 0;
   const grandTotal = cartTotal + (formData.orderType === "delivery" ? DELIVERY_FEE : 0);
 
   const handleChange = (
