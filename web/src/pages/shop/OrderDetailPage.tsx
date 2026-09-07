@@ -119,17 +119,25 @@ export default function OrderDetailPage() {
             </div>
 
             <div className="mt-6 pt-4 border-t border-stone-100 space-y-2">
-              <div className="flex justify-between text-stone-600">
+              <div className="flex justify-between text-stone-600 font-medium text-sm">
                 <span>Subtotal</span>
-                <span>Rs. {order.totalAmount - (order.deliveryCharge || 0)}</span>
+                <span>Rs. {Number(order.subtotalAmount !== undefined ? order.subtotalAmount : (order.totalAmount - (order.deliveryCharge || 0))).toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-stone-600">
-                <span>Delivery Charge</span>
-                <span>Rs. {order.deliveryCharge || 0}</span>
-              </div>
-              <div className="flex justify-between text-lg font-black text-black pt-2">
+              {order.orderType === "delivery" && (
+                <div className="flex justify-between text-stone-600 font-medium text-sm">
+                  <span>Delivery Charge</span>
+                  <span>{Number(order.deliveryCharge || 0) > 0 ? `+ Rs. ${Number(order.deliveryCharge).toFixed(2)}` : "Free"}</span>
+                </div>
+              )}
+              {Number(order.discountAmount || 0) > 0 && (
+                <div className="flex justify-between text-red-600 font-medium text-sm">
+                  <span>Discount</span>
+                  <span>- Rs. {Number(order.discountAmount).toFixed(2)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-lg font-black text-black pt-2 border-t border-stone-100">
                 <span>Total</span>
-                <span>Rs. {order.totalAmount}</span>
+                <span>Rs. {Number(order.totalAmount).toFixed(2)}</span>
               </div>
             </div>
           </div>
