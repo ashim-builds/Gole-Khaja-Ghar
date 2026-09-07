@@ -250,7 +250,7 @@ export async function checkout(req: AuthenticatedRequest, res: Response): Promis
 
     subtotalAmount = Math.round(subtotalAmount * 100) / 100;
 
-    const DELIVERY_THRESHOLD = 500;
+    const DELIVERY_THRESHOLD = 100;
     const DELIVERY_FEE = 50;
     const deliveryCharge =
       rawOrderType === 'delivery' && subtotalAmount < DELIVERY_THRESHOLD ? DELIVERY_FEE : 0;

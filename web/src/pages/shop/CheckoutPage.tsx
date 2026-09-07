@@ -140,7 +140,7 @@ export default function CheckoutPage() {
     );
   }
 
-  const DELIVERY_THRESHOLD = 500;
+  const DELIVERY_THRESHOLD = 100;
   const DELIVERY_FEE = cartTotal < DELIVERY_THRESHOLD ? 50 : 0;
   const grandTotal = cartTotal + (formData.orderType === "delivery" ? DELIVERY_FEE : 0);
 

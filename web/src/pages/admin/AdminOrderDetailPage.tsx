@@ -272,7 +272,7 @@ export default function AdminOrderDetailPage() {
               {order.orderType === "delivery" && (
                 <tr>
                   <td colSpan={4} className="py-1 px-3 text-right font-bold text-stone-500">
-                    Delivery Charge {Number(order.deliveryCharge || 0) === 0 ? "(Free Delivery > Rs. 500)" : ""}
+                    Delivery Charge {Number(order.deliveryCharge || 0) === 0 ? "(Free Delivery ≥ Rs. 100)" : ""}
                   </td>
                   <td className="py-1 px-3 text-right font-bold text-stone-900">
                     {Number(order.deliveryCharge || 0) > 0 ? `+ Rs. ${Number(order.deliveryCharge).toFixed(2)}` : "Free"}
