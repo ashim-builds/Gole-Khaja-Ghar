@@ -214,16 +214,31 @@ ${order.orderType === "delivery" ? "Delivery" : "Pickup"}${
               </div>
             </div>
 
-            {/* Total */}
-            <div className="pt-8 border-t border-stone-100 flex justify-between items-end">
-              <div>
-                <p className="text-stone-500 font-bold">Total Amount</p>
-                <p className="text-[10px] text-stone-400 uppercase tracking-widest mt-1">
-                  Price includes delivery fee if applicable
-                </p>
+            {/* Breakdown & Total */}
+            <div className="pt-6 border-t border-stone-100 space-y-2">
+              <div className="flex justify-between text-stone-600 font-medium text-sm">
+                <span>Subtotal</span>
+                <span>Rs. {(order.subtotalAmount !== undefined ? Number(order.subtotalAmount) : (Number(order.totalAmount) - Number(order.deliveryCharge || 0))).toFixed(2)}</span>
               </div>
-              <div className="text-3xl font-black text-black">
-                Rs. {Number(order.totalAmount).toFixed(2)}
+              {order.orderType === "delivery" && (
+                <div className="flex justify-between text-stone-600 font-medium text-sm">
+                  <span>Delivery Charge</span>
+                  <span>{Number(order.deliveryCharge || 0) > 0 ? `+ Rs. ${Number(order.deliveryCharge).toFixed(2)}` : "Free"}</span>
+                </div>
+              )}
+              {Number(order.discountAmount || 0) > 0 && (
+                <div className="flex justify-between text-red-600 font-medium text-sm">
+                  <span>Discount</span>
+                  <span>- Rs. {Number(order.discountAmount).toFixed(2)}</span>
+                </div>
+              )}
+              <div className="pt-3 border-t border-stone-200 flex justify-between items-end">
+                <div>
+                  <p className="text-stone-900 font-black text-base">Grand Total</p>
+                </div>
+                <div className="text-2xl sm:text-3xl font-black text-black">
+                  Rs. {Number(order.totalAmount).toFixed(2)}
+                </div>
               </div>
             </div>
           </div>
