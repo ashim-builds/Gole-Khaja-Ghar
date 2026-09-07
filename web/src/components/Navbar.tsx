@@ -312,14 +312,26 @@ export default function Navbar() {
               </div>
 
               {/* Bottom Quick Call */}
-              <div className="pt-2 border-t border-stone-800/80">
-                <a
-                  href="tel:+9779846011810"
-                  className="flex items-center justify-center gap-2 w-full py-2.5 px-3 rounded-xl text-stone-300 font-bold text-xs bg-white/5 border border-white/10 hover:bg-white/10 active:scale-[0.98] transition-all"
-                >
-                  <Phone className="w-3.5 h-3.5 text-orange-400" />
-                  <span>Call Us: +977 984-6011810</span>
-                </a>
+              <div className="pt-2 border-t border-stone-800/80 space-y-1.5">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400 text-center">
+                  Direct Call / Order Hotline
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  <a
+                    href="tel:+9779804146136"
+                    className="flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-stone-200 font-bold text-xs bg-white/5 border border-white/10 hover:bg-white/10 active:scale-[0.98] transition-all"
+                  >
+                    <Phone className="w-3.5 h-3.5 text-orange-400 shrink-0" />
+                    <span>9804146136</span>
+                  </a>
+                  <a
+                    href="tel:+9779846011810"
+                    className="flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-stone-200 font-bold text-xs bg-white/5 border border-white/10 hover:bg-white/10 active:scale-[0.98] transition-all"
+                  >
+                    <Phone className="w-3.5 h-3.5 text-orange-400 shrink-0" />
+                    <span>9846011810</span>
+                  </a>
+                </div>
               </div>
             </div>
           </motion.div>

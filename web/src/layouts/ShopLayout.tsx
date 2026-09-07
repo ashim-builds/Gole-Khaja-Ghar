@@ -5,6 +5,7 @@ import Footer from '@/components/Footer';
 import BottomNav from '@/components/BottomNav';
 import CartDrawer from '@/components/CartDrawer';
 import StoreClosedNotice from '@/components/StoreClosedNotice';
+import AutoScrollNavigator from '@/components/AutoScrollNavigator';
 
 export default function ShopLayout() {
   return (
@@ -15,6 +16,7 @@ export default function ShopLayout() {
       <main className="flex-grow">
         <Outlet />
       </main>
+      <AutoScrollNavigator />
       <Footer />
       <BottomNav />
     </div>

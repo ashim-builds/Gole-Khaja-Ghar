@@ -2,13 +2,23 @@ import { api, Product } from './api';
 
 export type { Product };
 
-export async function getProducts(category?: string, query?: string): Promise<Product[]> {
+export async function getProducts(
+  category?: string,
+  query?: string,
+  page?: number,
+  limit?: number
+): Promise<{ products: Product[]; total: number; totalPages: number; page: number }> {
   try {
-    const res = await api.products.getAll(category, query);
-    return res.products || [];
+    const res = await api.products.getAll(category, query, false, page, limit);
+    return {
+      products: res.products || [],
+      total: res.pagination?.total ?? (res.products || []).length,
+      totalPages: res.pagination?.totalPages ?? 1,
+      page: res.pagination?.page ?? 1,
+    };
   } catch (error) {
     console.error('getProducts failed:', error);
-    return [];
+    return { products: [], total: 0, totalPages: 1, page: 1 };
   }
 }
 

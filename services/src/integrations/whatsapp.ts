@@ -58,15 +58,15 @@ export async function notifyCustomerStatusChange(
   orderUrl: string
 ) {
   const statusMessages: Record<string, string> = {
-    confirmed: `✅ *Order Confirmed!*\n\nHi ${customerName}! Your order *${orderNumber}* has been confirmed. We're getting it ready for you!`,
-    preparing: `👨‍🍳 *Order Being Prepared*\n\nHi ${customerName}! Your order *${orderNumber}* is now being prepared. Hang tight!`,
+    confirmed: `*Order Confirmed!*\n\nHi ${customerName}! Your order *${orderNumber}* has been confirmed. We're getting it ready for you!`,
+    preparing: `*Order Being Prepared*\n\nHi ${customerName}! Your order *${orderNumber}* is now being prepared. Hang tight!`,
     ready: `🎉 *Order Ready!*\n\nHi ${customerName}! Your order *${orderNumber}* is ready for ${orderUrl.includes('delivery') ? 'delivery' : 'pickup'}!`,
-    delivered: `✅ *Order Delivered!*\n\nHi ${customerName}! Your order *${orderNumber}* has been delivered. Thank you for ordering from Gole Khaja Ghar! 🍲`,
-    cancelled: `❌ *Order Cancelled*\n\nHi ${customerName}! Your order *${orderNumber}* has been cancelled. Contact us if you have questions.`,
+    delivered: `*Order Delivered!*\n\nHi ${customerName}! Your order *${orderNumber}* has been delivered. Thank you for ordering from Gole Khaja Ghar! 🍲`,
+    cancelled: `*Order Cancelled*\n\nHi ${customerName}! Your order *${orderNumber}* has been cancelled. Contact us if you have questions.`,
   };
 
   const message =
-    statusMessages[status] ?? `📦 Order *${orderNumber}* status updated to: *${status}*`;
+    statusMessages[status] ?? `📦Order *${orderNumber}* status updated to: *${status}*`;
   await sendWhatsApp(phone, message + `\n\nTrack your order: ${orderUrl}`);
 }
 

@@ -160,6 +160,11 @@ export default function AdminOrderDetailPage() {
               <p className="font-black text-lg text-primary">
                 Rs. {Number(order.totalAmount).toFixed(2)}
               </p>
+              {Number(order.deliveryCharge || 0) > 0 && (
+                <p className="text-[11px] text-stone-500 font-medium">
+                  (Includes Rs. {Number(order.deliveryCharge).toFixed(0)} delivery fee)
+                </p>
+              )}
             </div>
             <div>
               <p className="text-xs font-bold text-stone-400">Payment Method</p>
@@ -256,8 +261,36 @@ export default function AdminOrderDetailPage() {
               ))}
             </tbody>
             <tfoot>
-              <tr>
-                <td colSpan={4} className="p-4 text-right font-bold text-stone-500">
+              <tr className="border-t border-stone-200">
+                <td colSpan={4} className="pt-4 px-3 text-right font-bold text-stone-500">
+                  Subtotal
+                </td>
+                <td className="pt-4 px-3 text-right font-bold text-stone-900">
+                  Rs. {(order.subtotalAmount !== undefined ? Number(order.subtotalAmount) : (order.items || []).reduce((acc: number, item: any) => acc + Number(item.calculatedPrice || 0), 0)).toFixed(2)}
+                </td>
+              </tr>
+              {order.orderType === "delivery" && (
+                <tr>
+                  <td colSpan={4} className="py-1 px-3 text-right font-bold text-stone-500">
+                    Delivery Charge {Number(order.deliveryCharge || 0) === 0 ? "(Free Delivery > Rs. 500)" : ""}
+                  </td>
+                  <td className="py-1 px-3 text-right font-bold text-stone-900">
+                    {Number(order.deliveryCharge || 0) > 0 ? `+ Rs. ${Number(order.deliveryCharge).toFixed(2)}` : "Free"}
+                  </td>
+                </tr>
+              )}
+              {Number(order.discountAmount || 0) > 0 && (
+                <tr>
+                  <td colSpan={4} className="py-1 px-3 text-right font-bold text-red-600">
+                    Discount
+                  </td>
+                  <td className="py-1 px-3 text-right font-bold text-red-600">
+                    - Rs. {Number(order.discountAmount).toFixed(2)}
+                  </td>
+                </tr>
+              )}
+              <tr className="border-t border-stone-200">
+                <td colSpan={4} className="p-4 text-right font-black text-base text-stone-700">
                   Grand Total
                 </td>
                 <td className="p-4 text-right font-black text-xl text-primary">

@@ -1,13 +1,14 @@
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams, useLocation, Link } from "react-router-dom";
 import { Search, X, ChevronDown } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { api } from "@/lib/api";
 
 interface ShopFiltersProps {
   categories: string[];
-  allProducts: { name: string; slug: string }[];
+  allProducts?: { name: string; slug: string }[];
 }
 
-export default function ShopFilters({ categories, allProducts }: ShopFiltersProps) {
+export default function ShopFilters({ categories, allProducts = [] }: ShopFiltersProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -22,6 +23,7 @@ export default function ShopFilters({ categories, allProducts }: ShopFiltersProp
   const [showSort, setShowSort] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const sortRef = useRef<HTMLDivElement>(null);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const sortOptions = [
     { value: "popular", label: "Popular" },
@@ -54,12 +56,26 @@ export default function ShopFilters({ categories, allProducts }: ShopFiltersProp
     const val = e.target.value;
     setSearchValue(val);
     
-    if (val.trim().length > 0) {
-      const filtered = allProducts.filter(p => 
-        p.name.toLowerCase().includes(val.toLowerCase())
-      );
-      setSuggestions(filtered.slice(0, 5));
-      setShowSuggestions(true);
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+
+    if (val.trim().length > 1) {
+      if (allProducts && allProducts.length > 0) {
+        const filtered = allProducts.filter(p => 
+          p.name.toLowerCase().includes(val.toLowerCase())
+        );
+        setSuggestions(filtered.slice(0, 5));
+        setShowSuggestions(true);
+      } else {
+        debounceTimerRef.current = setTimeout(async () => {
+          try {
+            const res = await api.products.getAll(undefined, val.trim(), true, 1, 5);
+            setSuggestions((res.products || []).slice(0, 5));
+            setShowSuggestions(true);
+          } catch {
+            setSuggestions([]);
+          }
+        }, 200);
+      }
     } else {
       setSuggestions([]);
       setShowSuggestions(false);

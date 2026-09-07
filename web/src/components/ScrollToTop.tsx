@@ -5,11 +5,11 @@ export default function ScrollToTop() {
   const { pathname, search } = useLocation();
 
   useEffect(() => {
-    // Scroll window to (0, 0) on any route/link navigation
+    // Scroll window to top on route change
     window.scrollTo({
       top: 0,
       left: 0,
-      behavior: "instant",
+      behavior: "smooth",
     });
   }, [pathname, search]);
 

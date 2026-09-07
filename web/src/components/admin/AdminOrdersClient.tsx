@@ -31,14 +31,22 @@ interface AdminOrdersClientProps {
   initialOrders?: any[];
 }
 
-export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersClientProps) {
+export default function AdminOrdersClient({
+  initialOrders = [],
+}: AdminOrdersClientProps) {
   const [orders, setOrders] = useState(initialOrders);
-  const [sourceFilter, setSourceFilter] = useState<"ALL" | "ECOMMERCE" | "DINE_IN">("ALL");
+  const [sourceFilter, setSourceFilter] = useState<
+    "ALL" | "ECOMMERCE" | "DINE_IN"
+  >("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [updatingPaymentId, setUpdatingPaymentId] = useState<string | null>(null);
-  const [selectedReceiptOrder, setSelectedReceiptOrder] = useState<any | null>(null);
+  const [updatingPaymentId, setUpdatingPaymentId] = useState<string | null>(
+    null,
+  );
+  const [selectedReceiptOrder, setSelectedReceiptOrder] = useState<any | null>(
+    null,
+  );
 
   const fetchOrders = async () => {
     try {
@@ -83,7 +91,10 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
     };
   }, []);
 
-  const handleTogglePaymentStatus = async (orderId: string, currentStatus: string) => {
+  const handleTogglePaymentStatus = async (
+    orderId: string,
+    currentStatus: string,
+  ) => {
     const nextStatus = currentStatus === "paid" ? "pending" : "paid";
     try {
       setUpdatingPaymentId(orderId);
@@ -98,8 +109,8 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
                   paymentStatus: finalPaymentStatus,
                   status: res.order?.status || o.status,
                 }
-              : o
-          )
+              : o,
+          ),
         );
       }
     } catch (err) {
@@ -113,7 +124,11 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
   const filteredOrders = orders.filter((order) => {
     const orderType = (order.orderType || "").toLowerCase();
     const orderSource = (order.orderSource || "").toUpperCase();
-    const isDineIn = orderType === "dine_in" || orderType === "dine-in" || orderSource === "WAITER" || !!order.tableSessionId;
+    const isDineIn =
+      orderType === "dine_in" ||
+      orderType === "dine-in" ||
+      orderSource === "WAITER" ||
+      !!order.tableSessionId;
 
     if (sourceFilter === "ECOMMERCE" && isDineIn) return false;
     if (sourceFilter === "DINE_IN" && !isDineIn) return false;
@@ -128,7 +143,8 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
       const num = (order.orderNumber || "").toLowerCase();
       const name = (order.customerInfo?.name || "").toLowerCase();
       const phone = (order.customerInfo?.phone || "").toLowerCase();
-      if (!num.includes(q) && !name.includes(q) && !phone.includes(q)) return false;
+      if (!num.includes(q) && !name.includes(q) && !phone.includes(q))
+        return false;
     }
 
     return true;
@@ -156,7 +172,9 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
             }`}
           >
             <span>All</span>
-            <span className="px-1.5 py-0.2 text-[10px] bg-stone-200 rounded-full">{orders.length}</span>
+            <span className="px-1.5 py-0.2 text-[10px] bg-stone-200 rounded-full">
+              {orders.length}
+            </span>
           </button>
 
           <button
@@ -169,7 +187,9 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
           >
             <Truck className="w-3.5 h-3.5" />
             <span>Online</span>
-            <span className="px-1.5 py-0.2 text-[10px] bg-orange-100 text-orange-800 rounded-full font-bold">{ecommerceCount}</span>
+            <span className="px-1.5 py-0.2 text-[10px] bg-orange-100 text-orange-800 rounded-full font-bold">
+              {ecommerceCount}
+            </span>
           </button>
 
           <button
@@ -182,7 +202,9 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
           >
             <UtensilsCrossed className="w-3.5 h-3.5" />
             <span>Dine-In</span>
-            <span className="px-1.5 py-0.2 text-[10px] bg-amber-100 text-amber-800 rounded-full font-bold">{dineInCount}</span>
+            <span className="px-1.5 py-0.2 text-[10px] bg-amber-100 text-amber-800 rounded-full font-bold">
+              {dineInCount}
+            </span>
           </button>
         </div>
 
@@ -215,37 +237,89 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
                 type="button"
                 onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
                 className={`w-full flex items-center justify-between bg-stone-50 hover:bg-stone-100/80 border rounded-xl px-3 py-2 text-xs font-bold text-stone-800 transition-all cursor-pointer ${
-                  statusDropdownOpen ? "border-orange-500 bg-white ring-2 ring-orange-500/10" : "border-stone-200"
+                  statusDropdownOpen
+                    ? "border-orange-500 bg-white ring-2 ring-orange-500/10"
+                    : "border-stone-200"
                 }`}
               >
                 <span className="truncate flex items-center gap-1.5">
                   {statusFilter === "ALL" && "All Statuses"}
-                  {statusFilter === "PENDING" && "⏳ Pending"}
-                  {statusFilter === "CONFIRMED" && "✅ Confirmed"}
-                  {statusFilter === "PREPARING" && "🍳 In Kitchen"}
-                  {statusFilter === "READY" && "🔔 Ready"}
-                  {statusFilter === "COMPLETED" && "🎉 Completed"}
-                  {statusFilter === "CANCELLED" && "❌ Cancelled"}
+                  {statusFilter === "PENDING" && "Pending"}
+                  {statusFilter === "CONFIRMED" && "Confirmed"}
+                  {statusFilter === "PREPARING" && "In Kitchen"}
+                  {statusFilter === "READY" && "Ready"}
+                  {statusFilter === "COMPLETED" && "Completed"}
+                  {statusFilter === "CANCELLED" && "Cancelled"}
                 </span>
-                <ChevronDown className={`w-3.5 h-3.5 text-stone-400 shrink-0 ml-1 transition-transform ${statusDropdownOpen ? "rotate-180 text-orange-600" : ""}`} />
+                <ChevronDown
+                  className={`w-3.5 h-3.5 text-stone-400 shrink-0 ml-1 transition-transform ${statusDropdownOpen ? "rotate-180 text-orange-600" : ""}`}
+                />
               </button>
 
               {/* Floating Custom Status Menu */}
               {statusDropdownOpen && (
                 <>
-                  <div className="fixed inset-0 z-40" onClick={() => setStatusDropdownOpen(false)} />
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setStatusDropdownOpen(false)}
+                  />
                   <div className="absolute right-0 top-full mt-1.5 w-56 sm:w-64 bg-white rounded-2xl shadow-2xl border border-stone-200/90 py-1.5 z-50 max-h-64 overflow-y-auto custom-scrollbar">
                     <div className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-stone-400 border-b border-stone-100">
                       Filter by Order Status
                     </div>
                     {[
-                      { id: "ALL", label: "All Statuses", dot: "bg-stone-400", count: orders.length },
-                      { id: "PENDING", label: "Pending Orders", dot: "bg-amber-500", count: orders.filter((o: any) => o.status === "PENDING").length },
-                      { id: "CONFIRMED", label: "Confirmed", dot: "bg-blue-500", count: orders.filter((o: any) => o.status === "CONFIRMED").length },
-                      { id: "PREPARING", label: "In Kitchen (Preparing)", dot: "bg-orange-500", count: orders.filter((o: any) => o.status === "PREPARING").length },
-                      { id: "READY", label: "Ready for Service", dot: "bg-purple-500", count: orders.filter((o: any) => o.status === "READY").length },
-                      { id: "COMPLETED", label: "Completed", dot: "bg-emerald-500", count: orders.filter((o: any) => o.status === "COMPLETED").length },
-                      { id: "CANCELLED", label: "Cancelled", dot: "bg-red-500", count: orders.filter((o: any) => o.status === "CANCELLED").length },
+                      {
+                        id: "ALL",
+                        label: "All Statuses",
+                        dot: "bg-stone-400",
+                        count: orders.length,
+                      },
+                      {
+                        id: "PENDING",
+                        label: "Pending Orders",
+                        dot: "bg-amber-500",
+                        count: orders.filter((o: any) => o.status === "PENDING")
+                          .length,
+                      },
+                      {
+                        id: "CONFIRMED",
+                        label: "Confirmed",
+                        dot: "bg-blue-500",
+                        count: orders.filter(
+                          (o: any) => o.status === "CONFIRMED",
+                        ).length,
+                      },
+                      {
+                        id: "PREPARING",
+                        label: "In Kitchen (Preparing)",
+                        dot: "bg-orange-500",
+                        count: orders.filter(
+                          (o: any) => o.status === "PREPARING",
+                        ).length,
+                      },
+                      {
+                        id: "READY",
+                        label: "Ready for Service",
+                        dot: "bg-purple-500",
+                        count: orders.filter((o: any) => o.status === "READY")
+                          .length,
+                      },
+                      {
+                        id: "COMPLETED",
+                        label: "Completed",
+                        dot: "bg-emerald-500",
+                        count: orders.filter(
+                          (o: any) => o.status === "COMPLETED",
+                        ).length,
+                      },
+                      {
+                        id: "CANCELLED",
+                        label: "Cancelled",
+                        dot: "bg-red-500",
+                        count: orders.filter(
+                          (o: any) => o.status === "CANCELLED",
+                        ).length,
+                      },
                     ].map((item) => {
                       const isSelected = statusFilter === item.id;
                       return (
@@ -263,11 +337,17 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
                           }`}
                         >
                           <div className="flex items-center gap-2 truncate">
-                            <span className={`w-2 h-2 rounded-full shrink-0 ${item.dot}`} />
+                            <span
+                              className={`w-2 h-2 rounded-full shrink-0 ${item.dot}`}
+                            />
                             <span className="truncate">{item.label}</span>
-                            <span className="text-[10px] text-stone-400 shrink-0">({item.count})</span>
+                            <span className="text-[10px] text-stone-400 shrink-0">
+                              ({item.count})
+                            </span>
                           </div>
-                          {isSelected && <Check className="w-3.5 h-3.5 text-orange-600 shrink-0 ml-1" />}
+                          {isSelected && (
+                            <Check className="w-3.5 h-3.5 text-orange-600 shrink-0 ml-1" />
+                          )}
                         </button>
                       );
                     })}
@@ -290,7 +370,8 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
         {(searchQuery || sourceFilter !== "ALL" || statusFilter !== "ALL") && (
           <div className="flex items-center justify-between pt-1 border-t border-stone-100 text-[11px]">
             <span className="text-stone-500 font-medium">
-              Showing <strong>{filteredOrders.length}</strong> of {orders.length} orders
+              Showing <strong>{filteredOrders.length}</strong> of{" "}
+              {orders.length} orders
             </span>
             <button
               onClick={() => {
@@ -312,7 +393,10 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
         {filteredOrders.map((order: any) => {
           const orderId = order._id?.toString() || order.id;
           const orderType = (order.orderType || "").toLowerCase();
-          const isDineIn = orderType === "dine_in" || orderType === "dine-in" || order.orderSource === "WAITER";
+          const isDineIn =
+            orderType === "dine_in" ||
+            orderType === "dine-in" ||
+            order.orderSource === "WAITER";
           const isPaid = (order.paymentStatus || "").toLowerCase() === "paid";
           const status = (order.status || "").toUpperCase();
 
@@ -333,8 +417,8 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
                         isDineIn
                           ? "bg-amber-100 text-amber-800"
                           : orderType === "pickup"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-orange-100 text-orange-800"
+                            ? "bg-blue-100 text-blue-800"
+                            : "bg-orange-100 text-orange-800"
                       }`}
                     >
                       {isDineIn ? (
@@ -344,12 +428,19 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
                       ) : (
                         <Truck className="w-2.5 h-2.5" />
                       )}
-                      {isDineIn ? "Dine-In" : orderType === "pickup" ? "Pickup" : "Delivery"}
+                      {isDineIn
+                        ? "Dine-In"
+                        : orderType === "pickup"
+                          ? "Pickup"
+                          : "Delivery"}
                     </span>
                   </div>
                   <p className="text-[11px] text-stone-400 font-medium mt-0.5">
-                    {new Date(order.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} •{" "}
-                    {new Date(order.createdAt).toLocaleDateString()}
+                    {new Date(order.createdAt).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}{" "}
+                    • {new Date(order.createdAt).toLocaleDateString()}
                   </p>
                 </div>
 
@@ -359,7 +450,9 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
                     Rs. {Number(order.totalAmount || 0).toFixed(0)}
                   </span>
                   <p className="text-[10px] text-stone-400 uppercase font-semibold">
-                    {order.paymentMethod === "qr" || order.paymentMethod === "fonepay_qr" || order.paymentMethod === "FONEPAY_QR"
+                    {order.paymentMethod === "qr" ||
+                    order.paymentMethod === "fonepay_qr" ||
+                    order.paymentMethod === "FONEPAY_QR"
                       ? "FonePay QR"
                       : "Cash / COD"}
                   </p>
@@ -369,7 +462,9 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
               {/* Customer & Items Summary */}
               <div className="p-3 bg-stone-50 rounded-xl border border-stone-150 space-y-1.5">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-stone-900">{order.customerInfo?.name || "Guest Customer"}</span>
+                  <span className="font-bold text-stone-900">
+                    {order.customerInfo?.name || "Guest Customer"}
+                  </span>
                   {order.customerInfo?.phone && (
                     <a
                       href={`tel:${order.customerInfo.phone}`}
@@ -381,16 +476,23 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
                 </div>
 
                 {order.deliveryAddress && !isDineIn && (
-                  <p className="text-[11px] text-stone-500 line-clamp-1">📍 {order.deliveryAddress}</p>
+                  <p className="text-[11px] text-stone-500 line-clamp-1">
+                    📍 {order.deliveryAddress}
+                  </p>
                 )}
 
                 {/* Show Assigned Waiter for Dine-In Table Orders */}
                 {(order.waiterName || order.tableSession?.waiterName) && (
                   <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200/80 w-fit">
                     <User className="w-3 h-3 text-amber-700" />
-                    <span>Waiter: {order.waiterName || order.tableSession?.waiterName}</span>
+                    <span>
+                      Waiter:{" "}
+                      {order.waiterName || order.tableSession?.waiterName}
+                    </span>
                     {(order.waiterCode || order.tableSession?.waiterCode) && (
-                      <span className="font-mono text-amber-700 font-semibold">({order.waiterCode || order.tableSession?.waiterCode})</span>
+                      <span className="font-mono text-amber-700 font-semibold">
+                        ({order.waiterCode || order.tableSession?.waiterCode})
+                      </span>
                     )}
                   </div>
                 )}
@@ -424,23 +526,27 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
                       status === "PENDING"
                         ? "bg-amber-100 text-amber-800 animate-pulse"
                         : status === "PREPARING"
-                        ? "bg-blue-100 text-blue-800"
-                        : status === "READY"
-                        ? "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-400"
-                        : status === "COMPLETED" || status === "DELIVERED"
-                        ? "bg-green-100 text-green-800"
-                        : status === "CANCELLED"
-                        ? "bg-red-100 text-red-800"
-                        : "bg-stone-100 text-stone-700"
+                          ? "bg-blue-100 text-blue-800"
+                          : status === "READY"
+                            ? "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-400"
+                            : status === "COMPLETED" || status === "DELIVERED"
+                              ? "bg-green-100 text-green-800"
+                              : status === "CANCELLED"
+                                ? "bg-red-100 text-red-800"
+                                : "bg-stone-100 text-stone-700"
                     }`}
                   >
-                    {status === "READY" && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />}
+                    {status === "READY" && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    )}
                     {status}
                   </span>
 
                   {/* 1-tap Payment toggle */}
                   <button
-                    onClick={() => handleTogglePaymentStatus(orderId, order.paymentStatus)}
+                    onClick={() =>
+                      handleTogglePaymentStatus(orderId, order.paymentStatus)
+                    }
                     disabled={updatingPaymentId === orderId}
                     className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer border ${
                       isPaid
@@ -484,8 +590,12 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
         {filteredOrders.length === 0 && (
           <div className="bg-white rounded-2xl border border-stone-200 p-8 text-center space-y-2">
             <ShoppingBag className="w-10 h-10 text-stone-300 mx-auto" />
-            <p className="font-bold text-stone-700 text-sm">No orders match your filter</p>
-            <p className="text-xs text-stone-400">Try changing status or search criteria.</p>
+            <p className="font-bold text-stone-700 text-sm">
+              No orders match your filter
+            </p>
+            <p className="text-xs text-stone-400">
+              Try changing status or search criteria.
+            </p>
           </div>
         )}
       </div>
@@ -509,53 +619,88 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
               {filteredOrders.map((order: any) => {
                 const orderId = order._id?.toString() || order.id;
                 const orderType = (order.orderType || "").toLowerCase();
-                const isDineIn = orderType === "dine_in" || orderType === "dine-in" || order.orderSource === "WAITER";
-                const isPaid = (order.paymentStatus || "").toLowerCase() === "paid";
+                const isDineIn =
+                  orderType === "dine_in" ||
+                  orderType === "dine-in" ||
+                  order.orderSource === "WAITER";
+                const isPaid =
+                  (order.paymentStatus || "").toLowerCase() === "paid";
                 const status = (order.status || "").toUpperCase();
 
                 return (
-                  <tr key={orderId} className="hover:bg-stone-50 transition-colors">
+                  <tr
+                    key={orderId}
+                    className="hover:bg-stone-50 transition-colors"
+                  >
                     {/* Order & Source Channel */}
                     <td className="p-4">
                       <div className="flex items-center gap-2">
-                        <span className="font-black text-stone-900 text-sm">{order.orderNumber}</span>
+                        <span className="font-black text-stone-900 text-sm">
+                          {order.orderNumber}
+                        </span>
                         <span
                           className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider flex items-center gap-1 ${
                             isDineIn
                               ? "bg-amber-100 text-amber-800"
                               : orderType === "pickup"
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-orange-100 text-orange-800"
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-orange-100 text-orange-800"
                           }`}
                         >
-                          {isDineIn ? <UtensilsCrossed className="w-2.5 h-2.5" /> : orderType === "pickup" ? <ShoppingBag className="w-2.5 h-2.5" /> : <Truck className="w-2.5 h-2.5" />}
-                          {isDineIn ? "Dine-In" : orderType === "pickup" ? "Online Pickup" : "Online Delivery"}
+                          {isDineIn ? (
+                            <UtensilsCrossed className="w-2.5 h-2.5" />
+                          ) : orderType === "pickup" ? (
+                            <ShoppingBag className="w-2.5 h-2.5" />
+                          ) : (
+                            <Truck className="w-2.5 h-2.5" />
+                          )}
+                          {isDineIn
+                            ? "Dine-In"
+                            : orderType === "pickup"
+                              ? "Online Pickup"
+                              : "Online Delivery"}
                         </span>
                       </div>
                       <p className="text-[10px] text-stone-400 mt-0.5">
-                        {order.items?.length || 0} item{order.items?.length !== 1 ? "s" : ""}
+                        {order.items?.length || 0} item
+                        {order.items?.length !== 1 ? "s" : ""}
                       </p>
                     </td>
 
                     {/* Placed Date / Time */}
                     <td className="p-4 text-stone-600 font-medium">
-                      <div>{new Date(order.createdAt).toLocaleDateString()}</div>
+                      <div>
+                        {new Date(order.createdAt).toLocaleDateString()}
+                      </div>
                       <div className="text-[10px] text-stone-400">
-                        {new Date(order.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        {new Date(order.createdAt).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                       </div>
                     </td>
 
                     {/* Customer or Table & Waiter */}
                     <td className="p-4">
-                      <p className="font-bold text-stone-900 text-xs">{order.customerInfo?.name || "Guest"}</p>
-                      <p className="text-[11px] text-stone-500 font-mono">{order.customerInfo?.phone || "-"}</p>
+                      <p className="font-bold text-stone-900 text-xs">
+                        {order.customerInfo?.name || "Guest"}
+                      </p>
+                      <p className="text-[11px] text-stone-500 font-mono">
+                        {order.customerInfo?.phone || "-"}
+                      </p>
                       {(order.waiterName || order.tableSession?.waiterName) && (
                         <p className="text-[10px] font-bold text-amber-800 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200/60 w-fit mt-0.5">
-                          Waiter: {order.waiterName || order.tableSession?.waiterName} {order.waiterCode || order.tableSession?.waiterCode ? `(${order.waiterCode || order.tableSession?.waiterCode})` : ""}
+                          Waiter:{" "}
+                          {order.waiterName || order.tableSession?.waiterName}{" "}
+                          {order.waiterCode || order.tableSession?.waiterCode
+                            ? `(${order.waiterCode || order.tableSession?.waiterCode})`
+                            : ""}
                         </p>
                       )}
                       {order.deliveryAddress && !isDineIn && (
-                        <p className="text-[10px] text-stone-400 truncate max-w-xs">{order.deliveryAddress}</p>
+                        <p className="text-[10px] text-stone-400 truncate max-w-xs">
+                          {order.deliveryAddress}
+                        </p>
                       )}
                     </td>
 
@@ -566,17 +711,20 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
                           status === "PENDING"
                             ? "bg-amber-100 text-amber-800 animate-pulse"
                             : status === "PREPARING"
-                            ? "bg-blue-100 text-blue-800"
-                            : status === "READY"
-                            ? "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-400"
-                            : status === "COMPLETED" || status === "DELIVERED"
-                            ? "bg-green-100 text-green-800"
-                            : status === "CANCELLED"
-                            ? "bg-red-100 text-red-800"
-                            : "bg-stone-100 text-stone-700"
+                              ? "bg-blue-100 text-blue-800"
+                              : status === "READY"
+                                ? "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-400"
+                                : status === "COMPLETED" ||
+                                    status === "DELIVERED"
+                                  ? "bg-green-100 text-green-800"
+                                  : status === "CANCELLED"
+                                    ? "bg-red-100 text-red-800"
+                                    : "bg-stone-100 text-stone-700"
                         }`}
                       >
-                        {status === "READY" && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />}
+                        {status === "READY" && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                        )}
                         {status}
                       </span>
                     </td>
@@ -584,7 +732,12 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
                     {/* Payment Status & Toggle */}
                     <td className="p-4">
                       <button
-                        onClick={() => handleTogglePaymentStatus(orderId, order.paymentStatus)}
+                        onClick={() =>
+                          handleTogglePaymentStatus(
+                            orderId,
+                            order.paymentStatus,
+                          )
+                        }
                         disabled={updatingPaymentId === orderId}
                         className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
                           isPaid
@@ -600,11 +753,15 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
                         ) : (
                           <Clock className="w-3.5 h-3.5 text-amber-600" />
                         )}
-                        <span className="uppercase text-[10px]">{isPaid ? "PAID" : "UNPAID"}</span>
+                        <span className="uppercase text-[10px]">
+                          {isPaid ? "PAID" : "UNPAID"}
+                        </span>
                       </button>
                       <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                         <span className="text-[10px] text-stone-500 uppercase font-semibold">
-                          {order.paymentMethod === "qr" || order.paymentMethod === "fonepay_qr" || order.paymentMethod === "FONEPAY_QR"
+                          {order.paymentMethod === "qr" ||
+                          order.paymentMethod === "fonepay_qr" ||
+                          order.paymentMethod === "FONEPAY_QR"
                             ? "FonePay QR"
                             : "Cash / COD"}
                         </span>
@@ -648,7 +805,10 @@ export default function AdminOrdersClient({ initialOrders = [] }: AdminOrdersCli
 
               {filteredOrders.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="p-12 text-center text-stone-400 font-medium">
+                  <td
+                    colSpan={7}
+                    className="p-12 text-center text-stone-400 font-medium"
+                  >
                     No orders match your selected filters.
                   </td>
                 </tr>

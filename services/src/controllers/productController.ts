@@ -69,7 +69,7 @@ function mapProduct(doc: any) {
 
 export async function getProducts(req: Request, res: Response): Promise<void> {
   try {
-    const { category, query, availableOnly } = req.query;
+    const { category, query, availableOnly, page, limit } = req.query;
     const where: any = {};
 
     if (category && typeof category === 'string') {
@@ -95,16 +95,37 @@ export async function getProducts(req: Request, res: Response): Promise<void> {
       where.isAvailable = true;
     }
 
-    const products = await prisma.product.findMany({
-      where,
-      include: {
-        category: true,
-        variants: true,
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    const pageNum = page ? Math.max(1, parseInt(page as string, 10) || 1) : undefined;
+    const limitNum = limit ? Math.max(1, Math.min(100, parseInt(limit as string, 10) || 12)) : undefined;
+    const skip = pageNum && limitNum ? (pageNum - 1) * limitNum : undefined;
 
-    res.json({ success: true, products: products.map(mapProduct) });
+    const [total, products] = await Promise.all([
+      prisma.product.count({ where }),
+      prisma.product.findMany({
+        where,
+        include: {
+          category: true,
+          variants: true,
+        },
+        orderBy: { createdAt: 'desc' },
+        ...(skip !== undefined ? { skip } : {}),
+        ...(limitNum !== undefined ? { take: limitNum } : {}),
+      }),
+    ]);
+
+    res.set('Cache-Control', 'public, max-age=15, stale-while-revalidate=60');
+
+    res.json({
+      success: true,
+      products: products.map(mapProduct),
+      pagination: {
+        total,
+        page: pageNum || 1,
+        limit: limitNum || total,
+        totalPages: limitNum ? Math.ceil(total / limitNum) : 1,
+        hasMore: limitNum && pageNum ? pageNum * limitNum < total : false,
+      },
+    });
   } catch (error) {
     console.error('getProducts error:', error);
     res.status(500).json({ error: 'Failed to fetch products' });
@@ -179,6 +200,31 @@ export async function getFeaturedProducts(_req: Request, res: Response): Promise
   }
 }
 
+async function findOrCreateCategory(categoryName: string): Promise<{ id: string; name: string }> {
+  const cleanName = (categoryName || 'Khaja Sets').trim();
+  const categorySlug = slugify(cleanName) || 'category';
+
+  let category = await prisma.category.findFirst({
+    where: {
+      OR: [
+        { name: cleanName },
+        { slug: categorySlug },
+      ],
+    },
+  });
+
+  if (!category) {
+    category = await prisma.category.create({
+      data: {
+        name: cleanName,
+        slug: categorySlug,
+      },
+    });
+  }
+
+  return category;
+}
+
 export async function createProduct(req: Request, res: Response): Promise<void> {
   try {
     const name = (req.body.name as string)?.trim().slice(0, 100);
@@ -200,12 +246,7 @@ export async function createProduct(req: Request, res: Response): Promise<void> 
     }
 
     // Ensure category exists
-    const categorySlug = slugify(categoryName);
-    const category = await prisma.category.upsert({
-      where: { slug: categorySlug },
-      update: { name: categoryName },
-      create: { name: categoryName, slug: categorySlug },
-    });
+    const category = await findOrCreateCategory(categoryName);
 
     let variants: { name: string; price: number }[] = [];
 
@@ -315,12 +356,8 @@ export async function updateProduct(req: Request, res: Response): Promise<void> 
       return;
     }
 
-    const categorySlug = slugify(categoryName);
-    const category = await prisma.category.upsert({
-      where: { slug: categorySlug },
-      update: { name: categoryName },
-      create: { name: categoryName, slug: categorySlug },
-    });
+    // Ensure category exists
+    const category = await findOrCreateCategory(categoryName);
 
     let variants: { name: string; price: number }[] = [];
 

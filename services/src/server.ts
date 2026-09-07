@@ -90,8 +90,8 @@ async function startServer() {
   try {
     await connectToDatabase();
     httpServer.listen(PORT, () => {
-      console.log(`🚀 [Backend Service & WebSockets] Running on http://localhost:${PORT}`);
-      console.log(`📡 [CORS] Configured for frontend origin: ${CLIENT_URL}`);
+      console.log(`Backend Service & WebSockets] Running on http://localhost:${PORT}`);
+      console.log(`[CORS] Configured for frontend origin: ${CLIENT_URL}`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);

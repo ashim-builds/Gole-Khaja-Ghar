@@ -102,9 +102,12 @@ export default function Footer() {
                   Kaski, Nepal
                 </span>
               </li>
-              <li className="flex items-center gap-3">
-                <Phone className="w-5 h-5 text-primary flex-shrink-0" />
-                <a href="tel:+9779846011810" className="hover:text-primary transition-colors font-bold">+977 984-6011810</a>
+              <li className="flex items-start gap-3">
+                <Phone className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                <div className="flex flex-col gap-1">
+                  <a href="tel:+9779804146136" className="hover:text-primary transition-colors font-bold">+977 9804146136</a>
+                  <a href="tel:+9779846011810" className="hover:text-primary transition-colors font-bold">+977 984-6011810</a>
+                </div>
               </li>
               <li className="flex items-start gap-3 border-t border-stone-100 pt-3 mt-3 text-stone-500">
                 <Clock className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />

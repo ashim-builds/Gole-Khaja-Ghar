@@ -256,6 +256,7 @@ export default function HomePage() {
                       isAvailable={product.isAvailable}
                       variants={product.variants}
                       priceType={product.priceType}
+                      index={index}
                     />
                   </div>
                 ))}

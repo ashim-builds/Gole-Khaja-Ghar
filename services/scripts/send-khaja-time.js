@@ -13,7 +13,7 @@ if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
     process.env.VAPID_PRIVATE_KEY
   );
 } else {
-  console.error('⚠️ VAPID keys not configured in environment.');
+  console.error('VAPID keys not configured in environment.');
   process.exit(1);
 }
 
@@ -21,7 +21,7 @@ async function run() {
   try {
     console.log('Connecting to MySQL Database...');
     await prisma.$connect();
-    console.log('✅ Connected to MySQL successfully.');
+    console.log('Connected to MySQL successfully.');
 
     // Fetch customer subscriptions from MySQL
     const subs = await prisma.pushSubscription.findMany({
@@ -66,9 +66,9 @@ async function run() {
 
     const fulfilledCount = results.filter((r) => r.status === 'fulfilled').length;
     const rejectedCount = results.filter((r) => r.status === 'rejected').length;
-    console.log(`✅ Finished. Delivered: ${fulfilledCount}, Failed/Cleaned: ${rejectedCount}`);
+    console.log(`Finished. Delivered: ${fulfilledCount}, Failed/Cleaned: ${rejectedCount}`);
   } catch (error) {
-    console.error('❌ Khaja time push broadcast failed:', error);
+    console.error('Khaja time push broadcast failed:', error);
   } finally {
     await prisma.$disconnect();
     console.log('Database disconnected.');

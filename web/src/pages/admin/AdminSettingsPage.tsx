@@ -436,12 +436,21 @@ export default function AdminSettingsPage() {
               <p className="font-bold text-stone-400 text-[9px] sm:text-[10px] uppercase truncate">
                 WhatsApp / Call
               </p>
-              <a
-                href="tel:+9779846011810"
-                className="font-extrabold text-stone-800 text-[11px] sm:text-xs mt-0.5 hover:text-emerald-600 block truncate"
-              >
-                984-6011810
-              </a>
+              <div className="flex flex-wrap gap-1 mt-0.5">
+                <a
+                  href="tel:+9779804146136"
+                  className="font-extrabold text-stone-800 text-[11px] sm:text-xs hover:text-emerald-600 truncate"
+                >
+                  9804146136
+                </a>
+                <span className="text-stone-400 text-[11px]">/</span>
+                <a
+                  href="tel:+9779846011810"
+                  className="font-extrabold text-stone-800 text-[11px] sm:text-xs hover:text-emerald-600 truncate"
+                >
+                  9846011810
+                </a>
+              </div>
             </div>
           </div>
 

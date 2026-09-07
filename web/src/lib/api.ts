@@ -222,15 +222,19 @@ export const api = {
 
   // ── Products & Catalog ──
   products: {
-    async getAll(category?: string, query?: string, availableOnly?: boolean) {
+    async getAll(category?: string, query?: string, availableOnly?: boolean, page?: number, limit?: number) {
       const params = new URLSearchParams();
       if (category) params.set('category', category);
       if (query) params.set('query', query);
       if (availableOnly) params.set('availableOnly', 'true');
+      if (page) params.set('page', String(page));
+      if (limit) params.set('limit', String(limit));
       const qs = params.toString() ? `?${params.toString()}` : '';
-      return request<{ success: boolean; products: Product[] }>(`/products${qs}`, {
-        cache: 'no-store',
-      });
+      return request<{
+        success: boolean;
+        products: Product[];
+        pagination?: { total: number; page: number; limit: number; totalPages: number; hasMore: boolean };
+      }>(`/products${qs}`);
     },
     async getBySlug(slug: string) {
       return request<{ success: boolean; product: Product }>(`/products/${slug}`, {
