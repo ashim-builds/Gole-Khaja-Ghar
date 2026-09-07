@@ -24,7 +24,7 @@ const sections = [
     items: [
       "Delivery is available within our designated service area. Please confirm availability before placing your order.",
       "Estimated delivery times are approximate and may vary depending on location, traffic, and weather conditions.",
-      "A delivery fee of Rs. 10 applies to orders below Rs. 100. Free delivery is available for eligible orders.",
+      "A delivery fee of Rs. 20 applies to orders below Rs. 100. Free delivery is available for orders of Rs. 100 and above.",
       "We are not responsible for delays caused by circumstances beyond our control (e.g., strikes, extreme weather).",
       "Customers must ensure someone is available at the delivery address to receive the order.",
     ],
