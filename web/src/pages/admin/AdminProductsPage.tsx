@@ -182,6 +182,9 @@ export default function AdminProductsPage() {
         notes: stockNotes || undefined,
       });
 
+      const updatedStock = res.product?.stockQuantity ?? res.newStock;
+      const isAvailable = res.product?.isAvailable ?? (updatedStock > 0);
+
       // Update local products list
       setProducts((prev) =>
         prev.map((p) => {
@@ -190,8 +193,8 @@ export default function AdminProductsPage() {
             return {
               ...p,
               trackStock: true,
-              stockQuantity: res.stockQuantity,
-              isAvailable: res.isAvailable,
+              stockQuantity: updatedStock,
+              isAvailable: isAvailable,
             };
           }
           return p;
@@ -200,7 +203,7 @@ export default function AdminProductsPage() {
 
       setStockFeedback({
         type: "success",
-        message: `Stock updated to ${res.stockQuantity} units!`,
+        message: `Stock updated to ${updatedStock} units!`,
       });
 
       setTimeout(() => {
