@@ -20,8 +20,8 @@
   "devDependencies": {
     "@prisma/client": "^6.4.1",
     "concurrently": "^10.0.5",
-    "prisma": "^6.4.1"
+    "fast-check": "^4.9.0",
+    "prisma": "^6.4.1",
+    "pure-rand": "^6.1.0"
   }
 }
-
-
