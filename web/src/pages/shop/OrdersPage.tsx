@@ -1,48 +1,119 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { api, Order } from "@/lib/api";
-import { ChevronRight, Package, Calendar } from "lucide-react";
+import { useUser } from "@/context/UserContext";
+import { ChevronRight, Package, Calendar, User, ArrowRight, AlertCircle, RefreshCw, Home } from "lucide-react";
 
 export default function OrdersPage() {
+  const { user, isLoading: isUserLoading } = useUser();
+  const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<{ message: string; isAuthError?: boolean } | null>(null);
+
+  const loadOrders = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await api.orders.getUserOrders();
+      if (res.success) {
+        setOrders(res.orders || []);
+      }
+    } catch (err: any) {
+      const isAuth =
+        err?.status === 401 ||
+        (err?.message && (err.message.includes("Unauthorized") || err.message.includes("token")));
+      setError({
+        message: err?.message || "Failed to load orders.",
+        isAuthError: isAuth,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    let active = true;
-    async function loadOrders() {
-      try {
-        const res = await api.orders.getUserOrders();
-        if (active && res.success) {
-          setOrders(res.orders || []);
-        }
-      } catch (err: any) {
-        if (active) setError(err.message || "Failed to load orders.");
-      } finally {
-        if (active) setLoading(false);
-      }
+    if (!isUserLoading && user) {
+      loadOrders();
+    } else if (!isUserLoading && !user) {
+      setLoading(false);
     }
-    loadOrders();
-    return () => {
-      active = false;
-    };
-  }, []);
+  }, [user, isUserLoading]);
 
-  if (loading) {
+  if (isUserLoading || loading) {
     return (
-      <div className="min-h-screen bg-stone-50 flex items-center justify-center">
+      <div className="min-h-[70vh] bg-stone-50 flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (!user || error?.isAuthError) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center px-4 py-12 bg-stone-50">
+        <div className="max-w-md w-full bg-white rounded-3xl shadow-xl border border-stone-200 p-8 text-center space-y-6">
+          <div className="w-16 h-16 bg-orange-100 text-orange-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
+            <User className="w-8 h-8" />
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="text-2xl font-black text-stone-900 tracking-tight">Login Required to View Orders</h2>
+            <p className="text-sm text-stone-600 font-medium leading-relaxed">
+              Please sign in to your Gole Khaja Ghar account to view your order history and live order updates.
+            </p>
+          </div>
+
+          <div className="space-y-3 pt-2">
+            <button
+              onClick={() => navigate("/login?redirect=/orders")}
+              className="w-full py-4 bg-orange-600 hover:bg-orange-500 text-white font-black uppercase text-xs tracking-wider rounded-xl shadow-lg shadow-orange-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              Log In / Register
+              <ArrowRight className="w-4 h-4" />
+            </button>
+            <Link
+              to="/"
+              className="w-full py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Home className="w-4 h-4" />
+              Return Home
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-stone-50 flex flex-col items-center justify-center p-4">
-        <p className="text-red-500 font-medium">{error}</p>
-        <Link to="/" className="mt-4 text-primary font-bold">
-          Return Home
-        </Link>
+      <div className="min-h-[70vh] flex items-center justify-center px-4 py-12 bg-stone-50">
+        <div className="max-w-md w-full bg-white rounded-3xl shadow-xl border border-stone-200 p-8 text-center space-y-6">
+          <div className="w-16 h-16 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
+            <AlertCircle className="w-8 h-8" />
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="text-2xl font-black text-stone-900 tracking-tight">Unable to Load Orders</h2>
+            <p className="text-sm text-stone-600 font-medium leading-relaxed">{error.message}</p>
+          </div>
+
+          <div className="space-y-3 pt-2">
+            <button
+              onClick={loadOrders}
+              className="w-full py-3.5 bg-orange-600 hover:bg-orange-500 text-white font-black uppercase text-xs tracking-wider rounded-xl shadow-lg shadow-orange-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Try Again
+            </button>
+            <Link
+              to="/"
+              className="w-full py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Home className="w-4 h-4" />
+              Return Home
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
