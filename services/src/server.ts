@@ -78,6 +78,11 @@ import prisma from './lib/prisma.js';
 
 import { getStoreStatusHandler } from './controllers/storeConfigController.js';
 
+// Root Status
+app.get('/', (_req, res) => {
+  res.json({ success: true, message: 'Gole Khaja Ghar API Backend Services Running', health: '/health', api: '/api' });
+});
+
 // Health Check
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', service: 'golu-khaja-ghar-services', timestamp: new Date().toISOString() });
