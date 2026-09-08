@@ -46,7 +46,7 @@ const isOriginAllowed = (origin: string | undefined): boolean => {
 };
 
 // Global Middlewares
-app.use(compression());
+app.use(compression() as any);
 app.use(
   cors({
     origin: (origin, callback) => {

@@ -107,6 +107,15 @@ function getBaseUrl(): string {
   return '/api';
 }
 
+export function getGoogleAuthUrl(redirectPath?: string): string {
+  const baseUrl = getBaseUrl();
+  const endpoint = `${baseUrl}/auth/google`;
+  if (redirectPath && redirectPath.startsWith('/')) {
+    return `${endpoint}?redirect=${encodeURIComponent(redirectPath)}`;
+  }
+  return endpoint;
+}
+
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const baseUrl = getBaseUrl();
   const url = `${baseUrl}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
@@ -140,9 +149,21 @@ export const api = {
   // ── Authentication ──
   auth: {
     async register(data: { name: string; email: string; phone?: string; password: string }) {
-      return request<{ success: boolean; user: UserProfile }>('/auth/register', {
+      return request<{ success: boolean; otpSent?: boolean; message?: string }>('/auth/register', {
         method: 'POST',
         body: JSON.stringify(data),
+      });
+    },
+    async verifyOtp(email: string, otp: string) {
+      return request<{ success: boolean; user: UserProfile }>('/auth/verify-otp', {
+        method: 'POST',
+        body: JSON.stringify({ email, otp }),
+      });
+    },
+    async resendOtp(email: string) {
+      return request<{ success: boolean; message: string }>('/auth/resend-otp', {
+        method: 'POST',
+        body: JSON.stringify({ email }),
       });
     },
     async login(data: { email?: string; identifier?: string; password: string }) {

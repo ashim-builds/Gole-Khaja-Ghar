@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useUser } from "@/context/UserContext";
-import { api } from "@/lib/api";
+import { api, getGoogleAuthUrl } from "@/lib/api";
 import { User, UtensilsCrossed, ChefHat, ShieldAlert } from "lucide-react";
 
 export default function LoginPage() {
@@ -200,7 +200,7 @@ export default function LoginPage() {
               </div>
 
               <a
-                href="/api/auth/google"
+                href={getGoogleAuthUrl(searchParams.get("redirect") || searchParams.get("from") || "")}
                 className="w-full flex items-center justify-center gap-3 bg-white text-stone-700 font-bold border border-stone-200 py-3 rounded-xl hover:bg-stone-50 transition-colors text-xs"
               >
                 <svg

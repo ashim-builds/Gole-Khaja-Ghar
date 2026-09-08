@@ -32,6 +32,29 @@ export const registerSchema = z.object({
     .max(100, 'Password must be under 100 characters'),
 });
 
+export const verifyOtpSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .email('Please provide a valid email address')
+    .max(100, 'Email must be under 100 characters')
+    .toLowerCase(),
+  otp: z
+    .string()
+    .trim()
+    .length(6, 'Verification code must be 6 digits')
+    .regex(/^\d{6}$/, 'Verification code must only contain numbers'),
+});
+
+export const resendOtpSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .email('Please provide a valid email address')
+    .max(100, 'Email must be under 100 characters')
+    .toLowerCase(),
+});
+
 export const loginSchema = z.object({
   email: z
     .string()
