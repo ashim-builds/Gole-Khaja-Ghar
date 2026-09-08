@@ -558,12 +558,12 @@ export default function PosTerminalPage() {
 
       {/* Real-Time Floating Ready Alerts for Waiters */}
       {readyAlerts.length > 0 && (
-        <div className="bg-emerald-950/95 border-b border-emerald-600/50 px-3 sm:px-4 py-2 flex items-center justify-between gap-3 shrink-0 shadow-lg z-30">
+        <div className="bg-emerald-950/95 border-b border-emerald-600/50 px-3 sm:px-4 py-2.5 flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3 shrink-0 shadow-lg z-30 min-w-0">
           <div className="flex items-center gap-2 text-xs font-black text-emerald-400 shrink-0">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping shrink-0" />
             <span className="text-[10px] sm:text-xs font-black tracking-wider">READY FOR PICKUP:</span>
           </div>
-          <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-0.5">
+          <div className="flex flex-wrap items-center gap-2 min-w-0 w-full sm:w-auto sm:flex-1 py-0.5">
             {readyAlerts.map((alert) => {
               const tbl = alert.tableNumber || "";
               const isDirectTable = /^T-\d+/i.test(tbl) || /^\d+$/.test(tbl);
@@ -585,16 +585,16 @@ export default function PosTerminalPage() {
               return (
                 <div
                   key={alert.id}
-                  className="flex items-center gap-2 bg-emerald-900/90 border border-emerald-500/60 rounded-xl px-2.5 py-1.5 text-xs text-white shrink-0 shadow-md animate-pulse"
+                  className="flex items-center gap-2 min-w-0 max-w-full bg-emerald-900/90 border border-emerald-500/60 rounded-xl px-2.5 py-1.5 text-xs text-white shadow-md animate-pulse"
                 >
-                  <span className="font-black text-emerald-300 text-xs whitespace-nowrap">{displayName}</span>
-                  <span className="text-emerald-200/90 text-[10px] sm:text-[11px] truncate max-w-[140px] sm:max-w-[220px]">
+                  <span className="font-black text-emerald-300 text-xs whitespace-nowrap shrink-0">{displayName}</span>
+                  <span className="text-emerald-200/90 text-[10px] sm:text-[11px] truncate min-w-0 max-w-[120px] sm:max-w-[220px]">
                     ({alert.itemsSummary})
                   </span>
                   <button
                     onClick={() => handleMarkDelivered(alert.id)}
                     disabled={deliveringTicketId === alert.id}
-                    className="px-2.5 py-1 bg-emerald-400 hover:bg-emerald-300 active:scale-95 disabled:opacity-50 text-stone-950 font-black rounded-lg text-[10px] uppercase transition-all cursor-pointer whitespace-nowrap shadow-sm"
+                    className="px-2.5 py-1 bg-emerald-400 hover:bg-emerald-300 active:scale-95 disabled:opacity-50 text-stone-950 font-black rounded-lg text-[10px] uppercase transition-all cursor-pointer whitespace-nowrap shrink-0 shadow-sm"
                   >
                     {deliveringTicketId === alert.id ? "Delivering..." : "Mark Delivered"}
                   </button>

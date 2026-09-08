@@ -294,9 +294,9 @@ export default function AdminBillingPage() {
       </div>
 
       {/* Main Grid: Left Table Selector, Right Billing Workspace */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-w-0 overflow-x-hidden">
         {/* Left Col: Occupied Tables ready for Billing */}
-        <div className="lg:col-span-4 space-y-3">
+        <div className="lg:col-span-4 min-w-0 space-y-3">
           <div className="flex items-center justify-between px-1">
             <span className="text-xs font-black uppercase tracking-wider text-stone-500">
               Tables Ready for Billing ({tables.length})
@@ -312,20 +312,20 @@ export default function AdminBillingPage() {
               <p className="text-[11px] text-stone-400">All dine-in tables are currently settled or available.</p>
             </div>
           ) : (
-            <div className="space-y-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-2.5">
               {tables.map((t) => {
                 const isSelected = selectedTable?.id === t.id;
                 return (
                   <button
                     key={t.id}
                     onClick={() => handleSelectTable(t)}
-                    className={`w-full p-4 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between ${
+                    className={`w-full min-w-0 p-3.5 sm:p-4 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between gap-3 ${
                       isSelected
                         ? "bg-stone-900 border-stone-900 text-white shadow-xl shadow-stone-900/20"
                         : "bg-white border-stone-200 hover:border-orange-500 text-stone-800 shadow-sm"
                     }`}
                   >
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <span className={`text-lg font-black ${isSelected ? "text-white" : "text-stone-900"}`}>
                           {t.tableNumber}
@@ -340,12 +340,12 @@ export default function AdminBillingPage() {
                           Occupied
                         </span>
                       </div>
-                      <p className={`text-xs mt-1 ${isSelected ? "text-stone-300" : "text-stone-500"}`}>
+                      <p className={`text-xs mt-1 break-words ${isSelected ? "text-stone-300" : "text-stone-500"}`}>
                         Staff: <strong>{t.activeSession?.waiterName || "Staff"}</strong> • {t.capacity} Seats
                       </p>
                     </div>
 
-                    <div className="text-right">
+                    <div className="shrink-0 text-right">
                       <span
                         className={`text-base font-black ${
                           isSelected ? "text-orange-400" : "text-orange-600"
