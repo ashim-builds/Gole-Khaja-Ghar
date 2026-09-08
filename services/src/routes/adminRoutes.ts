@@ -42,7 +42,10 @@ router.post('/login', rateLimiter(5, 5 * 60 * 1000), adminLogin);
 router.post('/logout', adminLogout);
 
 // Allow staff/waiters & admins to list active waiters for POS table assignment
-router.get('/waiters', requireRoles(['WAITER', 'CASHIER', 'KITCHEN', 'CHEF', 'ADMIN']), listWaiters);
+router.get('/waiters', requireRoles(['WAITER', 'CASHIER', 'KITCHEN', 'CHEF', 'ADMIN', 'STAFF']), listWaiters);
+
+// Live updates for Admin Dashboard & Staff Terminals
+router.get('/live-updates', requireRoles(['ADMIN', 'SUPER_ADMIN', 'WAITER', 'CASHIER', 'KITCHEN', 'CHEF', 'STAFF']), getAdminLiveUpdates);
 
 // Protect all following admin routes
 router.use(authenticateAdmin);
