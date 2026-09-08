@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   Eye,
   ShoppingBag,
@@ -34,13 +34,23 @@ interface AdminOrdersClientProps {
 export default function AdminOrdersClient({
   initialOrders = [],
 }: AdminOrdersClientProps) {
+  const [searchParams] = useSearchParams();
   const [orders, setOrders] = useState(initialOrders);
   const [sourceFilter, setSourceFilter] = useState<
     "ALL" | "ECOMMERCE" | "DINE_IN"
   >("ALL");
-  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [statusFilter, setStatusFilter] = useState<string>(
+    (searchParams.get("status") || "ALL").toUpperCase()
+  );
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    const urlStatus = searchParams.get("status");
+    if (urlStatus) {
+      setStatusFilter(urlStatus.toUpperCase());
+    }
+  }, [searchParams]);
   const [updatingPaymentId, setUpdatingPaymentId] = useState<string | null>(
     null,
   );

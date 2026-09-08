@@ -1046,6 +1046,7 @@ export async function getAdminLiveUpdates(req: Request, res: Response): Promise<
         pendingOrders,
         preparing: preparingOrders,
         ready: readyOrders,
+        readyOrders: readyOrders,
       },
       recentOrders: recentOrders.map(mapOrder),
     });

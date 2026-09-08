@@ -9,12 +9,14 @@ export default function AdminDashboardPage() {
     availableProducts: number;
     totalOrders: number;
     pendingOrders: number;
+    readyOrders: number;
     recentOrders: any[];
   }>({
     totalProducts: 0,
     availableProducts: 0,
     totalOrders: 0,
     pendingOrders: 0,
+    readyOrders: 0,
     recentOrders: [],
   });
   const [loading, setLoading] = useState(true);
@@ -24,7 +26,7 @@ export default function AdminDashboardPage() {
 
     Promise.all([
       api.products.getAll(),
-      api.orders.getAdminOrders({ limit: 10 }),
+      api.orders.getAdminOrders({ limit: 15 }),
     ])
       .then(([productsRes, ordersRes]) => {
         if (!isMounted) return;
@@ -34,13 +36,15 @@ export default function AdminDashboardPage() {
 
         const totalProducts = products.length;
         const availableProducts = products.filter((p: any) => p.isAvailable).length;
-        const pendingOrders = orders.filter((o: any) => o.status === "pending").length;
+        const pendingOrders = orders.filter((o: any) => (o.status || "").toLowerCase() === "pending").length;
+        const readyOrders = orders.filter((o: any) => (o.status || "").toLowerCase() === "ready").length;
 
         setData({
           totalProducts,
           availableProducts,
           totalOrders,
           pendingOrders,
+          readyOrders,
           recentOrders: orders,
         });
         setLoading(false);
@@ -69,6 +73,7 @@ export default function AdminDashboardPage() {
       initialAvailableProducts={data.availableProducts}
       initialTotalOrders={data.totalOrders}
       initialPendingOrders={data.pendingOrders}
+      initialReadyOrders={data.readyOrders}
       initialRecentOrders={data.recentOrders}
     />
   );

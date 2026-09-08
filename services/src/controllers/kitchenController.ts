@@ -233,8 +233,13 @@ export async function updateKotStatus(req: Request, res: Response): Promise<void
 export async function markKotDelivered(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
+    if (!id) {
+      res.status(400).json({ success: false, error: 'Ticket or Order ID is required' });
+      return;
+    }
 
-    const ticket = await prisma.kotTicket.findUnique({
+    // 1. Try finding KOT ticket by Ticket ID
+    let ticket = await prisma.kotTicket.findUnique({
       where: { id },
       include: {
         tableSession: {
@@ -245,14 +250,76 @@ export async function markKotDelivered(req: Request, res: Response): Promise<voi
       },
     });
 
+    // 2. If not found by ID, try finding KOT ticket by Order ID
     if (!ticket) {
-      res.status(404).json({ error: 'KOT ticket not found' });
+      ticket = await prisma.kotTicket.findFirst({
+        where: { orderId: id },
+        include: {
+          tableSession: {
+            include: { table: true },
+          },
+          order: true,
+          items: true,
+        },
+      });
+    }
+
+    // 3. If no KOT ticket exists, check if it's a standalone Order
+    if (!ticket) {
+      const order = await prisma.order.findFirst({
+        where: {
+          OR: [
+            { id },
+            { orderNumber: id },
+          ],
+        },
+        include: {
+          items: true,
+        },
+      });
+
+      if (order) {
+        const updatedOrder = await prisma.order.update({
+          where: { id: order.id },
+          data: { status: OrderStatus.DELIVERED },
+        });
+
+        const isDelivery = order.orderType === 'DELIVERY';
+        const isPickup = order.orderType === 'PICKUP';
+        const tableNumber = isDelivery
+          ? `Online Delivery (${order.orderNumber})`
+          : isPickup
+          ? `Online Pickup (${order.orderNumber})`
+          : `Online Order (${order.orderNumber})`;
+
+        emitOrderDelivered({
+          kotTicketId: order.id,
+          tableNumber,
+          orderId: order.id,
+          deliveredAt: new Date().toISOString(),
+        });
+
+        emitOrderStatusChanged({
+          orderId: order.id,
+          orderNumber: order.orderNumber,
+          status: 'DELIVERED',
+        });
+
+        res.json({
+          success: true,
+          message: `Order #${order.orderNumber} marked as delivered`,
+          order: updatedOrder,
+        });
+        return;
+      }
+
+      res.status(404).json({ success: false, error: 'KOT ticket or Order not found' });
       return;
     }
 
     const txOps: any[] = [
       prisma.kotTicket.update({
-        where: { id },
+        where: { id: ticket.id },
         data: { status: KotStatus.SERVED },
         include: {
           tableSession: {
@@ -272,7 +339,7 @@ export async function markKotDelivered(req: Request, res: Response): Promise<voi
         },
       }),
       prisma.kotItem.updateMany({
-        where: { kotTicketId: id },
+        where: { kotTicketId: ticket.id },
         data: { status: KotItemStatus.SERVED },
       }),
     ];
@@ -335,10 +402,14 @@ export async function markKotDelivered(req: Request, res: Response): Promise<voi
       status: 'DELIVERED',
     });
 
-    res.json({ success: true, message: `KOT #${ticket.ticketNumber} marked as delivered to ${tableNumber}`, ticket: updatedTicket });
+    res.json({
+      success: true,
+      message: `KOT #${ticket.ticketNumber} marked as delivered to ${tableNumber}`,
+      ticket: updatedTicket,
+    });
   } catch (error) {
     console.error('markKotDelivered error:', error);
-    res.status(500).json({ error: 'Failed to mark KOT as delivered' });
+    res.status(500).json({ success: false, error: 'Failed to mark KOT as delivered' });
   }
 }
 

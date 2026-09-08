@@ -263,19 +263,17 @@ export default function PosTerminalPage() {
   const handleMarkDelivered = async (ticketId: string) => {
     try {
       setDeliveringTicketId(ticketId);
-      const res = await fetch(`/api/kitchen/tickets/${ticketId}/deliver`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-      });
-      const data = await res.json();
-      if (data.success) {
+      const res = await api.kitchen.markDelivered(ticketId);
+      if (res.success) {
         playAudioAlert("chime");
-        // Remove from ready alerts
+        // Remove from ready alerts only upon successful completed delivery
         setReadyAlerts((prev) => prev.filter((a) => a.id !== ticketId));
         refreshTables();
+      } else {
+        console.error("Server did not complete delivery:", res);
       }
     } catch (err) {
-      console.error("Failed to mark delivered", err);
+      console.error("Failed to mark delivered:", err);
     } finally {
       setDeliveringTicketId(null);
     }
@@ -560,18 +558,24 @@ export default function PosTerminalPage() {
 
       {/* Real-Time Floating Ready Alerts for Waiters */}
       {readyAlerts.length > 0 && (
-        <div className="bg-emerald-950/90 border-b border-emerald-600/50 px-3 sm:px-4 py-2 flex items-center justify-between gap-3 overflow-x-auto shrink-0 shadow-lg z-30">
+        <div className="bg-emerald-950/95 border-b border-emerald-600/50 px-3 sm:px-4 py-2 flex items-center justify-between gap-3 shrink-0 shadow-lg z-30">
           <div className="flex items-center gap-2 text-xs font-black text-emerald-400 shrink-0">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-            <span className="text-[11px] sm:text-xs">READY FOR PICKUP:</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping shrink-0" />
+            <span className="text-[10px] sm:text-xs font-black tracking-wider">READY FOR PICKUP:</span>
           </div>
-          <div className="flex items-center gap-2.5 overflow-x-auto scrollbar-none">
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-0.5">
             {readyAlerts.map((alert) => {
               const tbl = alert.tableNumber || "";
               const isDirectTable = /^T-\d+/i.test(tbl) || /^\d+$/.test(tbl);
-              const isOnline = tbl.toLowerCase().includes("online") || tbl.toLowerCase().includes("delivery") || tbl.toLowerCase().includes("pickup");
+              const isDelivery = tbl.toLowerCase().includes("delivery");
+              const isPickup = tbl.toLowerCase().includes("pickup");
+              const isOnline = tbl.toLowerCase().includes("online") || isDelivery || isPickup;
               const displayName = isDirectTable
                 ? `Table ${tbl.replace(/^table\s*/i, "")}`
+                : isDelivery
+                ? tbl
+                : isPickup
+                ? tbl
                 : isOnline
                 ? tbl
                 : tbl === "Takeaway"
@@ -581,24 +585,25 @@ export default function PosTerminalPage() {
               return (
                 <div
                   key={alert.id}
-                  className="flex items-center gap-2 bg-emerald-900/90 border border-emerald-500/60 rounded-xl px-2.5 py-1 text-xs text-white shrink-0 shadow-md animate-pulse"
+                  className="flex items-center gap-2 bg-emerald-900/90 border border-emerald-500/60 rounded-xl px-2.5 py-1.5 text-xs text-white shrink-0 shadow-md animate-pulse"
                 >
-                  <span className="font-black text-emerald-300 text-xs">{displayName}</span>
-                  <span className="text-emerald-200/90 text-[10px] sm:text-[11px] truncate max-w-[160px] sm:max-w-[220px]">
+                  <span className="font-black text-emerald-300 text-xs whitespace-nowrap">{displayName}</span>
+                  <span className="text-emerald-200/90 text-[10px] sm:text-[11px] truncate max-w-[140px] sm:max-w-[220px]">
                     ({alert.itemsSummary})
                   </span>
                   <button
                     onClick={() => handleMarkDelivered(alert.id)}
                     disabled={deliveringTicketId === alert.id}
-                    className="px-2 py-0.5 bg-emerald-400 hover:bg-emerald-300 text-stone-950 font-black rounded-lg text-[9px] sm:text-[10px] uppercase transition-colors cursor-pointer"
+                    className="px-2.5 py-1 bg-emerald-400 hover:bg-emerald-300 active:scale-95 disabled:opacity-50 text-stone-950 font-black rounded-lg text-[10px] uppercase transition-all cursor-pointer whitespace-nowrap shadow-sm"
                   >
-                    {deliveringTicketId === alert.id ? "..." : "Mark Delivered"}
+                    {deliveringTicketId === alert.id ? "Delivering..." : "Mark Delivered"}
                   </button>
                   <button
                     onClick={() => setReadyAlerts((prev) => prev.filter((a) => a.id !== alert.id))}
-                    className="text-emerald-400 hover:text-white ml-0.5 cursor-pointer"
+                    className="text-emerald-400 hover:text-white p-0.5 rounded cursor-pointer active:scale-90"
+                    title="Dismiss alert"
                   >
-                    <X className="w-3 h-3" />
+                    <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
               );

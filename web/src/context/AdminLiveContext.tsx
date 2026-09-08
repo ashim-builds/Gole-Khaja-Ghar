@@ -6,6 +6,9 @@ interface AdminStats {
   availableProducts: number;
   totalOrders: number;
   pendingOrders: number;
+  readyOrders?: number;
+  ready?: number;
+  preparing?: number;
 }
 
 interface OrderItem {

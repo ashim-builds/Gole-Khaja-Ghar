@@ -628,6 +628,14 @@ export const api = {
         body: JSON.stringify({ status }),
       });
     },
+    async markDelivered(id: string) {
+      return request<{ success: boolean; message?: string; ticket?: any; order?: any }>(
+        `/kitchen/tickets/${encodeURIComponent(id)}/deliver`,
+        {
+          method: 'PATCH',
+        }
+      );
+    },
   },
 
   // ── Billing & Settlements ──
