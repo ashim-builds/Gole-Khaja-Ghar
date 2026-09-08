@@ -16,8 +16,9 @@ export async function authenticateUser(
   next: NextFunction
 ): Promise<void> {
   const token =
+    req.headers.authorization?.replace(/^Bearer\s+/i, '') ||
     req.cookies?.user_token ||
-    req.headers.authorization?.replace(/^Bearer\s+/i, '');
+    req.cookies?.admin_token;
 
   if (!token) {
     res.status(401).json({ error: 'Unauthorized: No token provided' });
@@ -25,13 +26,23 @@ export async function authenticateUser(
   }
 
   const user = await verifyUserToken(token);
-  if (!user) {
-    res.status(401).json({ error: 'Unauthorized: Invalid or expired token' });
-    return;
+  if (user) {
+    req.user = user;
+    return next();
   }
 
-  req.user = user;
-  next();
+  const isAdmin = await verifyAdminToken(token);
+  if (isAdmin) {
+    req.isAdmin = true;
+    req.user = {
+      userId: 'admin',
+      email: 'admin@golekhajaghar.com',
+      role: 'ADMIN',
+    };
+    return next();
+  }
+
+  res.status(401).json({ error: 'Unauthorized: Invalid or expired token' });
 }
 
 export async function optionalUser(
@@ -39,14 +50,19 @@ export async function optionalUser(
   _res: Response,
   next: NextFunction
 ): Promise<void> {
-  const adminToken =
-    req.cookies?.admin_token ||
-    (req.headers.authorization?.startsWith('Bearer ')
-      ? req.headers.authorization.slice(7)
-      : undefined);
+  const token =
+    req.headers.authorization?.replace(/^Bearer\s+/i, '') ||
+    req.cookies?.user_token ||
+    req.cookies?.admin_token;
 
-  if (adminToken) {
-    const isAdmin = await verifyAdminToken(adminToken);
+  if (token) {
+    const user = await verifyUserToken(token);
+    if (user) {
+      req.user = { ...user, role: (user.role || '').toUpperCase() };
+      return next();
+    }
+
+    const isAdmin = await verifyAdminToken(token);
     if (isAdmin) {
       req.isAdmin = true;
       req.user = {
@@ -58,16 +74,6 @@ export async function optionalUser(
     }
   }
 
-  const token =
-    req.cookies?.user_token ||
-    req.headers.authorization?.replace(/^Bearer\s+/i, '');
-
-  if (token) {
-    const user = await verifyUserToken(token);
-    if (user) {
-      req.user = { ...user, role: (user.role || '').toUpperCase() };
-    }
-  }
   next();
 }
 
@@ -77,8 +83,9 @@ export async function authenticateAdmin(
   next: NextFunction
 ): Promise<void> {
   const token =
+    req.headers.authorization?.replace(/^Bearer\s+/i, '') ||
     req.cookies?.admin_token ||
-    req.headers.authorization?.replace(/^Bearer\s+/i, '');
+    req.cookies?.user_token;
 
   if (!token) {
     res.status(401).json({ error: 'Unauthorized: Admin authentication required' });
@@ -86,18 +93,24 @@ export async function authenticateAdmin(
   }
 
   const isAdmin = await verifyAdminToken(token);
-  if (!isAdmin) {
-    res.status(401).json({ error: 'Unauthorized: Invalid admin token' });
-    return;
+  if (isAdmin) {
+    req.isAdmin = true;
+    req.user = {
+      userId: 'admin',
+      email: 'admin@golekhajaghar.com',
+      role: 'ADMIN',
+    };
+    return next();
   }
 
-  req.isAdmin = true;
-  req.user = {
-    userId: 'admin',
-    email: 'admin@golekhajaghar.com',
-    role: 'ADMIN',
-  };
-  next();
+  const user = await verifyUserToken(token);
+  if (user && ((user.role || '').toUpperCase() === 'ADMIN' || (user.role || '').toUpperCase() === 'SUPER_ADMIN')) {
+    req.isAdmin = true;
+    req.user = { ...user, role: 'ADMIN' };
+    return next();
+  }
+
+  res.status(401).json({ error: 'Unauthorized: Invalid admin token' });
 }
 
 export function requireRoles(allowedRoles: string[]) {
@@ -107,30 +120,10 @@ export function requireRoles(allowedRoles: string[]) {
     res: Response,
     next: NextFunction
   ): Promise<void> => {
-    // 1. Check admin token
-    const adminToken =
-      req.cookies?.admin_token ||
-      (req.headers.authorization?.startsWith('Bearer ')
-        ? req.headers.authorization.slice(7)
-        : undefined);
-
-    if (adminToken) {
-      const isAdmin = await verifyAdminToken(adminToken);
-      if (isAdmin) {
-        req.isAdmin = true;
-        req.user = {
-          userId: 'admin',
-          email: 'admin@golekhajaghar.com',
-          role: 'ADMIN',
-        };
-        return next();
-      }
-    }
-
-    // 2. Check user token
     const token =
+      req.headers.authorization?.replace(/^Bearer\s+/i, '') ||
       req.cookies?.user_token ||
-      req.headers.authorization?.replace(/^Bearer\s+/i, '');
+      req.cookies?.admin_token;
 
     if (!token) {
       res.status(401).json({ error: 'Unauthorized: Authentication required' });
@@ -138,24 +131,33 @@ export function requireRoles(allowedRoles: string[]) {
     }
 
     const user = await verifyUserToken(token);
-    if (!user) {
-      res.status(401).json({ error: 'Unauthorized: Invalid or expired token' });
+    if (user) {
+      const role = (user.role || '').toUpperCase();
+      req.user = { ...user, role };
+      if (
+        role === 'ADMIN' ||
+        role === 'SUPER_ADMIN' ||
+        normalizedAllowed.includes(role)
+      ) {
+        return next();
+      }
+      res.status(403).json({
+        error: `Forbidden: Access restricted to ${allowedRoles.join(', ')}`,
+      });
       return;
     }
 
-    const role = (user.role || '').toUpperCase();
-    req.user = { ...user, role };
-
-    if (
-      role === 'ADMIN' ||
-      role === 'SUPER_ADMIN' ||
-      normalizedAllowed.includes(role)
-    ) {
+    const isAdmin = await verifyAdminToken(token);
+    if (isAdmin) {
+      req.isAdmin = true;
+      req.user = {
+        userId: 'admin',
+        email: 'admin@golekhajaghar.com',
+        role: 'ADMIN',
+      };
       return next();
     }
 
-    res.status(403).json({
-      error: `Forbidden: Access restricted to ${allowedRoles.join(', ')}`,
-    });
+    res.status(401).json({ error: 'Unauthorized: Invalid or expired token' });
   };
 }

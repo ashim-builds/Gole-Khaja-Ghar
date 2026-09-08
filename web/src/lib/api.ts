@@ -100,7 +100,7 @@ const ADMIN_TOKEN_KEY = 'golu_admin_token';
 
 export function getAuthToken(): string | null {
   try {
-    return localStorage.getItem(AUTH_TOKEN_KEY) || localStorage.getItem(ADMIN_TOKEN_KEY);
+    return localStorage.getItem(AUTH_TOKEN_KEY);
   } catch {
     return null;
   }
@@ -109,6 +109,7 @@ export function getAuthToken(): string | null {
 export function setAuthToken(token: string) {
   try {
     localStorage.setItem(AUTH_TOKEN_KEY, token);
+    localStorage.removeItem(ADMIN_TOKEN_KEY);
   } catch {}
 }
 
@@ -129,6 +130,7 @@ export function getAdminToken(): string | null {
 export function setAdminToken(token: string) {
   try {
     localStorage.setItem(ADMIN_TOKEN_KEY, token);
+    localStorage.removeItem(AUTH_TOKEN_KEY);
   } catch {}
 }
 

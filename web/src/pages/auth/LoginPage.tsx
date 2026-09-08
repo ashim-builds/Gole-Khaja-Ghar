@@ -36,15 +36,15 @@ export default function LoginPage() {
 
       if (res.success || res.user) {
         await refreshUser();
-        const userRole = res.user?.role?.toLowerCase();
-        if (userRole === "waiter") {
+        const userRole = (res.user?.role || "").toLowerCase();
+        if (userRole === "waiter" || userRole === "cashier") {
           navigate("/pos");
-        } else if (userRole === "kitchen") {
+        } else if (userRole === "kitchen" || userRole === "chef") {
           navigate("/kitchen");
-        } else if (userRole === "admin") {
+        } else if (userRole === "admin" || userRole === "super_admin") {
           navigate("/admin");
         } else {
-          const from = searchParams.get("from");
+          const from = searchParams.get("from") || searchParams.get("redirect");
           navigate(from || "/");
         }
       } else {
