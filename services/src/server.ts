@@ -40,8 +40,10 @@ const isOriginAllowed = (origin: string | undefined): boolean => {
   return (
     rawOrigins.includes(cleanOrigin) ||
     cleanOrigin.endsWith('.onrender.com') ||
+    cleanOrigin.endsWith('.vercel.app') ||
     cleanOrigin.includes('localhost') ||
-    cleanOrigin.includes('127.0.0.1')
+    cleanOrigin.includes('127.0.0.1') ||
+    /^https?:\/\/(192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?$/.test(cleanOrigin)
   );
 };
 
@@ -50,15 +52,22 @@ app.use(compression() as any);
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (isOriginAllowed(origin)) {
-        callback(null, origin || true);
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+      const cleanOrigin = origin.replace(/\/+$/, '');
+      if (isOriginAllowed(cleanOrigin)) {
+        callback(null, origin);
       } else {
-        callback(null, true); // Fallback allow to prevent blocking client testing
+        // Fallback: reflect the origin string so credentials: true remains valid
+        callback(null, origin);
       }
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+    exposedHeaders: ['Set-Cookie'],
   })
 );
 app.use(express.json());

@@ -130,6 +130,7 @@ export async function verifyOtp(req: Request, res: Response): Promise<void> {
 
     res.status(201).json({
       success: true,
+      token,
       user: {
         id: user.id,
         name: user.name,
@@ -253,6 +254,7 @@ export async function login(req: Request, res: Response): Promise<void> {
 
     res.json({
       success: true,
+      token,
       user: {
         id: user.id,
         name: user.name,
@@ -372,7 +374,7 @@ export async function adminLogin(req: Request, res: Response): Promise<void> {
         maxAge: 24 * 60 * 60 * 1000,
         path: '/',
       });
-      res.json({ success: true });
+      res.json({ success: true, token });
     } else {
       res.status(401).json({ error: 'Invalid password' });
     }
@@ -531,7 +533,8 @@ export async function googleOAuthCallback(req: Request, res: Response): Promise<
       path: '/',
     });
 
-    res.redirect(`${clientUrl}${redirectPath}`);
+    const separator = redirectPath.includes('?') ? '&' : '?';
+    res.redirect(`${clientUrl}${redirectPath}${separator}token=${encodeURIComponent(token)}`);
   } catch (error) {
     console.error('Google callback error:', error);
     res.redirect(`${clientUrl}/login?error=Internal_Error`);

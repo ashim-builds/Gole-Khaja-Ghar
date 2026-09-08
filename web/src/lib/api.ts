@@ -95,6 +95,49 @@ export interface UserProfile {
   role?: string;
 }
 
+const AUTH_TOKEN_KEY = 'golu_auth_token';
+const ADMIN_TOKEN_KEY = 'golu_admin_token';
+
+export function getAuthToken(): string | null {
+  try {
+    return localStorage.getItem(AUTH_TOKEN_KEY) || localStorage.getItem(ADMIN_TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setAuthToken(token: string) {
+  try {
+    localStorage.setItem(AUTH_TOKEN_KEY, token);
+  } catch {}
+}
+
+export function removeAuthToken() {
+  try {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+  } catch {}
+}
+
+export function getAdminToken(): string | null {
+  try {
+    return localStorage.getItem(ADMIN_TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setAdminToken(token: string) {
+  try {
+    localStorage.setItem(ADMIN_TOKEN_KEY, token);
+  } catch {}
+}
+
+export function removeAdminToken() {
+  try {
+    localStorage.removeItem(ADMIN_TOKEN_KEY);
+  } catch {}
+}
+
 function getBaseUrl(): string {
   const envUrl = (import.meta as any).env?.VITE_API_URL;
   if (envUrl) {
@@ -123,6 +166,13 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   const headers: Record<string, string> = {
     ...(options.headers as Record<string, string>),
   };
+
+  const isAdminEndpoint = endpoint.startsWith('/admin') || endpoint.startsWith('/notifications/admin');
+  const token = isAdminEndpoint ? (getAdminToken() || getAuthToken()) : (getAuthToken() || getAdminToken());
+
+  if (token && !headers['Authorization']) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
 
   if (!(options.body instanceof FormData)) {
     headers['Content-Type'] = 'application/json';
@@ -155,10 +205,14 @@ export const api = {
       });
     },
     async verifyOtp(email: string, otp: string) {
-      return request<{ success: boolean; user: UserProfile }>('/auth/verify-otp', {
+      const res = await request<{ success: boolean; token?: string; user: UserProfile }>('/auth/verify-otp', {
         method: 'POST',
         body: JSON.stringify({ email, otp }),
       });
+      if (res.token) {
+        setAuthToken(res.token);
+      }
+      return res;
     },
     async resendOtp(email: string) {
       return request<{ success: boolean; message: string }>('/auth/resend-otp', {
@@ -167,25 +221,41 @@ export const api = {
       });
     },
     async login(data: { email?: string; identifier?: string; password: string }) {
-      return request<{ success: boolean; user: UserProfile }>('/auth/login', {
+      const res = await request<{ success: boolean; token?: string; user: UserProfile }>('/auth/login', {
         method: 'POST',
         body: JSON.stringify(data),
       });
+      if (res.token) {
+        setAuthToken(res.token);
+      }
+      return res;
     },
     async getMe() {
       return request<{ success: boolean; user: UserProfile }>('/auth/me');
     },
     async logout() {
-      return request<{ success: boolean }>('/auth/logout', { method: 'POST' });
+      try {
+        return await request<{ success: boolean }>('/auth/logout', { method: 'POST' });
+      } finally {
+        removeAuthToken();
+      }
     },
     async adminLogin(password: string) {
-      return request<{ success: boolean }>('/auth/admin/login', {
+      const res = await request<{ success: boolean; token?: string }>('/auth/admin/login', {
         method: 'POST',
         body: JSON.stringify({ password }),
       });
+      if (res.token) {
+        setAdminToken(res.token);
+      }
+      return res;
     },
     async adminLogout() {
-      return request<{ success: boolean }>('/auth/admin/logout', { method: 'POST' });
+      try {
+        return await request<{ success: boolean }>('/auth/admin/logout', { method: 'POST' });
+      } finally {
+        removeAdminToken();
+      }
     },
   },
 

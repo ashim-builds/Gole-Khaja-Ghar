@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { api, UserProfile } from "@/lib/api";
+import { api, UserProfile, setAuthToken } from "@/lib/api";
 
 interface UserContextType {
   user: UserProfile | null;
@@ -33,16 +33,28 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    try {
+      const url = new URL(window.location.href);
+      const token = url.searchParams.get("token");
+      if (token) {
+        setAuthToken(token);
+        url.searchParams.delete("token");
+        const newSearch = url.searchParams.toString();
+        const newUrl = url.pathname + (newSearch ? `?${newSearch}` : "") + url.hash;
+        window.history.replaceState({}, document.title, newUrl);
+      }
+    } catch {}
     refreshUser();
   }, []);
 
   const logout = async () => {
     try {
       await api.auth.logout();
-      setUser(null);
-      navigate("/");
     } catch (error) {
       console.error("Logout failed", error);
+    } finally {
+      setUser(null);
+      navigate("/");
     }
   };
 

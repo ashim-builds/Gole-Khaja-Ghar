@@ -44,10 +44,10 @@ export async function signUserToken(userId: string, email: string, role: string 
 export async function verifyUserToken(token: string): Promise<{ userId: string; email: string; role: string } | null> {
   try {
     const { payload } = await jwtVerify(token, key);
-    if (payload.userId && payload.email) {
+    if (payload.userId) {
       return {
         userId: payload.userId as string,
-        email: payload.email as string,
+        email: (payload.email as string) || '',
         role: (payload.role as string) || 'customer',
       };
     }
