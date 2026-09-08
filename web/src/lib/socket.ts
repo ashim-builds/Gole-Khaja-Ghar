@@ -1,6 +1,7 @@
 import { io, Socket } from 'socket.io-client';
 
 let socket: Socket | null = null;
+let audioContext: AudioContext | null = null;
 
 export function getSocket(): Socket {
   if (!socket) {
@@ -35,6 +36,47 @@ export function subscribeToEvent(event: string, callback: (...args: any[]) => vo
   };
 }
 
+export function unlockAudioAlerts() {
+  try {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContextClass) return;
+    audioContext ??= new AudioContextClass();
+    if (audioContext.state === 'suspended') {
+      void audioContext.resume();
+    }
+  } catch (e) {
+    console.warn('[AudioAlert] Unable to unlock audio:', e);
+  }
+}
+
+export async function showLiveNotification(title: string, body: string, tag: string) {
+  try {
+    if (typeof window === 'undefined' || !('Notification' in window) || Notification.permission !== 'granted') {
+      return;
+    }
+
+    const options = {
+      body,
+      icon: '/favicon-circle.png',
+      badge: '/favicon-circle.png',
+      tag,
+      requireInteraction: true,
+      silent: false,
+      vibrate: [350, 100, 350, 100, 500],
+      data: { url: '/pos' },
+    } as NotificationOptions & { vibrate: number[] };
+
+    const registration = await navigator.serviceWorker?.ready;
+    if (registration) {
+      await registration.showNotification(title, options);
+    } else {
+      new Notification(title, options);
+    }
+  } catch (e) {
+    console.warn('[LiveNotification] Unable to show notification:', e);
+  }
+}
+
 export function playAudioAlert(soundType: 'chime' | 'ready' | 'order' = 'ready') {
   try {
     // Trigger mobile hardware vibration (works on Android & mobile browsers)
@@ -45,7 +87,8 @@ export function playAudioAlert(soundType: 'chime' | 'ready' | 'order' = 'ready')
     const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
     if (!AudioContextClass) return;
 
-    const audioCtx = new AudioContextClass();
+    audioContext ??= new AudioContextClass();
+    const audioCtx = audioContext;
     if (audioCtx.state === 'suspended') {
       audioCtx.resume();
     }

@@ -5,6 +5,17 @@ import "./index.css";
 
 // Prevent multi-touch pinch-to-zoom and gesture zooming across mobile browsers / webviews
 if (typeof window !== "undefined") {
+  // Keep Android's native install prompt available until an install button consumes it.
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    (window as any).__gkgDeferredInstallPrompt = event;
+    window.dispatchEvent(new Event("gkg-install-prompt-ready"));
+  });
+
+  window.addEventListener("appinstalled", () => {
+    (window as any).__gkgDeferredInstallPrompt = null;
+  });
+
   // Prevent Safari gesture zooming (pinch in/out)
   document.addEventListener("gesturestart", (e) => e.preventDefault());
   document.addEventListener("gesturechange", (e) => e.preventDefault());

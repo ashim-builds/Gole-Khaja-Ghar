@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { api, Product } from "@/lib/api";
 import { useUser } from "@/context/UserContext";
-import { subscribeToEvent, playAudioAlert } from "@/lib/socket";
+import { subscribeToEvent, playAudioAlert, showLiveNotification, unlockAudioAlerts } from "@/lib/socket";
 import VirtualPosProductGrid from "@/components/VirtualPosProductGrid";
 
 interface ReadyAlert {
@@ -220,9 +220,18 @@ export default function PosTerminalPage() {
   useEffect(() => {
     loadInitialData();
 
+    const unlockAudio = () => unlockAudioAlerts();
+    window.addEventListener("pointerdown", unlockAudio, { once: true });
+    window.addEventListener("keydown", unlockAudio, { once: true });
+
     // Subscribe to live WebSocket events from Kitchen & Other Waiters
     const unsubReady = subscribeToEvent("waiter:ready_alert", (payload: any) => {
       playAudioAlert("ready");
+      void showLiveNotification(
+        `Food Ready - ${payload.tableNumber || "Pickup"}`,
+        `KOT #${payload.ticketNumber || ""}: ${payload.itemsSummary || "Dishes ready for pickup"}`,
+        `gkg-ready-${payload.kotTicketId || payload.ticketNumber || Date.now()}`
+      );
       setReadyAlerts((prev) => [
         {
           id: payload.kotTicketId || String(Date.now()),
@@ -256,6 +265,8 @@ export default function PosTerminalPage() {
       unsubDelivered();
       unsubTable();
       clearInterval(timer);
+      window.removeEventListener("pointerdown", unlockAudio);
+      window.removeEventListener("keydown", unlockAudio);
     };
   }, [loadInitialData, refreshTables]);
 

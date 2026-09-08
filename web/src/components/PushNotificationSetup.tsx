@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Bell, BellOff, X, AlertCircle } from "lucide-react";
+import { useUser } from "@/context/UserContext";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -15,6 +16,10 @@ interface Props {
 }
 
 export default function PushNotificationSetup({ userId }: Props) {
+  const { user } = useUser();
+  const isStaff = ["WAITER", "CASHIER", "ADMIN", "SUPER_ADMIN"].includes(
+    (user?.role || "").toUpperCase()
+  );
   const [permission, setPermission] = useState<NotificationPermission>("default");
   const [subscribed, setSubscribed] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -113,7 +118,7 @@ export default function PushNotificationSetup({ userId }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           subscription: subJson,
-          type: "customer",
+          type: isStaff ? "admin" : "customer",
           userId,
         }),
       });

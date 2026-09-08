@@ -36,7 +36,13 @@ export default function InstallAppSection() {
       setDeferredPrompt(e);
     };
 
+    const useStoredInstallPrompt = () => {
+      const storedPrompt = (window as any).__gkgDeferredInstallPrompt;
+      if (storedPrompt) setDeferredPrompt(storedPrompt);
+    };
+
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("gkg-install-prompt-ready", useStoredInstallPrompt);
 
     window.addEventListener("appinstalled", () => {
       setIsInstalled(true);
@@ -46,20 +52,23 @@ export default function InstallAppSection() {
 
     return () => {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener("gkg-install-prompt-ready", useStoredInstallPrompt);
     };
   }, []);
 
   const handleInstallClick = async () => {
     if (isInstalled) return;
 
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
+    const installPrompt = deferredPrompt || (window as any).__gkgDeferredInstallPrompt;
+    if (installPrompt) {
+      await installPrompt.prompt();
+      const { outcome } = await installPrompt.userChoice;
       if (outcome === "accepted") {
         setInstallSuccess(true);
         setIsInstalled(true);
       }
       setDeferredPrompt(null);
+      (window as any).__gkgDeferredInstallPrompt = null;
     } else if (isIOS) {
       setShowIOSGuide(true);
     } else {

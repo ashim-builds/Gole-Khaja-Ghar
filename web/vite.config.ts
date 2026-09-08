@@ -15,6 +15,9 @@ export default defineConfig({
       manifest: {
         name: 'Gole Khaja Ghar',
         short_name: 'GoleKhajaGhar',
+        id: '/',
+        start_url: '/',
+        scope: '/',
         description: 'Authentic local snacks, fresh & crispy delivered hot.',
         theme_color: '#ea580c',
         background_color: '#ffffff',
