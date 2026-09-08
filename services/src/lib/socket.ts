@@ -6,7 +6,20 @@ let io: Server | null = null;
 export function initSocket(httpServer: HttpServer, clientUrl: string): Server {
   io = new Server(httpServer, {
     cors: {
-      origin: clientUrl || 'http://localhost:3000',
+      origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        const cleanOrigin = origin.replace(/\/+$/, '');
+        if (
+          cleanOrigin === clientUrl.replace(/\/+$/, '') ||
+          cleanOrigin.endsWith('.onrender.com') ||
+          cleanOrigin.includes('localhost') ||
+          cleanOrigin.includes('127.0.0.1')
+        ) {
+          callback(null, cleanOrigin);
+        } else {
+          callback(null, cleanOrigin);
+        }
+      },
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     },

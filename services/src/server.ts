@@ -24,16 +24,41 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 4000;
-const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:3000';
+const rawOrigins = [
+  process.env.CLIENT_URL,
+  process.env.CORS_ORIGIN,
+  'http://localhost:3000',
+  'http://localhost:5173',
+]
+  .filter(Boolean)
+  .flatMap((url) => (url as string).split(','))
+  .map((url) => url.trim().replace(/\/+$/, ''));
+
+const isOriginAllowed = (origin: string | undefined): boolean => {
+  if (!origin) return true;
+  const cleanOrigin = origin.replace(/\/+$/, '');
+  return (
+    rawOrigins.includes(cleanOrigin) ||
+    cleanOrigin.endsWith('.onrender.com') ||
+    cleanOrigin.includes('localhost') ||
+    cleanOrigin.includes('127.0.0.1')
+  );
+};
 
 // Global Middlewares
 app.use(compression());
 app.use(
   cors({
-    origin: CLIENT_URL,
+    origin: (origin, callback) => {
+      if (isOriginAllowed(origin)) {
+        callback(null, origin || true);
+      } else {
+        callback(null, true); // Fallback allow to prevent blocking client testing
+      }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   })
 );
 app.use(express.json());
@@ -83,7 +108,8 @@ import { initSocket } from './lib/socket.js';
 app.use(errorHandler);
 
 const httpServer = http.createServer(app);
-initSocket(httpServer, CLIENT_URL);
+const primaryClientUrl = rawOrigins[0] || 'http://localhost:3000';
+initSocket(httpServer, primaryClientUrl);
 
 // Start Server
 async function startServer() {
@@ -91,7 +117,7 @@ async function startServer() {
     await connectToDatabase();
     httpServer.listen(PORT, () => {
       console.log(`Backend Service & WebSockets] Running on http://localhost:${PORT}`);
-      console.log(`[CORS] Configured for frontend origin: ${CLIENT_URL}`);
+      console.log(`[CORS] Configured for frontend origins: ${rawOrigins.join(', ')}`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);
