@@ -22,11 +22,9 @@ export default function AdminPushSetup() {
       !("serviceWorker" in navigator)
     ) return;
 
-    // Only run if permission already granted or default (first time, auto-request for admin)
+    // Auto-subscribe admin/staff device to real-time push alerts
     async function setup() {
       try {
-        if (process.env.NODE_ENV === "development") return;
-
         const permission = await Notification.requestPermission();
         if (permission !== "granted") return;
 
@@ -39,13 +37,27 @@ export default function AdminPushSetup() {
           reg = await navigator.serviceWorker.ready;
         }
 
-        const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+        let publicKey =
+          (import.meta as any).env?.VITE_VAPID_PUBLIC_KEY ||
+          (process.env as any)?.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+
+        if (!publicKey) {
+          try {
+            const res = await fetch("/api/push/vapid-public-key").then((r) => r.json());
+            if (res.publicKey) publicKey = res.publicKey;
+          } catch {}
+        }
+
         if (!publicKey) return;
 
-        const sub = await reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(publicKey),
-        });
+        // Check existing subscription
+        let sub = await reg.pushManager.getSubscription();
+        if (!sub) {
+          sub = await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(publicKey),
+          });
+        }
 
         const subJson = sub.toJSON() as {
           endpoint: string;
@@ -62,8 +74,7 @@ export default function AdminPushSetup() {
       }
     }
 
-    // Slight delay to not block initial render
-    const t = setTimeout(setup, 2000);
+    const t = setTimeout(setup, 1500);
     return () => clearTimeout(t);
   }, []);
 

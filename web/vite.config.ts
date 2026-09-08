@@ -11,7 +11,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon-circle.png', 'images/logo.png'],
+      includeAssets: ['favicon-circle.png', 'images/logo.png', 'sw-push.js'],
       manifest: {
         name: 'Gole Khaja Ghar',
         short_name: 'GoleKhajaGhar',
@@ -36,6 +36,7 @@ export default defineConfig({
       workbox: {
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
         globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,webp,woff2}'],
+        importScripts: ['/sw-push.js'],
         runtimeCaching: [
           {
             urlPattern: ({ url }) => url.pathname.startsWith('/api/products'),

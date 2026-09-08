@@ -67,12 +67,6 @@ export default function PushNotificationSetup({ userId }: Props) {
     setLoading(true);
     setError("");
     try {
-      if (import.meta.env.DEV) {
-        throw new Error(
-          "PWA service worker not active. Note: Notifications are disabled in dev mode. Run 'npm run build && npm run preview' to test."
-        );
-      }
-
       // Get VAPID public key
       let publicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
       if (!publicKey) {
