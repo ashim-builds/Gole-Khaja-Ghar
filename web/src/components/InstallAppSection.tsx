@@ -27,7 +27,9 @@ export default function InstallAppSection() {
 
     // Detect iOS
     const userAgent = window.navigator.userAgent.toLowerCase();
-    const isIosDevice = /iphone|ipad|ipod/.test(userAgent);
+    const isIosDevice =
+      /iphone|ipad|ipod/.test(userAgent) ||
+      (window.navigator.platform === "MacIntel" && window.navigator.maxTouchPoints > 1);
     setIsIOS(isIosDevice);
 
     // Listen for beforeinstallprompt
