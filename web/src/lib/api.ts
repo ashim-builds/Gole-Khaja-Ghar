@@ -98,7 +98,11 @@ export interface UserProfile {
 function getBaseUrl(): string {
   const envUrl = (import.meta as any).env?.VITE_API_URL;
   if (envUrl) {
-    return envUrl;
+    let clean = (envUrl as string).trim().replace(/\/+$/, '');
+    if (!clean.endsWith('/api')) {
+      clean += '/api';
+    }
+    return clean;
   }
   return '/api';
 }
