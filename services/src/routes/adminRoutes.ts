@@ -15,7 +15,7 @@ import {
   getAdminLiveUpdates,
 } from '../controllers/orderController.js';
 import { adminLogin, adminLogout } from '../controllers/authController.js';
-import { authenticateAdmin } from '../middleware/auth.js';
+import { authenticateAdmin, requireRoles } from '../middleware/auth.js';
 import { rateLimiter } from '../middleware/rateLimit.js';
 
 import {
@@ -40,6 +40,9 @@ const router = Router();
 // Public Admin Auth Routes
 router.post('/login', rateLimiter(5, 5 * 60 * 1000), adminLogin);
 router.post('/logout', adminLogout);
+
+// Allow staff/waiters & admins to list active waiters for POS table assignment
+router.get('/waiters', requireRoles(['WAITER', 'CASHIER', 'KITCHEN', 'CHEF', 'ADMIN']), listWaiters);
 
 // Protect all following admin routes
 router.use(authenticateAdmin);
@@ -87,7 +90,6 @@ router.patch('/orders/payment', updatePaymentStatus);
 router.get('/live-updates', getAdminLiveUpdates);
 
 // Admin Waiter Management
-router.get('/waiters', listWaiters);
 router.post('/waiters', createWaiter);
 router.delete('/waiters/:id', deleteWaiter);
 
