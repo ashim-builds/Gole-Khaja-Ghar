@@ -65,6 +65,18 @@ export default defineConfig({
     },
     dedupe: ['react', 'react-dom'],
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "vendor-react": ["react", "react-dom", "react-router-dom"],
+          "vendor-icons": ["lucide-react"],
+          "vendor-leaflet": ["leaflet"],
+          "vendor-socket": ["socket.io-client"],
+        },
+      },
+    },
+  },
   server: {
     host: true,
     port: 3000,

@@ -11,6 +11,7 @@ export async function sendWhatsApp(phone: string, message: string): Promise<void
   try {
     const res = await fetch(FONNTE_API, {
       method: 'POST',
+      signal: AbortSignal.timeout(6000),
       headers: {
         Authorization: token,
         'Content-Type': 'application/json',

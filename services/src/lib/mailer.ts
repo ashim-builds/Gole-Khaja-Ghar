@@ -15,6 +15,9 @@ function getTransporter() {
     host,
     port,
     secure,
+    connectionTimeout: 5000,
+    greetingTimeout: 5000,
+    socketTimeout: 10000,
     auth: {
       user,
       pass,

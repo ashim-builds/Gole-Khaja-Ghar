@@ -5,6 +5,10 @@ let io: Server | null = null;
 
 export function initSocket(httpServer: HttpServer, clientUrl: string): Server {
   io = new Server(httpServer, {
+    pingInterval: 25000,
+    pingTimeout: 20000,
+    maxHttpBufferSize: 1e6,
+    transports: ["websocket", "polling"],
     cors: {
       origin: (origin, callback) => {
         if (!origin) return callback(null, true);

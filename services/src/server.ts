@@ -131,6 +131,27 @@ const httpServer = http.createServer(app);
 const primaryClientUrl = rawOrigins[0] || 'http://localhost:3000';
 initSocket(httpServer, primaryClientUrl);
 
+// Optimize Keep-Alive and Request Timeouts
+httpServer.keepAliveTimeout = 65000;
+httpServer.headersTimeout = 66000;
+httpServer.requestTimeout = 30000;
+
+// Graceful process shutdown handling
+const gracefulShutdown = (signal: string) => {
+  console.log("[Server] Received " + signal + ". Gracefully stopping HTTP & sockets...");
+  httpServer.close(async () => {
+    try {
+      await prisma["$disconnect"]();
+      console.log("[Database] Prisma disconnected cleanly.");
+    } catch (e) {}
+    process.exit(0);
+  });
+  setTimeout(() => process.exit(1), 10000).unref();
+};
+
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+
 // Start Server
 async function startServer() {
   try {
