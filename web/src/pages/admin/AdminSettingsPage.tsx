@@ -425,7 +425,7 @@ export default function AdminSettingsPage() {
                 Location
               </p>
               <p className="font-extrabold text-stone-800 text-[11px] sm:text-xs mt-0.5 leading-snug">
-                Sisuwa, Pokhara-29, Nepal
+                Sisuwa, Pokhara-30, Nepal
               </p>
             </div>
           </div>

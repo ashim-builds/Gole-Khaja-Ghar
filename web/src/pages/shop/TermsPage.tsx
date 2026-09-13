@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { FileText, ShoppingBag, Truck, RefreshCcw, AlertTriangle, ChevronRight } from "lucide-react";
+import SEO from "@/components/SEO";
 
 const sections = [
   {
@@ -57,6 +58,11 @@ const sections = [
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-[#fafafa]">
+      <SEO
+        title="Terms & Conditions | Gole Khaja Ghar Pokhara"
+        description="Terms and conditions for ordering, payment, and delivery at Gole Khaja Ghar, Sisuwa, Pokhara-30, Nepal."
+        canonical="https://golekhajaghar.com/terms"
+      />
       {/* Hero */}
       <div className="bg-stone-900 text-white py-14 px-4">
         <div className="max-w-3xl mx-auto text-center">

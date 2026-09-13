@@ -1,0 +1,35 @@
+# Robots.txt for Gole Khaja Ghar (गोल खाजा घर)
+# https://golekhajaghar.com
+
+User-agent: *
+Allow: /
+Allow: /shop
+Allow: /privacy-policy
+Allow: /terms
+Allow: /images/
+Allow: /favicon*
+
+# Disallow administrative, kitchen, pos, and private transaction routes
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /kitchen
+Disallow: /kitchen/*
+Disallow: /pos
+Disallow: /pos/*
+Disallow: /checkout
+Disallow: /checkout/*
+Disallow: /orders
+Disallow: /orders/*
+Disallow: /account
+Disallow: /account/*
+Disallow: /api/*
+
+# Googlebot specific optimizations
+User-agent: Googlebot
+Allow: /
+Allow: /shop
+Allow: /*.js$
+Allow: /*.css$
+
+# Sitemap location
+Sitemap: https://golekhajaghar.com/sitemap.xml

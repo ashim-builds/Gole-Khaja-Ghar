@@ -4,6 +4,7 @@ import { getProducts, getCategories, Product } from "@/lib/data";
 import ProductCard from "@/components/ProductCard";
 import ShopFilters from "@/components/ShopFilters";
 import ScrollAnimation from "@/components/ScrollAnimation";
+import SEO from "@/components/SEO";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -95,8 +96,44 @@ export default function ShopPage() {
     return pages;
   };
 
+  const shopTitle = category
+    ? `${category} Menu | Gole Khaja Ghar Pokhara`
+    : query
+    ? `Search "${query}" | Menu - Gole Khaja Ghar`
+    : "Our Menu | Authentic Nepali Khaja, Momos & Snacks - Gole Khaja Ghar";
+
+  const shopDesc = category
+    ? `Order fresh and delicious ${category} at Gole Khaja Ghar in Sisuwa, Pokhara-30. Authentic Nepali recipes prepared hot to order.`
+    : "Explore our full menu of authentic Nepali snacks, signature khaja sets, steaming buff & chicken momos, chowmein, sekuwa, and refreshing drinks in Sisuwa, Pokhara-30.";
+
+  const shopBreadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://golekhajaghar.com/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": category || "Menu",
+        "item": "https://golekhajaghar.com/shop"
+      }
+    ]
+  };
+
   return (
     <div className="bg-white min-h-screen pt-8 md:pt-12 pb-20 w-full relative z-10 flex-grow flex flex-col">
+      <SEO
+        title={shopTitle}
+        description={shopDesc}
+        canonical="https://golekhajaghar.com/shop"
+        keywords="Nepali khaja menu, momo price pokhara, khaja set sisuwa, chowmein, sekuwa, food delivery pokhara"
+        schema={shopBreadcrumbSchema}
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         {/* Page Header */}
         <ScrollAnimation className="mb-6">

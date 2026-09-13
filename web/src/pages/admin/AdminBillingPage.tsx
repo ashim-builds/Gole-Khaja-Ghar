@@ -604,7 +604,7 @@ export default function AdminBillingPage() {
                         Authentic Nepali Khaja & Restaurant
                       </p>
                       <p className="text-[9px] text-stone-500">
-                        Sisuwa, Pokhara-29, Nepal • Ph: +977 9804146136 / 9846011810
+                        Sisuwa, Pokhara-30, Nepal • Ph: +977 9804146136 / 9846011810
                       </p>
                       <p className="text-[9px] font-bold text-stone-700">
                         PAN / VAT No: 601982345

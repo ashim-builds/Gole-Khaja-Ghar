@@ -5,6 +5,7 @@ import { getProductBySlug, Product } from "@/lib/data";
 import ItemQuantitySelector from "@/components/ItemQuantitySelector";
 import ScrollAnimation from "@/components/ScrollAnimation";
 import ProductGallery from "@/components/ProductGallery";
+import SEO from "@/components/SEO";
 
 export default function ProductDetailPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -57,8 +58,44 @@ export default function ProductDetailPage() {
     ? product.variants[0].price
     : product.pricePerKg || 0;
 
+  const productImageUrl = product.image
+    ? (product.image.startsWith("http") ? product.image : `https://golekhajaghar.com${product.image}`)
+    : "https://golekhajaghar.com/images/hero_bg.jpg";
+
+  const productSchema = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": product.name,
+    "image": productImageUrl,
+    "description": product.description || `${product.name} prepared fresh with authentic Nepali spices at Gole Khaja Ghar in Sisuwa, Pokhara-30.`,
+    "brand": {
+      "@type": "Brand",
+      "name": "Gole Khaja Ghar"
+    },
+    "offers": {
+      "@type": "Offer",
+      "url": `https://golekhajaghar.com/shop/${product.slug}`,
+      "priceCurrency": "NPR",
+      "price": basePrice,
+      "availability": product.isAvailable !== false ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      "seller": {
+        "@type": "Restaurant",
+        "name": "Gole Khaja Ghar"
+      }
+    }
+  };
+
   return (
     <div className="bg-white min-h-screen pt-8 md:pt-12 pb-20 w-full relative z-10 flex-grow flex flex-col">
+      <SEO
+        title={`${product.name} | Gole Khaja Ghar Pokhara`}
+        description={`Order fresh ${product.name} (Rs. ${basePrice}) from Gole Khaja Ghar in Sisuwa, Pokhara-30. Authentic taste, hygienic preparation & fast delivery in Pokhara.`}
+        canonical={`https://golekhajaghar.com/shop/${product.slug}`}
+        ogType="restaurant.menu_item"
+        ogImage={productImageUrl}
+        keywords={`${product.name}, ${product.name} Pokhara, order ${product.name}, Gole Khaja Ghar, Sisuwa food`}
+        schema={productSchema}
+      />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         {/* Back Button */}
         <Link to="/shop" className="inline-flex items-center text-stone-500 hover:text-black mb-8 transition-colors font-medium">

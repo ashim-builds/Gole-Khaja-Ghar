@@ -1,10 +1,16 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Shield, Eye, Cookie, Mail, Phone, ChevronRight } from "lucide-react";
+import SEO from "@/components/SEO";
 
 export default function PrivacyPolicyPage() {
   return (
     <div className="min-h-screen bg-[#fafafa]">
+      <SEO
+        title="Privacy Policy | Gole Khaja Ghar Pokhara"
+        description="Privacy Policy and data protection terms for Gole Khaja Ghar, Sisuwa, Pokhara-30, Nepal."
+        canonical="https://golekhajaghar.com/privacy-policy"
+      />
       {/* Hero */}
       <div className="bg-stone-900 text-white py-14 px-4">
         <div className="max-w-3xl mx-auto text-center">
