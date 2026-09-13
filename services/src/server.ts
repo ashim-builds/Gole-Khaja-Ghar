@@ -81,7 +81,13 @@ const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
-app.use('/uploads', express.static(uploadsDir, { maxAge: '1d', etag: true }));
+const serveStaticUploads = (_req: any, res: any, next: any) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  next();
+};
+app.use('/uploads', serveStaticUploads, express.static(uploadsDir, { maxAge: '7d', etag: true }));
+app.use('/api/uploads', serveStaticUploads, express.static(uploadsDir, { maxAge: '7d', etag: true }));
 
 import prisma from './lib/prisma.js';
 

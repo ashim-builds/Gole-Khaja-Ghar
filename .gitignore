@@ -6,3 +6,5 @@ dist
 build
 .turbo
 *.log
+*.zip
+deployment/

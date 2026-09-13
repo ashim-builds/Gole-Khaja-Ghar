@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { getSocket } from "@/lib/socket";
 import {
   Plus,
   Edit,
@@ -24,9 +25,10 @@ import {
   Check,
 } from "lucide-react";
 import StockToggle from "@/components/admin/StockToggle";
-import { api } from "@/lib/api";
+import { api, getImageUrl } from "@/lib/api";
 
 export default function AdminProductsPage() {
+  const location = useLocation();
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -63,7 +65,17 @@ export default function AdminProductsPage() {
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+    const socket = getSocket();
+    const handleLiveUpdate = () => {
+      fetchProducts();
+    };
+    socket.on('product:updated', handleLiveUpdate);
+    socket.on('menu:updated', handleLiveUpdate);
+    return () => {
+      socket.off('product:updated', handleLiveUpdate);
+      socket.off('menu:updated', handleLiveUpdate);
+    };
+  }, [location.key]);
 
   // Compute unique categories
   const categories = useMemo(() => {
@@ -441,7 +453,7 @@ export default function AdminProductsPage() {
                 <div className="w-18 h-18 rounded-xl bg-stone-100 border border-stone-200 overflow-hidden shrink-0 flex items-center justify-center relative shadow-xs">
                   {product.image ? (
                     <img
-                      src={product.image}
+                      src={getImageUrl(product.image)}
                       alt={product.name}
                       className="w-full h-full object-cover"
                       loading="lazy"
@@ -617,7 +629,7 @@ export default function AdminProductsPage() {
                       <div className="w-12 h-12 rounded-lg bg-stone-100 relative overflow-hidden border border-stone-200 flex items-center justify-center">
                         {product.image ? (
                           <img
-                            src={product.image}
+                            src={getImageUrl(product.image)}
                             alt={product.name}
                             className="w-full h-full object-cover"
                           />

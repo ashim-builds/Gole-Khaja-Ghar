@@ -1,3 +1,4 @@
+import { getImageUrl } from "@/lib/api";
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -1775,7 +1776,7 @@ export default function PosTerminalPage() {
             <div className="flex justify-between items-start px-5 py-4 border-b border-stone-800 shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-11 h-11 rounded-xl bg-stone-800 overflow-hidden shrink-0">
-                  <img src={activeProduct.image || "/images/logo.png"} alt={activeProduct.name} className="w-full h-full object-cover" />
+                  <img src={getImageUrl(activeProduct.image)} alt={activeProduct.name} className="w-full h-full object-cover" />
                 </div>
                 <div>
                   <h3 className="text-base font-black text-white leading-tight">{activeProduct.name}</h3>

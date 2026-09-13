@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { api } from "@/lib/api";
+import { api, getImageUrl } from "@/lib/api";
 import {
   Loader2,
   ArrowLeft,
@@ -50,7 +50,7 @@ export default function ProductForm({ product }: ProductFormProps) {
   // Auto-dismiss success after 2 seconds then navigate
   useEffect(() => {
     if (!success) return;
-    const t = setTimeout(() => navigate("/admin/products"), 2000);
+    const t = setTimeout(() => navigate("/admin/products", { replace: true }), 350);
     return () => clearTimeout(t);
   }, [success, navigate]);
 
@@ -962,7 +962,7 @@ export default function ProductForm({ product }: ProductFormProps) {
                 </div>
                 {imagePreview && (
                   <div className="w-36 h-36 relative rounded-2xl border-2 border-orange-500 overflow-hidden bg-stone-100 shadow-md shrink-0">
-                    <img src={imagePreview} alt="Cover" className="w-full h-full object-cover" />
+                    <img src={getImageUrl(imagePreview)} alt="Cover" className="w-full h-full object-cover" />
                     <span className="absolute bottom-1 left-1 bg-orange-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase shadow">
                       Cover
                     </span>
@@ -1042,7 +1042,7 @@ export default function ProductForm({ product }: ProductFormProps) {
             <div className="bg-stone-50 rounded-2xl border border-stone-200 p-4 sm:p-5 flex flex-col sm:flex-row gap-4 items-start">
               {imagePreview ? (
                 <div className="w-full sm:w-32 h-32 rounded-xl overflow-hidden bg-stone-200 shrink-0 border border-stone-300 shadow-sm">
-                  <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                  <img src={getImageUrl(imagePreview)} alt="Preview" className="w-full h-full object-cover" />
                 </div>
               ) : (
                 <div className="w-full sm:w-32 h-32 rounded-xl bg-stone-200 flex items-center justify-center text-stone-400 shrink-0">

@@ -1,3 +1,4 @@
+import { getImageUrl } from "@/lib/api";
 import { Link } from "react-router-dom";
 import { useCart, CartItem } from "@/context/CartContext";
 import { useStoreHours } from "@/lib/storeHours";
@@ -153,7 +154,7 @@ function CartItemCard({
       {/* Image */}
       <div className="relative w-20 h-20 bg-stone-50 rounded-xl overflow-hidden flex-shrink-0">
         <img 
-          src={item.product.image || "/images/logo.png"} 
+          src={getImageUrl(item.product.image)} 
           alt={item.product.name} 
           onError={(e) => {
             const target = e.currentTarget;

@@ -7,9 +7,7 @@
     "services"
   ],
   "scripts": {
-    "predev": "node scripts/ensure-docker.mjs",
     "dev": "pnpm -r --parallel dev",
-    "docker:db": "node scripts/ensure-docker.mjs",
     "docker:down": "docker compose down",
     "dev:web": "pnpm --filter web dev",
     "dev:services": "pnpm --filter services dev",

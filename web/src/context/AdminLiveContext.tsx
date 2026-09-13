@@ -1,3 +1,4 @@
+import { api } from "@/lib/api";
 import React, { createContext, useContext, useState, useEffect, useRef } from "react";
 import { subscribeToEvent, playAudioAlert } from "@/lib/socket";
 
@@ -76,20 +77,12 @@ export function AdminLiveProvider({ children }: { children: React.ReactNode }) {
 
     async function fetchUpdates() {
       try {
-        const res = await fetch("/api/admin/live-updates", {
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-        if (!res.ok) return;
+        const result = await api.orders.getAdminLiveUpdates().catch(() => null);
+        if (!active || !result || !result.success) return;
 
-        const result = await res.json();
-        if (!active || !result.success) return;
-
-        const payload = result.data || result;
-        const orders = payload.recentOrders || result.recentOrders || [];
-        const statsData = payload.stats || result.stats || null;
+        const payload = (result as any).data || result;
+        const orders = payload.recentOrders || [];
+        const statsData = payload.stats || (result as any).stats || null;
 
         if (statsData) {
           setStats(statsData);

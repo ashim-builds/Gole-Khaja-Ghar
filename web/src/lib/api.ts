@@ -140,6 +140,25 @@ export function removeAdminToken() {
   } catch {}
 }
 
+export function getImageUrl(path?: string | null): string {
+  if (!path) return '/images/logo.png';
+  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('blob:') || path.startsWith('data:')) return path;
+  if (path.startsWith('/uploads') || path.startsWith('uploads')) {
+    const envUrl = (import.meta as any).env?.VITE_API_URL;
+    let apiOrigin = '';
+    if (envUrl) {
+      apiOrigin = String(envUrl).trim().replace(/\/api\/?$/, '').replace(/\/+$/, '');
+    } else if (typeof window !== 'undefined' && window.location.port === '3000') {
+      apiOrigin = 'http://localhost:4000';
+    } else if (typeof window !== 'undefined') {
+      apiOrigin = window.location.origin;
+    }
+    const clean = path.startsWith('/') ? path : '/' + path;
+    return apiOrigin + clean;
+  }
+  return path;
+}
+
 function getBaseUrl(): string {
   const envUrl = (import.meta as any).env?.VITE_API_URL;
   if (envUrl) {
@@ -328,7 +347,8 @@ export const api = {
       if (availableOnly) params.set('availableOnly', 'true');
       if (page) params.set('page', String(page));
       if (limit) params.set('limit', String(limit));
-      const qs = params.toString() ? `?${params.toString()}` : '';
+      params.set('_t', String(Date.now()));
+      const qs = params.toString() ? '?' + params.toString() : '';
       return request<{
         success: boolean;
         products: Product[];

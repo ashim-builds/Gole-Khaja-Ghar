@@ -1,3 +1,4 @@
+import { getImageUrl } from "@/lib/api";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -160,7 +161,7 @@ export default function ProductCard({
               {/* Inner Plate Cavity (Recessed Bowl Center) */}
               <div className="w-full h-full rounded-full overflow-hidden relative shadow-[inset_0_4px_10px_rgba(0,0,0,0.35),0_1px_2px_rgba(255,255,255,0.9)] border border-stone-300/70 bg-stone-100">
                 <img
-                  src={image || "/images/logo.png"}
+                  src={getImageUrl(image)}
                   alt={name}
                   loading="lazy"
                   decoding="async"
@@ -185,7 +186,7 @@ export default function ProductCard({
               {/* Inner Drink Coaster Mat */}
               <div className="w-full h-full rounded-full overflow-hidden relative shadow-[inset_0_4px_10px_rgba(0,0,0,0.3),0_1px_2px_rgba(255,255,255,0.9)] border border-amber-200/80 bg-stone-900/5">
                 <img
-                  src={image || "/images/logo.png"}
+                  src={getImageUrl(image)}
                   alt={name}
                   loading="lazy"
                   decoding="async"

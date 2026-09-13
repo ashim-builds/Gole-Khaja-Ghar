@@ -1,7 +1,7 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
 import { useCart } from "@/context/CartContext";
 import { useNavigate } from "react-router-dom";
-import { api } from "@/lib/api";
+import { api, getImageUrl } from "@/lib/api";
 import { useStoreHours } from "@/lib/storeHours";
 import StoreClosedNotice from "@/components/StoreClosedNotice";
 import { Truck, ArrowRight, Loader2, MapPin, Edit3, QrCode, Banknote, X, Pin, CheckCircle, Phone, User, Clock, AlertTriangle } from "lucide-react";
@@ -565,7 +565,7 @@ export default function CheckoutPage() {
                     <div key={item.cartItemId} className="flex gap-3 items-center">
                       <div className="relative w-14 h-14 bg-stone-50 rounded-xl overflow-hidden flex-shrink-0">
                         <img
-                          src={item.product.image}
+                          src={getImageUrl(item.product.image)}
                           alt={item.product.name}
                           className="w-full h-full object-cover"
                         />

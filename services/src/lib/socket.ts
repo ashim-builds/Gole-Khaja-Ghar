@@ -129,3 +129,8 @@ export function emitOrderStatusChanged(payload: {
 }): void {
   emitEvent('order:status_changed', payload);
 }
+
+export function emitProductUpdated(payload?: any): void {
+  emitEvent('product:updated', payload);
+  emitEvent('menu:updated', payload);
+}

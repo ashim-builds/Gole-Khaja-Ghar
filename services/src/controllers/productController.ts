@@ -1,3 +1,4 @@
+import { emitProductUpdated } from '../lib/socket.js';
 import { Request, Response } from 'express';
 import fs from 'fs/promises';
 import path from 'path';
@@ -107,7 +108,7 @@ export async function getProducts(req: Request, res: Response): Promise<void> {
           category: true,
           variants: true,
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: [ { category: { sortOrder: 'asc' } }, { createdAt: 'asc' } ],
         ...(skip !== undefined ? { skip } : {}),
         ...(limitNum !== undefined ? { take: limitNum } : {}),
       }),
@@ -190,7 +191,7 @@ export async function getFeaturedProducts(_req: Request, res: Response): Promise
         category: true,
         variants: true,
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [ { category: { sortOrder: 'asc' } }, { createdAt: 'asc' } ],
     });
 
     res.json({ success: true, products: products.map(mapProduct) });
@@ -309,7 +310,7 @@ export async function createProduct(req: Request, res: Response): Promise<void> 
         name,
         slug,
         description,
-        categoryId: category.id,
+        category: { connect: { id: category.id } },
         image: imageUrl,
         galleryImages: images,
         priceType: priceTypeEnum,
@@ -334,7 +335,7 @@ export async function createProduct(req: Request, res: Response): Promise<void> 
       },
     });
 
-    res.status(201).json({ success: true, product: mapProduct(product) });
+    const mapped = mapProduct(product); emitProductUpdated(mapped); res.status(201).json({ success: true, product: mapped });
   } catch (error: any) {
     console.error('createProduct error:', error);
     res.status(500).json({ error: error?.message || 'Failed to create product' });
@@ -426,7 +427,7 @@ export async function updateProduct(req: Request, res: Response): Promise<void> 
         name,
         slug,
         description,
-        categoryId: category.id,
+        category: { connect: { id: category.id } },
         priceType: priceTypeEnum,
         pricePerKg: pricePerKgVal,
         allowCustomWeight: allowCustomWeightVal,
@@ -455,7 +456,7 @@ export async function updateProduct(req: Request, res: Response): Promise<void> 
       },
     });
 
-    res.json({ success: true, product: mapProduct(updated) });
+    const mapped = mapProduct(updated); emitProductUpdated(mapped); res.json({ success: true, product: mapped });
   } catch (error: any) {
     console.error('updateProduct error:', error);
     res.status(500).json({ error: error?.message || 'Failed to update product' });
@@ -466,6 +467,7 @@ export async function deleteProduct(req: Request, res: Response): Promise<void> 
   try {
     const { id } = req.params;
     await prisma.product.delete({ where: { id } });
+    emitProductUpdated({ id, deleted: true });
     res.json({ success: true });
   } catch (error) {
     console.error('deleteProduct error:', error);
@@ -542,7 +544,7 @@ export async function adjustProductStock(req: Request, res: Response): Promise<v
       },
     });
 
-    res.json({ success: true, product: mapProduct(updated), newStock });
+    const mapped = mapProduct(updated); emitProductUpdated(mapped); res.json({ success: true, product: mapped, newStock });
   } catch (error: any) {
     console.error('adjustProductStock error:', error);
     res.status(500).json({ error: error?.message || 'Failed to adjust product stock' });

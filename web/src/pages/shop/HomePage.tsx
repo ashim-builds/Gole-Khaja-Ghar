@@ -244,7 +244,7 @@ export default function HomePage() {
                 {featuredProducts.slice(0, 8).map((product, index) => (
                   <div
                     key={product.id}
-                    className={index >= 3 ? "hidden md:block" : ""}
+                    className="w-full"
                   >
                     <ProductCard
                       id={product.id}

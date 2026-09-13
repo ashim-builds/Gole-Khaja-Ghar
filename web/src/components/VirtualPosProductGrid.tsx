@@ -1,3 +1,4 @@
+import { getImageUrl } from "@/lib/api";
 import React, { useRef, useMemo, useState, useEffect } from "react";
 import { Product } from "@/lib/api";
 import { Plus, UtensilsCrossed } from "lucide-react";
@@ -168,7 +169,7 @@ export default function VirtualPosProductGrid({
                     <div>
                       <div className="aspect-[16/10] sm:aspect-[4/3] rounded-xl overflow-hidden bg-stone-800/90 relative mb-2 flex-shrink-0">
                         <img
-                          src={prod.image || "/images/logo.png"}
+                          src={getImageUrl(prod.image)}
                           alt={prod.name}
                           loading="lazy"
                           decoding="async"
