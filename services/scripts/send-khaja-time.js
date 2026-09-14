@@ -70,8 +70,11 @@ async function run() {
   } catch (error) {
     console.error('Khaja time push broadcast failed:', error);
   } finally {
-    await prisma.$disconnect();
-    console.log('Database disconnected.');
+    try {
+      await prisma.$disconnect();
+    } catch {}
+    console.log('Database disconnected. Script exiting cleanly.');
+    process.exit(0);
   }
 }
 

@@ -76,6 +76,8 @@ export function AdminLiveProvider({ children }: { children: React.ReactNode }) {
     let active = true;
 
     async function fetchUpdates() {
+      if (!active) return;
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
       try {
         const result = await api.orders.getAdminLiveUpdates().catch(() => null);
         if (!active || !result || !result.success) return;
@@ -130,8 +132,20 @@ export function AdminLiveProvider({ children }: { children: React.ReactNode }) {
       fetchUpdates();
     });
 
-    // Fallback sync every 25 seconds instead of 5 seconds
-    const interval = setInterval(fetchUpdates, 25000);
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        fetchUpdates();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("focus", handleVisibility);
+
+    // Fallback sync every 45s only when visible (WebSockets handle instant push)
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        fetchUpdates();
+      }
+    }, 45000);
 
     return () => {
       active = false;
@@ -139,6 +153,8 @@ export function AdminLiveProvider({ children }: { children: React.ReactNode }) {
       unsubStatus();
       unsubPayment();
       unsubKot();
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("focus", handleVisibility);
       clearInterval(interval);
     };
   }, []);

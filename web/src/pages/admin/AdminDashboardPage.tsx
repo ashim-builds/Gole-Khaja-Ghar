@@ -25,19 +25,19 @@ export default function AdminDashboardPage() {
     let isMounted = true;
 
     Promise.all([
-      api.products.getAll(),
+      api.orders.getAdminLiveUpdates().catch(() => null),
       api.orders.getAdminOrders({ limit: 15 }),
     ])
-      .then(([productsRes, ordersRes]) => {
+      .then(([liveRes, ordersRes]) => {
         if (!isMounted) return;
-        const products = productsRes.products || [];
+        const liveStats = (liveRes as any)?.stats;
         const orders = ordersRes.orders || [];
-        const totalOrders = ordersRes.pagination?.total || orders.length;
+        const totalOrders = liveStats?.totalOrders ?? (ordersRes.pagination?.total || orders.length);
 
-        const totalProducts = products.length;
-        const availableProducts = products.filter((p: any) => p.isAvailable).length;
-        const pendingOrders = orders.filter((o: any) => (o.status || "").toLowerCase() === "pending").length;
-        const readyOrders = orders.filter((o: any) => (o.status || "").toLowerCase() === "ready").length;
+        const totalProducts = liveStats?.totalProducts ?? 0;
+        const availableProducts = liveStats?.availableProducts ?? 0;
+        const pendingOrders = liveStats?.pendingOrders ?? orders.filter((o: any) => (o.status || "").toLowerCase() === "pending").length;
+        const readyOrders = liveStats?.readyOrders ?? orders.filter((o: any) => (o.status || "").toLowerCase() === "ready").length;
 
         setData({
           totalProducts,

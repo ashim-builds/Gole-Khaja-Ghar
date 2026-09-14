@@ -22,6 +22,7 @@ export default function LiveOrderSection({
   const [cancelError, setCancelError] = useState("");
 
   const refreshStatus = async () => {
+    if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
     try {
       const res = await api.orders.getStatus(orderNumber);
       if (res.success && res.order) {
@@ -62,7 +63,7 @@ export default function LiveOrderSection({
     const terminalStatuses = ["delivered", "cancelled", "completed"];
     let interval: NodeJS.Timeout | null = null;
     if (!terminalStatuses.includes(status)) {
-      interval = setInterval(refreshStatus, 20000);
+      interval = setInterval(refreshStatus, 45000);
     }
 
     return () => {

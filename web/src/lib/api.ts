@@ -366,9 +366,7 @@ export const api = {
       });
     },
     async getCategories() {
-      return request<{ success: boolean; categories: string[] }>('/products/categories', {
-        cache: 'no-store',
-      });
+      return request<{ success: boolean; categories: string[] }>('/products/categories');
     },
     async create(formData: FormData) {
       return request<{ success: boolean; product: Product }>('/admin/products', {

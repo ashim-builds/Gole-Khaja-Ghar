@@ -13,25 +13,41 @@ interface StoreConfigData {
 
 const CONFIG_FILE_PATH = path.join(process.cwd(), 'data', 'store_config.json');
 
+let cachedConfig: StoreConfigData | null = null;
+let lastCacheTime = 0;
+const CACHE_TTL_MS = 60 * 1000; // 1 minute in-memory cache
+
 function getStoredConfig(): StoreConfigData {
+  const now = Date.now();
+  if (cachedConfig && now - lastCacheTime < CACHE_TTL_MS) {
+    return cachedConfig;
+  }
+
   try {
     if (fs.existsSync(CONFIG_FILE_PATH)) {
       const data = fs.readFileSync(CONFIG_FILE_PATH, 'utf-8');
-      return JSON.parse(data);
+      cachedConfig = JSON.parse(data);
+      lastCacheTime = now;
+      return cachedConfig as StoreConfigData;
     }
   } catch (err) {
     console.error('Failed to read store_config.json, using defaults:', err);
   }
 
-  return {
+  const fallback: StoreConfigData = {
     mode: 'AUTO',
     customReason: '',
     updatedAt: new Date().toISOString(),
   };
+  cachedConfig = fallback;
+  lastCacheTime = now;
+  return fallback;
 }
 
 function saveStoredConfig(config: StoreConfigData): void {
   try {
+    cachedConfig = config;
+    lastCacheTime = Date.now();
     const dir = path.dirname(CONFIG_FILE_PATH);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });

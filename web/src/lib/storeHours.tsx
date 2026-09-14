@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import api from "@/lib/api";
 
 export type StoreOperationalMode = "AUTO" | "MANUAL_OPEN" | "MANUAL_CLOSED";
@@ -91,59 +91,85 @@ export function getLocalStoreStatus(): StoreStatus {
   };
 }
 
+const StoreHoursContext = createContext<StoreStatus | undefined>(undefined);
+
 /**
- * React hook to subscribe to live store hours status with server sync and local fallback
+ * Global Store Hours Provider:
+ * Shares 1 single store status state across the entire app so dozens of
+ * ProductCard and Drawer components don't each fire independent network requests.
  */
-export function useStoreHours(): StoreStatus {
+export function StoreHoursProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<StoreStatus>(getLocalStoreStatus);
 
-  useEffect(() => {
-    let mounted = true;
-
-    async function syncServerStatus() {
-      try {
-        const res = await api.store.getStatus();
-        if (mounted && res && res.success) {
-          setStatus({
-            isOpen: res.isOpen,
-            mode: res.mode || "AUTO",
-            isFirstTuesday: res.isFirstTuesday,
-            isOutsideHours: res.isOutsideHours,
-            statusText: res.statusText,
-            badgeLabel: res.badgeLabel,
-            reason: res.reason,
-            nextOpening: res.nextOpening,
-            nepalTimeFormatted: res.nepalTimeFormatted,
-          });
-          return;
-        }
-      } catch {
-        // Fallback to local evaluation silently
-      }
-
-      if (mounted) {
-        setStatus(getLocalStoreStatus());
-      }
+  const syncServerStatus = useCallback(async () => {
+    // Avoid firing network requests when tab is hidden/minimized
+    if (typeof document !== "undefined" && document.visibilityState !== "visible") {
+      return;
     }
 
+    try {
+      const res = await api.store.getStatus();
+      if (res && res.success) {
+        setStatus({
+          isOpen: res.isOpen,
+          mode: res.mode || "AUTO",
+          isFirstTuesday: res.isFirstTuesday,
+          isOutsideHours: res.isOutsideHours,
+          statusText: res.statusText,
+          badgeLabel: res.badgeLabel,
+          reason: res.reason,
+          nextOpening: res.nextOpening,
+          nepalTimeFormatted: res.nepalTimeFormatted,
+        });
+        return;
+      }
+    } catch {
+      // Fallback silently to local evaluation
+    }
+  }, []);
+
+  useEffect(() => {
     syncServerStatus();
 
-    // Auto-poll every 20 seconds to catch live admin open/close changes
-    const interval = setInterval(syncServerStatus, 20000);
+    // Background sync every 60 seconds (instead of 20 seconds) only when visible
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        syncServerStatus();
+      }
+    }, 60000);
 
     const handleVisibility = () => {
       if (document.visibilityState === "visible") {
         syncServerStatus();
       }
     };
+
     document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("focus", handleVisibility);
 
     return () => {
-      mounted = false;
       clearInterval(interval);
       document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("focus", handleVisibility);
     };
-  }, []);
+  }, [syncServerStatus]);
 
-  return status;
+  return (
+    <StoreHoursContext.Provider value={status}>
+      {children}
+    </StoreHoursContext.Provider>
+  );
 }
+
+/**
+ * React hook to consume the shared store hours status
+ */
+export function useStoreHours(): StoreStatus {
+  const context = useContext(StoreHoursContext);
+  if (context !== undefined) {
+    return context;
+  }
+  return getLocalStoreStatus();
+}
+
+export default useStoreHours;

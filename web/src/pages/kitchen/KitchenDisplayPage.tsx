@@ -87,6 +87,7 @@ export default function KitchenDisplayPage() {
   };
 
   const fetchTickets = async () => {
+    if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
     try {
       const res = await api.kitchen.getTickets();
       if (res.success) {
@@ -114,11 +115,27 @@ export default function KitchenDisplayPage() {
     const unsubDelivered = subscribeToEvent("order:delivered", () => {
       fetchTickets();
     });
-    const interval = setInterval(fetchTickets, 20000);
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        fetchTickets();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("focus", handleVisibility);
+
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        fetchTickets();
+      }
+    }, 35000);
+
     return () => {
       unsubKot();
       unsubCreated();
       unsubDelivered();
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("focus", handleVisibility);
       clearInterval(interval);
     };
   }, [audioEnabled]);

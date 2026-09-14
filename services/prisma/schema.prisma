@@ -218,6 +218,7 @@ model TableSession {
 
   @@index([tableId, status])
   @@index([status])
+  @@index([status, openedAt])
   @@index([openedAt])
   @@map("table_sessions")
 }
@@ -239,7 +240,6 @@ model Category {
 
   products Product[]
 
-  @@index([slug])
   @@index([sortOrder])
   @@map("categories")
 }
@@ -268,7 +268,6 @@ model Product {
   weightOptions ProductWeightOption[]
   orderItems    OrderItem[]
 
-  @@index([slug])
   @@index([categoryId, isAvailable])
   @@index([isFeatured])
   @@map("products")
@@ -336,9 +335,10 @@ model Order {
   kotTickets   KotTicket[]
   bill         Bill?
 
-  @@index([orderNumber])
   @@index([userId])
   @@index([status])
+  @@index([status, createdAt])
+  @@index([customerPhone])
   @@index([orderSource])
   @@index([orderType])
   @@index([createdAt])
@@ -385,6 +385,7 @@ model KotTicket {
 
   @@index([orderId])
   @@index([status])
+  @@index([status, createdAt])
   @@index([createdAt])
   @@index([tableSessionId])
   @@map("kot_tickets")
@@ -454,6 +455,8 @@ model Payment {
 
   @@index([billId])
   @@index([status])
+  @@index([status, createdAt])
+  @@index([createdAt])
   @@map("payments")
 }
 

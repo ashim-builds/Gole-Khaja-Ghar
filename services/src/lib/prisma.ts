@@ -11,8 +11,7 @@ export const prisma =
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
   });
 
-if (process.env.NODE_ENV !== 'production') {
-  globalThis.prismaGlobal = prisma;
-}
+// Preserve singleton across hot-reloads and module re-evaluations
+globalThis.prismaGlobal = prisma;
 
 export default prisma;

@@ -32,13 +32,26 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
   }
 }
 
+let cachedCategories: string[] | null = null;
+let lastCatFetch = 0;
+const CAT_CACHE_TTL = 5 * 60 * 1000; // 5 mins in-memory cache
+
 export async function getCategories(): Promise<string[]> {
+  const now = Date.now();
+  if (cachedCategories && now - lastCatFetch < CAT_CACHE_TTL) {
+    return cachedCategories;
+  }
   try {
     const res = await api.products.getCategories();
-    return res.categories || ["Khaja Sets", "Momo", "Chowmein", "Sekuwa & Snacks", "Beverages", "Other"];
+    if (res.categories && res.categories.length > 0) {
+      cachedCategories = res.categories;
+      lastCatFetch = now;
+      return cachedCategories;
+    }
+    return ["Khaja Sets", "Momo", "Chowmein", "Sekuwa & Snacks", "Beverages", "Other"];
   } catch (error) {
     console.error('getCategories failed:', error);
-    return ["Khaja Sets", "Momo", "Chowmein", "Sekuwa & Snacks", "Beverages", "Other"];
+    return cachedCategories || ["Khaja Sets", "Momo", "Chowmein", "Sekuwa & Snacks", "Beverages", "Other"];
   }
 }
 

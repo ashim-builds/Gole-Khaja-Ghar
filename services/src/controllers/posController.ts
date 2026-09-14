@@ -60,10 +60,17 @@ export async function createTableOrder(req: AuthenticatedRequest, res: Response)
 
     const orderNumber = `POS-${Date.now().toString().slice(-6)}`;
 
+    // Batch fetch products for tracked items to eliminate N+1 sequential database roundtrips
+    const productIds: string[] = Array.from(new Set(items.map((i: any) => String(i.productId)).filter(Boolean)));
+    const products: any[] = productIds.length > 0
+      ? await prisma.product.findMany({ where: { id: { in: productIds } } })
+      : [];
+    const productMap = new Map<string, any>(products.map((p) => [p.id, p]));
+
     // Check stock for tracked items
     for (const item of items) {
       if (item.productId) {
-        const product = await prisma.product.findUnique({ where: { id: item.productId } });
+        const product = productMap.get(item.productId);
         if (product && product.trackStock) {
           const qty = parseInt(item.quantity || 1, 10);
           if (product.stockQuantity < qty) {
@@ -104,10 +111,10 @@ export async function createTableOrder(req: AuthenticatedRequest, res: Response)
         },
       });
 
-      // Deduct stock for tracked products
+      // Deduct stock for tracked products atomically without re-querying in a loop
       for (const item of orderItemsData) {
         if (item.productId) {
-          const prod = await tx.product.findUnique({ where: { id: item.productId } });
+          const prod = productMap.get(item.productId);
           if (prod && prod.trackStock) {
             const newStock = Math.max(0, prod.stockQuantity - item.quantity);
             await tx.product.update({

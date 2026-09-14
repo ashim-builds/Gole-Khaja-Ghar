@@ -1,3 +1,6 @@
+// Configure libuv thread pool size before any async I/O begins to prevent thread explosion under CloudLinux NPROC
+process.env.UV_THREADPOOL_SIZE = process.env.UV_THREADPOOL_SIZE || '4';
+
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -131,14 +134,17 @@ const httpServer = http.createServer(app);
 const primaryClientUrl = rawOrigins[0] || 'http://localhost:3000';
 initSocket(httpServer, primaryClientUrl);
 
-// Optimize Keep-Alive and Request Timeouts
-httpServer.keepAliveTimeout = 65000;
-httpServer.headersTimeout = 66000;
+// Optimize Keep-Alive and Request Timeouts for reverse proxy & Passenger
+httpServer.keepAliveTimeout = 15000;
+httpServer.headersTimeout = 16000;
 httpServer.requestTimeout = 30000;
 
 // Graceful process shutdown handling
 const gracefulShutdown = (signal: string) => {
   console.log("[Server] Received " + signal + ". Gracefully stopping HTTP & sockets...");
+  if (typeof (httpServer as any).closeIdleConnections === 'function') {
+    (httpServer as any).closeIdleConnections();
+  }
   httpServer.close(async () => {
     try {
       await prisma["$disconnect"]();
@@ -146,7 +152,12 @@ const gracefulShutdown = (signal: string) => {
     } catch (e) {}
     process.exit(0);
   });
-  setTimeout(() => process.exit(1), 10000).unref();
+  setTimeout(() => {
+    if (typeof (httpServer as any).closeAllConnections === 'function') {
+      (httpServer as any).closeAllConnections();
+    }
+    process.exit(0);
+  }, 5000).unref();
 };
 
 process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));

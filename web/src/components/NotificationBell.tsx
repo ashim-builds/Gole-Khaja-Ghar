@@ -113,14 +113,26 @@ export default function NotificationBell({ type }: NotificationBellProps) {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    window.addEventListener("focus", fetchUnreadCount);
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        fetchUnreadCount();
+      }
+    };
 
-    const interval = setInterval(fetchUnreadCount, 25000);
+    document.addEventListener("mousedown", handleClickOutside);
+    window.addEventListener("focus", handleVisibility);
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        fetchUnreadCount();
+      }
+    }, 60000);
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
-      window.removeEventListener("focus", fetchUnreadCount);
+      window.removeEventListener("focus", handleVisibility);
+      document.removeEventListener("visibilitychange", handleVisibility);
       clearInterval(interval);
     };
   }, [user, type]);

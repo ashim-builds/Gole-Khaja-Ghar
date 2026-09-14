@@ -6,14 +6,18 @@ import SplashScreen from '@/components/SplashScreen';
 import DisableDevtools from '@/components/DisableDevtools';
 import PushNotificationSetup from '@/components/PushNotificationSetup';
 
+import { StoreHoursProvider } from '@/lib/storeHours';
+
 export default function RootLayout() {
   return (
     <UserProvider>
       <CartProvider>
-        <DisableDevtools />
-        <SplashScreen />
-        <PushNotificationSetup />
-        <Outlet />
+        <StoreHoursProvider>
+          <DisableDevtools />
+          <SplashScreen />
+          <PushNotificationSetup />
+          <Outlet />
+        </StoreHoursProvider>
       </CartProvider>
     </UserProvider>
   );

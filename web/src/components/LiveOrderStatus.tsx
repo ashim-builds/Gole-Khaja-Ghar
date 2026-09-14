@@ -13,8 +13,11 @@ interface LiveOrderStatusProps {
 export default function LiveOrderStatus({ orderNumber, initialStatus }: LiveOrderStatusProps) {
   const [status, setStatus] = useState(initialStatus);
 
+  const isTerminal = status === "completed" || status === "delivered" || status === "cancelled";
+
   useEffect(() => {
     const fetchStatus = async () => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
       try {
         const res = await api.orders.getStatus(orderNumber);
         if (res.success && res.order?.status) {
@@ -31,13 +34,16 @@ export default function LiveOrderStatus({ orderNumber, initialStatus }: LiveOrde
       }
     });
 
-    const interval = setInterval(fetchStatus, 25000);
+    let interval: NodeJS.Timeout | null = null;
+    if (!isTerminal) {
+      interval = setInterval(fetchStatus, 30000);
+    }
 
     return () => {
       unsub();
-      clearInterval(interval);
+      if (interval) clearInterval(interval);
     };
-  }, [orderNumber]);
+  }, [orderNumber, isTerminal]);
 
   return (
     <div className="flex items-center gap-2">

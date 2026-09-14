@@ -176,11 +176,16 @@ export async function checkout(req: AuthenticatedRequest, res: Response): Promis
     let subtotalAmount = 0;
     const validatedItems: any[] = [];
 
+    // Batch fetch all cart products in a single database query to avoid N+1 sequential roundtrips
+    const productIds: string[] = Array.from(new Set(items.map((i: any) => String(i.productId))));
+    const products: any[] = await prisma.product.findMany({
+      where: { id: { in: productIds } },
+      include: { variants: true },
+    });
+    const productMap = new Map<string, any>(products.map((p) => [p.id, p]));
+
     for (const item of items) {
-      const product = await prisma.product.findUnique({
-        where: { id: item.productId },
-        include: { variants: true },
-      });
+      const product: any = productMap.get(item.productId);
 
       if (!product || !product.isAvailable) {
         res.status(400).json({ error: `Product "${product?.name || 'Item'}" is unavailable or out of stock.` });
@@ -222,7 +227,7 @@ export async function checkout(req: AuthenticatedRequest, res: Response): Promis
         selectedWeight = item.weightInGrams;
         calculatedPrice = (item.weightInGrams / 1000) * pricePerKg * item.qty;
       } else {
-        const variant = product.variants.find((v) => v.name === item.variantName) || product.variants[0];
+        const variant = (product.variants || []).find((v: any) => v.name === item.variantName) || product.variants?.[0];
         if (!variant || Number(variant.price) < 0) {
           res.status(400).json({ error: `Invalid variant selected for ${product.name}.` });
           return;
@@ -314,10 +319,10 @@ export async function checkout(req: AuthenticatedRequest, res: Response): Promis
         },
       });
 
-      // Deduct stock for tracked products
+      // Deduct stock for tracked products atomically without re-querying in a loop
       for (const vi of validatedItems) {
         if (vi.productId) {
-          const prod = await tx.product.findUnique({ where: { id: vi.productId } });
+          const prod = productMap.get(vi.productId);
           if (prod && prod.trackStock) {
             const newStock = Math.max(0, prod.stockQuantity - vi.quantity);
             await tx.product.update({

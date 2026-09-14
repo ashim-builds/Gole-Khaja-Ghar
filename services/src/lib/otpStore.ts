@@ -17,7 +17,7 @@ setInterval(() => {
       otpMap.delete(key);
     }
   }
-}, 2 * 60 * 1000);
+}, 2 * 60 * 1000).unref();
 
 export function saveOtp(data: {
   name: string;

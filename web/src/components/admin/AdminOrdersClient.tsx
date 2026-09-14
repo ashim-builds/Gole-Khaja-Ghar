@@ -59,6 +59,7 @@ export default function AdminOrdersClient({
   );
 
   const fetchOrders = async () => {
+    if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
     try {
       const res = await api.orders.getAdminOrders({ limit: 100 });
       if (res.success && res.orders) {
@@ -90,13 +91,27 @@ export default function AdminOrdersClient({
       fetchOrders();
     });
 
-    const interval = setInterval(fetchOrders, 25000);
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        fetchOrders();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("focus", handleVisibility);
+
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        fetchOrders();
+      }
+    }, 45000);
 
     return () => {
       unsubOrder();
       unsubPayment();
       unsubKot();
       unsubDelivered();
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("focus", handleVisibility);
       clearInterval(interval);
     };
   }, []);

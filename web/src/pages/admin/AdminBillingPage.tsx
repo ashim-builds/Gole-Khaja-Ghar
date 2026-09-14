@@ -71,6 +71,9 @@ export default function AdminBillingPage() {
   const [showQrModal, setShowQrModal] = useState(false);
 
   const fetchTablesAndBills = async () => {
+    if (typeof document !== "undefined" && document.visibilityState !== "visible") {
+      return;
+    }
     try {
       setLoading(true);
       const res = await api.tables.list();
@@ -100,7 +103,14 @@ export default function AdminBillingPage() {
       fetchTablesAndBills();
     });
 
-    const interval = setInterval(fetchTablesAndBills, 25000);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        fetchTablesAndBills();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    const interval = setInterval(fetchTablesAndBills, 45000);
 
     return () => {
       unsubTable();
@@ -108,6 +118,7 @@ export default function AdminBillingPage() {
       unsubPayment();
       unsubKot();
       clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
 

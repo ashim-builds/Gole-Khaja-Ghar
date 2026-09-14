@@ -199,6 +199,9 @@ export default function PosTerminalPage() {
   }, []);
 
   const refreshTables = useCallback(async () => {
+    if (typeof document !== "undefined" && document.visibilityState !== "visible") {
+      return;
+    }
     try {
       const res = await api.tables.list();
       if (res.success) {
@@ -258,7 +261,14 @@ export default function PosTerminalPage() {
       refreshTables();
     });
 
-    const timer = setInterval(refreshTables, 30000);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        refreshTables();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    const timer = setInterval(refreshTables, 45000);
 
     return () => {
       unsubReady();
@@ -266,6 +276,7 @@ export default function PosTerminalPage() {
       unsubDelivered();
       unsubTable();
       clearInterval(timer);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("pointerdown", unlockAudio);
       window.removeEventListener("keydown", unlockAudio);
     };
