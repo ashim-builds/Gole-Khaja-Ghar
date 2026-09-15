@@ -1,5 +1,5 @@
-// Configure libuv thread pool size before any async I/O begins to prevent thread explosion under CloudLinux NPROC
-process.env.UV_THREADPOOL_SIZE = process.env.UV_THREADPOOL_SIZE || '4';
+// Configure libuv thread pool size to 2 to prevent thread explosion under CloudLinux NPROC limit
+process.env.UV_THREADPOOL_SIZE = process.env.UV_THREADPOOL_SIZE || '2';
 
 import express from 'express';
 import cors from 'cors';
