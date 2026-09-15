@@ -13,7 +13,8 @@
     "dev:services": "pnpm --filter services dev",
     "build:web": "pnpm --filter web build",
     "build:services": "pnpm --filter services build",
-    "build": "pnpm -r build"
+    "build": "pnpm -r build",
+    "package:cpanel": "node scripts/package-cpanel.mjs"
   },
   "devDependencies": {
     "@prisma/client": "^6.4.1",
