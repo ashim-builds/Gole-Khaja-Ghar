@@ -1,2 +1,10 @@
-# cPanel CloudLinux NodeJS will automatically insert Passenger directives here
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home/rjflower/api-golekhajaghar.com"
+PassengerBaseURI "/"
+PassengerNodejs "/home/rjflower/nodevenv/api-golekhajaghar.com/20/bin/node"
+PassengerAppType node
+PassengerStartupFile app.js
+PassengerAppLogFile "/home/rjflower/api-golekhajaghar.com/stderr.log"
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
+
 Options -Indexes
