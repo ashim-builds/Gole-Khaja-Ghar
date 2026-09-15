@@ -1,4 +1,5 @@
-// Configure libuv thread pool size to 2 to prevent thread explosion under CloudLinux NPROC limit
+// Restrict Tokio (Prisma engine) and libuv worker threads to prevent CloudLinux NPROC limit exhaustion
+process.env.TOKIO_WORKER_THREADS = process.env.TOKIO_WORKER_THREADS || '1';
 process.env.UV_THREADPOOL_SIZE = process.env.UV_THREADPOOL_SIZE || '2';
 
 import express from 'express';
@@ -140,9 +141,9 @@ const primaryClientUrl = rawOrigins[0] || 'http://localhost:3000';
 initSocket(httpServer, primaryClientUrl);
 
 // Optimize Keep-Alive and Request Timeouts for reverse proxy & Passenger
-httpServer.keepAliveTimeout = 15000;
-httpServer.headersTimeout = 16000;
-httpServer.requestTimeout = 30000;
+httpServer.keepAliveTimeout = 2000;
+httpServer.headersTimeout = 3000;
+httpServer.requestTimeout = 15000;
 
 // Graceful process shutdown handling
 const gracefulShutdown = (signal: string) => {
@@ -162,11 +163,12 @@ const gracefulShutdown = (signal: string) => {
       (httpServer as any).closeAllConnections();
     }
     process.exit(0);
-  }, 5000).unref();
+  }, 3000).unref();
 };
 
 process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+process.on("SIGUSR2", () => gracefulShutdown("SIGUSR2"));
 
 // Start Server
 async function startServer() {

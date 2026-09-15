@@ -29,13 +29,7 @@ copyDir(path.join(rootDir, 'services/dist'), path.join(stage, 'dist'));
 fs.copyFileSync(path.join(rootDir, 'services/app.js'), path.join(stage, 'app.js'));
 fs.copyFileSync(path.join(rootDir, 'services/package.json'), path.join(stage, 'package.json'));
 
-const ht = `# CloudLinux Passenger Configuration for cPanel
-PassengerAppType node
-PassengerStartupFile app.js
-PassengerAppLogFile stderr.log
-Options -Indexes
-`;
-fs.writeFileSync(path.join(stage, '.htaccess'), ht, 'utf8');
+// Do not include .htaccess in update zip to preserve the user's working server configuration
 
 if (fs.existsSync(updateZip)) fs.unlinkSync(updateZip);
 execSync(`tar -a -cf "${updateZip}" -C "${stage}" .`);

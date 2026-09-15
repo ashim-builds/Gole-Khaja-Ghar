@@ -208,6 +208,8 @@ DATABASE_URL="mysql://golekhaj_user:YOUR_DB_PASSWORD@localhost:3306/golekhaj_db?
 # Server Configuration
 PORT=4000
 NODE_ENV=production
+TOKIO_WORKER_THREADS=1
+UV_THREADPOOL_SIZE=2
 CLIENT_URL=https://golekhajaghar.com,https://www.golekhajaghar.com
 
 # Authentication & Security
