@@ -102,8 +102,13 @@ app.get('/', (_req, res) => {
 });
 
 // Health Check
-app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', service: 'golu-khaja-ghar-services', timestamp: new Date().toISOString() });
+app.get('/health', async (_req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ status: 'ok', database: 'connected', service: 'golu-khaja-ghar-services', timestamp: new Date().toISOString() });
+  } catch (err: any) {
+    res.status(503).json({ status: 'error', database: 'disconnected', error: err.message, service: 'golu-khaja-ghar-services' });
+  }
 });
 
 // Public Store Operational Status (for customer site & live check)
@@ -165,16 +170,15 @@ process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 
 // Start Server
 async function startServer() {
-  try {
-    await connectToDatabase();
-    httpServer.listen(PORT, () => {
-      console.log(`Backend Service & WebSockets] Running on http://localhost:${PORT}`);
-      console.log(`[CORS] Configured for frontend origins: ${rawOrigins.join(', ')}`);
-    });
-  } catch (error) {
-    console.error('Failed to start server:', error);
-    process.exit(1);
-  }
+  httpServer.listen(PORT, () => {
+    console.log(`[Backend Service & WebSockets] Running on port ${PORT}`);
+    console.log(`[CORS] Configured for frontend origins: ${rawOrigins.join(', ')}`);
+  });
+
+  // Connect to database without blocking server port binding
+  connectToDatabase().catch((error) => {
+    console.error('[Database] Failed to connect:', error);
+  });
 }
 
 startServer();

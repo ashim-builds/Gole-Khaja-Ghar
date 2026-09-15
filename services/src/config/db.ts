@@ -12,8 +12,7 @@ export async function connectToDatabase(retries = 5, delay = 2000): Promise<void
         console.log(`[Database] Retrying connection in ${delay / 1000}s...`);
         await new Promise((res) => setTimeout(res, delay));
       } else {
-        console.error('[Database] Could not connect to MySQL database after multiple attempts.');
-        process.exit(1);
+        console.error('[Database] Could not connect to MySQL database after multiple attempts. Please verify DATABASE_URL in .env');
       }
     }
   }
