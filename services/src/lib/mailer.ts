@@ -2,30 +2,57 @@ import nodemailer from 'nodemailer';
 
 function getTransporter() {
   const host = process.env.SMTP_HOST || 'smtp.gmail.com';
-  const port = parseInt(process.env.SMTP_PORT || '587', 10);
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
-  const secure = process.env.SMTP_SECURE === 'true' || port === 465;
+  const port = parseInt(process.env.SMTP_PORT || '465', 10);
+  const user = process.env.SMTP_USER ? process.env.SMTP_USER.trim() : '';
+  const pass = process.env.SMTP_PASS ? process.env.SMTP_PASS.replace(/\s+/g, '') : '';
+  const secure = process.env.SMTP_SECURE !== undefined ? process.env.SMTP_SECURE === 'true' : port === 465;
 
   if (!user || !pass) {
-    console.warn('⚠️ SMTP_USER or SMTP_PASS is not configured in .env. Emails cannot be sent.');
+    throw new Error('SMTP credentials are not configured. Please set SMTP_USER and SMTP_PASS in your server .env file.');
+  }
+
+  const isGmail = host.includes('gmail') || user.includes('@gmail.com');
+
+  if (isGmail) {
+    return nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user,
+        pass,
+      },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
+      tls: {
+        rejectUnauthorized: false,
+      },
+    });
   }
 
   return nodemailer.createTransport({
     host,
     port,
     secure,
-    connectionTimeout: 5000,
-    greetingTimeout: 5000,
-    socketTimeout: 10000,
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
     auth: {
       user,
       pass,
+    },
+    tls: {
+      rejectUnauthorized: false,
     },
   });
 }
 
 export async function sendOtpEmail(to: string, name: string, otp: string): Promise<void> {
+  // Log OTP in server console for quick dev & debugging access
+  console.log(`\n========================================`);
+  console.log(`📨 [OTP EMAIL] To: ${to}`);
+  console.log(`🔑 OTP CODE: [ ${otp} ]`);
+  console.log(`========================================\n`);
+
   const transporter = getTransporter();
   const from = process.env.SMTP_FROM || `Gole Khaja Ghar <${process.env.SMTP_USER || 'noreply@golekhajaghar.com'}>`;
 

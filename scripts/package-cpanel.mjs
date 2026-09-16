@@ -220,6 +220,23 @@ JWT_SECRET=44d83a87a84784474f62751905c637f1713b5a9f34b0070cbe71626bca16fe0f
 VAPID_PUBLIC_KEY=BBnJsOM-lt98gGJfmjau9k0KaUqzUuvG2jVmaBMzk2_Gr-UnzAzpJ6ycAnF-7CUR84oFwd_t9HCe0NFDmw0PkDM
 VAPID_PRIVATE_KEY=pLfsNdRPuk5SODgHA2YdwqrFsZSQ7SQIkv34degd42g
 VAPID_EMAIL=mailto:admin@golekhajaghar.com
+
+# SMTP Email Configuration (for OTP verification during registration)
+# Option 1: Gmail SMTP (Use 16-character Google App Password)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER=
+SMTP_PASS=
+SMTP_FROM="Gole Khaja Ghar <noreply@golekhajaghar.com>"
+
+# Option 2: cPanel Shared Hosting Webmail (Exim)
+# SMTP_HOST=mail.golekhajaghar.com
+# SMTP_PORT=465
+# SMTP_SECURE=true
+# SMTP_USER=info@golekhajaghar.com
+# SMTP_PASS=YourCPanelEmailPassword
+# SMTP_FROM="Gole Khaja Ghar <info@golekhajaghar.com>"
 `;
 fs.writeFileSync(path.join(stageDir, '.env'), prodEnvContent, 'utf8');
 
