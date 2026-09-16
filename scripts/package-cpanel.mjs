@@ -222,21 +222,31 @@ VAPID_PRIVATE_KEY=pLfsNdRPuk5SODgHA2YdwqrFsZSQ7SQIkv34degd42g
 VAPID_EMAIL=mailto:admin@golekhajaghar.com
 
 # SMTP Email Configuration (for OTP verification during registration)
-# Option 1: Gmail SMTP (Use 16-character Google App Password)
+# OPTION 1: Gmail SMTP (Requires 16-character Google App Password, NOT your regular password)
+# NOTE: When using Gmail, SMTP_FROM email address MUST match SMTP_USER to avoid spam filtering
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=465
 SMTP_SECURE=true
-SMTP_USER=
-SMTP_PASS=
-SMTP_FROM="Gole Khaja Ghar <noreply@golekhajaghar.com>"
+SMTP_USER=your_gmail@gmail.com
+SMTP_PASS=xxxx-xxxx-xxxx-xxxx
+SMTP_FROM="Gole Khaja Ghar <your_gmail@gmail.com>"
 
-# Option 2: cPanel Shared Hosting Webmail (Exim)
+# OPTION 2: cPanel Built-in Webmail (RECOMMENDED on shared hosting if Gmail port 465 is blocked by firewall)
+# Create email account in cPanel -> Email Accounts (e.g. noreply@golekhajaghar.com)
 # SMTP_HOST=mail.golekhajaghar.com
 # SMTP_PORT=465
 # SMTP_SECURE=true
-# SMTP_USER=info@golekhajaghar.com
+# SMTP_USER=noreply@golekhajaghar.com
 # SMTP_PASS=YourCPanelEmailPassword
-# SMTP_FROM="Gole Khaja Ghar <info@golekhajaghar.com>"
+# SMTP_FROM="Gole Khaja Ghar <noreply@golekhajaghar.com>"
+
+# OPTION 3: cPanel Localhost Relay (Never blocked by hosting firewall)
+# SMTP_HOST=localhost
+# SMTP_PORT=25
+# SMTP_SECURE=false
+# SMTP_USER=
+# SMTP_PASS=
+# SMTP_FROM="Gole Khaja Ghar <noreply@golekhajaghar.com>"
 `;
 fs.writeFileSync(path.join(stageDir, '.env'), prodEnvContent, 'utf8');
 

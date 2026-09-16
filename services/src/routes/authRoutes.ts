@@ -10,12 +10,14 @@ import {
   adminLogout,
   googleOAuthInitiate,
   googleOAuthCallback,
+  testEmailDiagnostic,
 } from '../controllers/authController.js';
 import { optionalUser } from '../middleware/auth.js';
 import { rateLimiter } from '../middleware/rateLimit.js';
 
 const router = Router();
 
+router.get('/test-email', testEmailDiagnostic);
 router.post('/register', rateLimiter(5, 60 * 1000), register);
 router.post('/verify-otp', rateLimiter(10, 60 * 1000), verifyOtp);
 router.post('/resend-otp', rateLimiter(5, 60 * 1000), resendOtp);

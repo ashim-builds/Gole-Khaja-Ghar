@@ -102,6 +102,13 @@ export default function RegisterPage() {
         password: formData.password,
       });
 
+      if ((res as any).token || (res as any).user) {
+        await refreshUser();
+        const redirectParam = searchParams.get("redirect") || searchParams.get("from");
+        navigate(redirectParam || "/shop");
+        return;
+      }
+
       if (res.otpSent || res.success) {
         setStep("otp");
         setResendCooldown(60);

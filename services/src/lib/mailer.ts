@@ -31,9 +31,9 @@ function getTransporter(): any {
         user,
         pass,
       },
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 15000,
+      connectionTimeout: 25000,
+      greetingTimeout: 20000,
+      socketTimeout: 30000,
       tls: {
         rejectUnauthorized: false,
       },
@@ -43,13 +43,13 @@ function getTransporter(): any {
       host,
       port,
       secure,
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 15000,
-      auth: {
+      connectionTimeout: 25000,
+      greetingTimeout: 20000,
+      socketTimeout: 30000,
+      auth: user && pass ? {
         user,
         pass,
-      },
+      } : undefined,
       tls: {
         rejectUnauthorized: false,
       },
@@ -57,6 +57,39 @@ function getTransporter(): any {
   }
 
   return transporter;
+}
+
+export async function verifySmtp(): Promise<{ ok: boolean; error?: string; config?: any }> {
+  try {
+    const client = getTransporter();
+    if (!client) {
+      return {
+        ok: false,
+        error: 'SMTP_PASS is not configured in .env (running in simulated mode)',
+        config: { simulated: true },
+      };
+    }
+    await client.verify();
+    return {
+      ok: true,
+      config: {
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: process.env.SMTP_PORT || '465',
+        user: (process.env.SMTP_USER || 'ashim.sandbox@gmail.com').replace(/(.{3})(.*)(@.*)/, '$1***$3'),
+        secure: process.env.SMTP_SECURE || 'true',
+      },
+    };
+  } catch (err: any) {
+    return {
+      ok: false,
+      error: err.message,
+      config: {
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: process.env.SMTP_PORT || '465',
+        user: (process.env.SMTP_USER || 'ashim.sandbox@gmail.com').replace(/(.{3})(.*)(@.*)/, '$1***$3'),
+      },
+    };
+  }
 }
 
 export async function sendOtpEmail(to: string, name: string, otp: string): Promise<SendOtpEmailResult> {
@@ -83,9 +116,10 @@ export async function sendOtpEmail(to: string, name: string, otp: string): Promi
   const isGmail = host.includes('gmail') || smtpUser.includes('@gmail.com');
 
   // When using Gmail SMTP, From MUST match the authenticated account to avoid SPF/DMARC failure & spam routing
-  const from = process.env.SMTP_FROM || (isGmail
-    ? `Gole Khaja Ghar <${smtpUser}>`
-    : (smtpUser ? `Gole Khaja Ghar <${smtpUser}>` : 'Gole Khaja Ghar <noreply@golekhajaghar.com>'));
+  let from = process.env.SMTP_FROM || `Gole Khaja Ghar <${smtpUser}>`;
+  if (isGmail && smtpUser.includes('@gmail.com') && !from.includes(smtpUser)) {
+    from = `Gole Khaja Ghar <${smtpUser}>`;
+  }
 
   const htmlContent = `
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -159,6 +193,35 @@ export async function sendOtpEmail(to: string, name: string, otp: string): Promi
 `;
 
   const textContent = `Namaste ${name || 'Customer'},\n\nYour Gole Khaja Ghar verification code is: ${otp}\n\nThis code is valid for 5 minutes. Do not share it with anyone.\n\nThank you,\nGole Khaja Ghar`;
+
+  // 1. High-reliability HTTPS Dispatch: If RESEND_API_KEY is configured, send via HTTPS (Port 443).
+  // Port 443 is NEVER blocked by cPanel firewalls (unlike port 465/587 which throw ECONNREFUSED).
+  if (process.env.RESEND_API_KEY) {
+    try {
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: process.env.RESEND_FROM || 'Gole Khaja Ghar <onboarding@resend.dev>',
+          to: [to],
+          subject: `Your Verification Code: ${otp} - Gole Khaja Ghar`,
+          html: htmlContent,
+          text: textContent,
+        }),
+      });
+      const data: any = await res.json().catch(() => ({}));
+      if (res.ok) {
+        console.log(`✅ [RESEND HTTPS] Successfully sent OTP email to ${to} (ID: ${data.id})`);
+        return { success: true, simulated: false };
+      }
+      console.warn('⚠️ [RESEND HTTPS] Failed, falling back to SMTP:', data?.message || data);
+    } catch (resendErr: any) {
+      console.warn('⚠️ [RESEND HTTPS] Connection error, falling back to SMTP:', resendErr.message);
+    }
+  }
 
   try {
     await mailClient.sendMail({
