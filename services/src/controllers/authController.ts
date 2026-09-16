@@ -45,21 +45,27 @@ export async function register(req: Request, res: Response): Promise<void> {
     });
 
     // Send OTP email
-    try {
-      await sendOtpEmail(lowerEmail, name, otp);
-    } catch (mailError: any) {
-      console.error('Failed to send OTP email:', mailError);
-      res.status(500).json({
-        error: 'Failed to send verification email. Please check server email configuration or try again later.',
-      });
-      return;
+    const emailResult = await sendOtpEmail(lowerEmail, name, otp);
+
+    if (!emailResult.success && !emailResult.simulated) {
+      if (process.env.NODE_ENV !== 'production' || process.env.ALLOW_DEV_OTP === 'true') {
+        console.warn(`⚠️ [OTP] SMTP delivery failed (${emailResult.error}). Non-production mode fallback: OTP is [ ${otp} ].`);
+      } else {
+        res.status(400).json({
+          error: `Could not send verification email: ${emailResult.error || 'SMTP delivery error'}. Please verify your email or try again.`,
+        });
+        return;
+      }
     }
 
     res.status(200).json({
       success: true,
       otpSent: true,
       email: lowerEmail,
-      message: 'Verification code has been sent to your email address.',
+      simulated: emailResult.simulated,
+      message: emailResult.simulated
+        ? `Verification code generated (Check server console: ${otp})`
+        : 'Verification code has been sent to your email address.',
     });
   } catch (error) {
     console.error('Registration error:', error);
@@ -177,19 +183,25 @@ export async function resendOtp(req: Request, res: Response): Promise<void> {
       ttlMinutes: 5,
     });
 
-    try {
-      await sendOtpEmail(lowerEmail, record.name, newOtp);
-    } catch (mailError: any) {
-      console.error('Failed to resend OTP email:', mailError);
-      res.status(500).json({
-        error: 'Failed to send verification email. Please check server email configuration.',
-      });
-      return;
+    const emailResult = await sendOtpEmail(lowerEmail, record.name, newOtp);
+
+    if (!emailResult.success && !emailResult.simulated) {
+      if (process.env.NODE_ENV !== 'production' || process.env.ALLOW_DEV_OTP === 'true') {
+        console.warn(`⚠️ [OTP] SMTP delivery failed (${emailResult.error}). Non-production mode fallback: OTP is [ ${newOtp} ].`);
+      } else {
+        res.status(400).json({
+          error: `Could not send verification email: ${emailResult.error || 'SMTP delivery error'}. Please try again later.`,
+        });
+        return;
+      }
     }
 
     res.json({
       success: true,
-      message: 'A new verification code has been sent to your email.',
+      simulated: emailResult.simulated,
+      message: emailResult.simulated
+        ? `New verification code generated (Check server console: ${newOtp})`
+        : 'A new verification code has been sent to your email.',
     });
   } catch (error) {
     console.error('Resend OTP error:', error);

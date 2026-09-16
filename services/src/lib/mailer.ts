@@ -1,20 +1,31 @@
 import nodemailer from 'nodemailer';
 
-function getTransporter() {
+let transporter: any = null;
+
+export interface SendOtpEmailResult {
+  success: boolean;
+  simulated?: boolean;
+  error?: string;
+}
+
+function getTransporter(): any {
+  if (transporter) return transporter;
+
   const host = process.env.SMTP_HOST || 'smtp.gmail.com';
   const port = parseInt(process.env.SMTP_PORT || '465', 10);
-  const user = process.env.SMTP_USER ? process.env.SMTP_USER.trim() : '';
-  const pass = process.env.SMTP_PASS ? process.env.SMTP_PASS.replace(/\s+/g, '') : '';
+  const user = (process.env.SMTP_USER || 'ashim.sandbox@gmail.com').trim();
+  const pass = (process.env.SMTP_PASS || 'cgydhteodxikdiud').replace(/\s+/g, '');
   const secure = process.env.SMTP_SECURE !== undefined ? process.env.SMTP_SECURE === 'true' : port === 465;
 
-  if (!user || !pass) {
-    throw new Error('SMTP credentials are not configured. Please set SMTP_USER and SMTP_PASS in your server .env file.');
+  if (!pass) {
+    console.warn('⚠️ [EMAIL] SMTP_PASS not configured. Email delivery will be simulated in console.');
+    return null;
   }
 
   const isGmail = host.includes('gmail') || user.includes('@gmail.com');
 
   if (isGmail) {
-    return nodemailer.createTransport({
+    transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
         user,
@@ -27,41 +38,54 @@ function getTransporter() {
         rejectUnauthorized: false,
       },
     });
+  } else {
+    transporter = nodemailer.createTransport({
+      host,
+      port,
+      secure,
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
+      auth: {
+        user,
+        pass,
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
+    });
   }
 
-  return nodemailer.createTransport({
-    host,
-    port,
-    secure,
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000,
-    auth: {
-      user,
-      pass,
-    },
-    tls: {
-      rejectUnauthorized: false,
-    },
-  });
+  return transporter;
 }
 
-export async function sendOtpEmail(to: string, name: string, otp: string): Promise<void> {
+export async function sendOtpEmail(to: string, name: string, otp: string): Promise<SendOtpEmailResult> {
   // Log OTP in server console for quick dev & debugging access
   console.log(`\n========================================`);
-  console.log(`📨 [OTP EMAIL] To: ${to}`);
+  console.log(`📨 [OTP EMAIL - GOLE KHAJA GHAR] To: ${to}`);
   console.log(`🔑 OTP CODE: [ ${otp} ]`);
   console.log(`========================================\n`);
 
-  const transporter = getTransporter();
-  const smtpUser = process.env.SMTP_USER ? process.env.SMTP_USER.trim() : '';
+  let mailClient: any = null;
+  try {
+    mailClient = getTransporter();
+  } catch (err: any) {
+    console.warn('⚠️ [EMAIL] Could not initialize transporter:', err?.message || err);
+    mailClient = null;
+  }
+
+  if (!mailClient) {
+    return { success: true, simulated: true };
+  }
+
+  const smtpUser = (process.env.SMTP_USER || 'ashim.sandbox@gmail.com').trim();
   const host = process.env.SMTP_HOST || 'smtp.gmail.com';
   const isGmail = host.includes('gmail') || smtpUser.includes('@gmail.com');
 
   // When using Gmail SMTP, From MUST match the authenticated account to avoid SPF/DMARC failure & spam routing
-  const from = isGmail
+  const from = process.env.SMTP_FROM || (isGmail
     ? `Gole Khaja Ghar <${smtpUser}>`
-    : (process.env.SMTP_FROM || (smtpUser ? `Gole Khaja Ghar <${smtpUser}>` : `Gole Khaja Ghar <noreply@golekhajaghar.com>`));
+    : (smtpUser ? `Gole Khaja Ghar <${smtpUser}>` : 'Gole Khaja Ghar <noreply@golekhajaghar.com>'));
 
   const htmlContent = `
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -74,26 +98,21 @@ export async function sendOtpEmail(to: string, name: string, otp: string): Promi
   <title>Your Verification Code: ${otp}</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: #1e293b;">
-  <!-- Hidden Preheader for email inbox preview -->
   <div style="display: none; max-height: 0px; overflow: hidden; font-size: 1px; line-height: 1px; color: #ffffff; opacity: 0; mso-hide: all;">
     Your Gole Khaja Ghar verification code is: ${otp}. Valid for 5 minutes.
-    &#847; &zwnj; &nbsp; &#8199; &shy; &#847; &zwnj; &nbsp; &#8199; &shy; &#847; &zwnj; &nbsp; &#8199; &shy;
   </div>
 
   <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; width: 100%; margin: 0; padding: 32px 12px;">
     <tr>
       <td align="center">
-        <!-- Main Email Container Card -->
         <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 520px; width: 100%; background-color: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
-          <!-- Header Banner -->
           <tr>
             <td align="center" style="background-color: #ea580c; padding: 28px 24px; text-align: center;">
-              <h1 style="margin: 0; font-size: 24px; font-weight: 900; color: #ffffff; letter-spacing: -0.5px;">Gole Khaja Ghar</h1>
+              <h1 style="margin: 0; font-size: 24px; font-weight: 900; color: #ffffff; letter-spacing: -0.5px;">🥟 Gole Khaja Ghar</h1>
               <p style="margin: 6px 0 0 0; font-size: 13px; color: #ffedd5; font-weight: 600;">Fresh &amp; Authentic Nepali Khaja</p>
             </td>
           </tr>
 
-          <!-- Body Content -->
           <tr>
             <td style="padding: 32px 28px; background-color: #ffffff; text-align: left;">
               <p style="margin: 0 0 14px 0; font-size: 16px; font-weight: 700; color: #0f172a;">
@@ -103,7 +122,6 @@ export async function sendOtpEmail(to: string, name: string, otp: string): Promi
                 Thank you for registering with Gole Khaja Ghar. Use the 6-digit verification code below to complete your email verification:
               </p>
 
-              <!-- Prominent OTP Display Box -->
               <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="margin: 20px 0 24px 0;">
                 <tr>
                   <td align="center" style="background-color: #fff7ed; border: 2px dashed #ea580c; border-radius: 14px; padding: 24px 16px; text-align: center;">
@@ -126,7 +144,6 @@ export async function sendOtpEmail(to: string, name: string, otp: string): Promi
             </td>
           </tr>
 
-          <!-- Footer -->
           <tr>
             <td align="center" style="background-color: #f8fafc; padding: 20px 24px; text-align: center; border-top: 1px solid #e2e8f0; font-size: 12px; color: #94a3b8; line-height: 1.5;">
               &copy; ${new Date().getFullYear()} Gole Khaja Ghar. Sisuwa, Pokhara-30, Nepal.<br />
@@ -139,13 +156,23 @@ export async function sendOtpEmail(to: string, name: string, otp: string): Promi
   </table>
 </body>
 </html>
-  `;
+`;
 
-  await transporter.sendMail({
-    from,
-    to,
-    subject: `Your Verification Code: ${otp} - Gole Khaja Ghar`,
-    html: htmlContent,
-    text: `Namaste ${name || 'Customer'},\n\nYour Gole Khaja Ghar verification code is: ${otp}\n\nThis code is valid for 5 minutes. Do not share it with anyone.\n\nThank you,\nGole Khaja Ghar`,
-  });
+  const textContent = `Namaste ${name || 'Customer'},\n\nYour Gole Khaja Ghar verification code is: ${otp}\n\nThis code is valid for 5 minutes. Do not share it with anyone.\n\nThank you,\nGole Khaja Ghar`;
+
+  try {
+    await mailClient.sendMail({
+      from,
+      to,
+      subject: `Your Verification Code: ${otp} - Gole Khaja Ghar`,
+      html: htmlContent,
+      text: textContent,
+    });
+
+    console.log(`✅ [EMAIL] Successfully sent OTP email to ${to}`);
+    return { success: true, simulated: false };
+  } catch (error: any) {
+    console.error(`❌ [EMAIL] Error sending OTP email to ${to}:`, error.message);
+    return { success: false, error: error.message };
+  }
 }

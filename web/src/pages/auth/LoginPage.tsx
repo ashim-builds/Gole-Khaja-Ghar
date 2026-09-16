@@ -58,24 +58,24 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full mx-auto bg-white p-8 rounded-3xl shadow-sm border border-stone-200">
+    <div className="min-h-screen bg-stone-50 flex flex-col justify-center py-8 sm:py-12 px-3 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full mx-auto bg-white p-4 sm:p-8 rounded-2xl sm:rounded-3xl shadow-sm border border-stone-200">
         {/* Role Switcher Tabs */}
-        <div className="flex bg-stone-100 p-1 rounded-2xl mb-6">
+        <div className="grid grid-cols-3 bg-stone-100 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl mb-6 gap-1">
           <button
             type="button"
             onClick={() => {
               setRoleTab("customer");
               setError("");
             }}
-            className={`flex-1 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+            className={`py-2 sm:py-2.5 px-1.5 sm:px-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-black uppercase tracking-tight sm:tracking-wider flex items-center justify-center gap-1 sm:gap-1.5 transition-all cursor-pointer select-none ${
               roleTab === "customer"
                 ? "bg-white text-black shadow-sm"
                 : "text-stone-500 hover:text-stone-900"
             }`}
           >
-            <User className="w-4 h-4" />
-            Customer
+            <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="truncate">Customer</span>
           </button>
 
           <button
@@ -84,14 +84,14 @@ export default function LoginPage() {
               setRoleTab("waiter");
               setError("");
             }}
-            className={`flex-1 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+            className={`py-2 sm:py-2.5 px-1.5 sm:px-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-black uppercase tracking-tight sm:tracking-wider flex items-center justify-center gap-1 sm:gap-1.5 transition-all cursor-pointer select-none ${
               roleTab === "waiter"
                 ? "bg-white text-black shadow-sm"
                 : "text-stone-500 hover:text-stone-900"
             }`}
           >
-            <UtensilsCrossed className="w-4 h-4 text-orange-500" />
-            Waiter
+            <UtensilsCrossed className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-500 shrink-0" />
+            <span className="truncate">Waiter</span>
           </button>
 
           <button
@@ -100,14 +100,14 @@ export default function LoginPage() {
               setRoleTab("kitchen");
               setError("");
             }}
-            className={`flex-1 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+            className={`py-2 sm:py-2.5 px-1.5 sm:px-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-black uppercase tracking-tight sm:tracking-wider flex items-center justify-center gap-1 sm:gap-1.5 transition-all cursor-pointer select-none ${
               roleTab === "kitchen"
                 ? "bg-white text-black shadow-sm"
                 : "text-stone-500 hover:text-stone-900"
             }`}
           >
-            <ChefHat className="w-4 h-4 text-amber-500" />
-            Chef
+            <ChefHat className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 shrink-0" />
+            <span className="truncate">Chef</span>
           </button>
         </div>
 
