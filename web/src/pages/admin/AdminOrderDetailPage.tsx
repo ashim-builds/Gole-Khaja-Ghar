@@ -1,6 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, User, MapPin, Package, Phone, Loader2, Printer, Receipt } from "lucide-react";
+import {
+  ArrowLeft,
+  User,
+  MapPin,
+  Package,
+  Phone,
+  Loader2,
+  Printer,
+  Receipt,
+  Lock,
+} from "lucide-react";
 import StatusUpdater from "@/components/admin/StatusUpdater";
 import PaymentStatusToggle from "@/components/admin/PaymentStatusToggle";
 import StaticMapView from "@/components/StaticMapView";
@@ -63,6 +73,8 @@ export default function AdminOrderDetailPage() {
     );
   }
 
+  const isCancelled = (order.status || "").toLowerCase() === "cancelled";
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -73,9 +85,29 @@ export default function AdminOrderDetailPage() {
           >
             <ArrowLeft className="w-5 h-5 text-stone-600" />
           </Link>
-          <h1 className="text-2xl sm:text-3xl font-black text-stone-900">
-            Order #{order.orderNumber}
-          </h1>
+          <div>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-2xl sm:text-3xl font-black text-stone-900">
+                Order #{order.orderNumber}
+              </h1>
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
+                  isCancelled
+                    ? "bg-red-100 text-red-800 border border-red-200"
+                    : (order.status || "").toLowerCase() === "delivered" ||
+                      (order.status || "").toLowerCase() === "completed"
+                    ? "bg-green-100 text-green-800 border border-green-200"
+                    : (order.status || "").toLowerCase() === "ready"
+                    ? "bg-emerald-100 text-emerald-800 border border-emerald-300 ring-1 ring-emerald-400"
+                    : (order.status || "").toLowerCase() === "preparing"
+                    ? "bg-blue-100 text-blue-800 border border-blue-200"
+                    : "bg-amber-100 text-amber-800 border border-amber-200"
+                }`}
+              >
+                {order.status}
+              </span>
+            </div>
+          </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <button
@@ -85,9 +117,31 @@ export default function AdminOrderDetailPage() {
             <Printer className="w-4 h-4" />
             <span>80mm Tax Invoice</span>
           </button>
-          <StatusUpdater orderId={order._id?.toString() || order.id?.toString()} currentStatus={order.status} />
+          <StatusUpdater
+            orderId={order._id?.toString() || order.id?.toString()}
+            currentStatus={order.status}
+            onUpdated={(newStatus) => {
+              setOrder((prev: any) =>
+                prev ? { ...prev, status: newStatus } : prev
+              );
+            }}
+          />
         </div>
       </div>
+
+      {isCancelled && (
+        <div className="bg-red-50 border border-red-200 text-red-900 px-4 py-3 rounded-2xl flex items-center gap-3 shadow-sm">
+          <div className="p-2 bg-red-100 text-red-700 rounded-xl shrink-0">
+            <Lock className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="font-black text-sm">Order Cancelled & Locked</p>
+            <p className="text-xs text-red-700">
+              This order has been cancelled. Changing status and payment modifications are completely disabled.
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Customer Info */}
@@ -185,7 +239,12 @@ export default function AdminOrderDetailPage() {
               <PaymentStatusToggle
                 orderId={order._id?.toString() || order.id?.toString()}
                 currentPaymentStatus={order.paymentStatus as "pending" | "paid"}
-                onStatusChange={(newStatus) => setOrder((prev: any) => ({ ...prev, paymentStatus: newStatus }))}
+                disabled={isCancelled}
+                onStatusChange={(newStatus) =>
+                  setOrder((prev: any) =>
+                    prev ? { ...prev, paymentStatus: newStatus } : prev
+                  )
+                }
               />
             </div>
           </div>

@@ -87,7 +87,6 @@ function AdminProtectedLayoutContent() {
 
   const navItems = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-    { name: "Dine-In POS", href: "/pos", icon: UtensilsCrossed },
     { name: "Kitchen (KDS)", href: "/kitchen", icon: ChefHat },
     { name: "Tables", href: "/admin/tables", icon: Grid },
     { name: "Billing", href: "/admin/billing", icon: Receipt },
@@ -362,22 +361,22 @@ function AdminProtectedLayoutContent() {
               </span>
             </Link>
 
-            {/* 2. Dine-In POS */}
+            {/* 2. Kitchen Display (KDS) */}
             <Link
-              to="/pos"
+              to="/kitchen"
               className="flex flex-col items-center gap-1 group py-1 px-2"
             >
-              <UtensilsCrossed
+              <ChefHat
                 className={`w-5 h-5 transition-transform group-active:scale-90 ${
-                  pathname.startsWith("/pos") ? "text-orange-500 font-bold" : "text-white/60 group-hover:text-orange-500"
+                  pathname.startsWith("/kitchen") ? "text-orange-500 font-bold" : "text-white/60 group-hover:text-orange-500"
                 }`}
               />
               <span
                 className={`text-[9px] font-bold ${
-                  pathname.startsWith("/pos") ? "text-orange-500" : "text-white/60 group-hover:text-orange-500"
+                  pathname.startsWith("/kitchen") ? "text-orange-500 font-bold" : "text-white/60 group-hover:text-orange-500"
                 }`}
               >
-                POS
+                KDS
               </span>
             </Link>
 

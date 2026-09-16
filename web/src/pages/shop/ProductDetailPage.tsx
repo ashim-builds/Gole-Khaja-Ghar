@@ -62,6 +62,8 @@ export default function ProductDetailPage() {
     ? (product.image.startsWith("http") ? product.image : `https://golekhajaghar.com${product.image}`)
     : "https://golekhajaghar.com/images/hero_bg.jpg";
 
+  const productCanonicalUrl = `https://golekhajaghar.com/product/${product.slug}`;
+
   const productSchema = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -74,7 +76,7 @@ export default function ProductDetailPage() {
     },
     "offers": {
       "@type": "Offer",
-      "url": `https://golekhajaghar.com/shop/${product.slug}`,
+      "url": productCanonicalUrl,
       "priceCurrency": "NPR",
       "price": basePrice,
       "availability": product.isAvailable !== false ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
@@ -88,12 +90,12 @@ export default function ProductDetailPage() {
   return (
     <div className="bg-white min-h-screen pt-8 md:pt-12 pb-20 w-full relative z-10 flex-grow flex flex-col">
       <SEO
-        title={`${product.name} | Gole Khaja Ghar Pokhara`}
+        title={`${product.name} | Gole Khaja Ghar Sisuwa`}
         description={`Order fresh ${product.name} (Rs. ${basePrice}) from Gole Khaja Ghar in Sisuwa, Pokhara-30. Authentic taste, hygienic preparation & fast delivery in Pokhara.`}
-        canonical={`https://golekhajaghar.com/shop/${product.slug}`}
+        canonical={productCanonicalUrl}
         ogType="restaurant.menu_item"
         ogImage={productImageUrl}
-        keywords={`${product.name}, ${product.name} Pokhara, order ${product.name}, Gole Khaja Ghar, Sisuwa food`}
+        keywords={`${product.name}, ${product.name} Sisuwa, ${product.name} Pokhara, order ${product.name}, Gole Khaja Ghar, Gole Khaja, Gole Ghar`}
         schema={productSchema}
       />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
@@ -109,7 +111,7 @@ export default function ProductDetailPage() {
             <ProductGallery
               images={[product.image, ...(product.images || [])].filter(Boolean)}
               productName={product.name}
-              isAvailable={product.isAvailable}
+              isAvailable={product.isAvailable !== false}
             />
           </ScrollAnimation>
 

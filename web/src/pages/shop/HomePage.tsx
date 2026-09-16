@@ -31,10 +31,18 @@ const homeFAQSchema = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "Where is Gole Khaja Ghar located in Pokhara?",
+      "name": "Where is Gole Khaja Ghar located in Sisuwa, Pokhara?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Gole Khaja Ghar is located in Sisuwa, Pokhara-30, Kaski, Gandaki Province, Nepal. We are conveniently situated for dine-in, takeaway, and quick local delivery."
+        "text": "Gole Khaja Ghar is located in Sisuwa, Pokhara-30, Kaski, Gandaki Province, Nepal. We are conveniently situated for dine-in meals, takeaway parcels, and fast local food delivery across Pokhara-30."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is Gole Khaja Ghar also known as Gole Khaja or Gole Ghar?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes! Regulars and locals in Sisuwa and Lekhnath commonly refer to our restaurant as Gole Khaja (गोले खाजा) or Gole Ghar (गोले घर). In local Nepali colloquial terms, diners sometimes refer to eateries as 'होटल तथा खाजा घर'. We are the same local establishment dedicated to fresh, authentic Nepali dining."
       }
     },
     {
@@ -47,10 +55,10 @@ const homeFAQSchema = {
     },
     {
       "@type": "Question",
-      "name": "Does Gole Khaja Ghar deliver food in Pokhara?",
+      "name": "Does Gole Khaja Ghar deliver food in Sisuwa and Pokhara-30?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes! We offer fast, hot home delivery across Pokhara-30 (Sisuwa, Lekhnath) and surrounding areas. You can order directly through our website."
+        "text": "Yes! We offer fast, hot home delivery across Sisuwa, Lekhnath, and surrounding Pokhara-30 areas. You can order directly through our website."
       }
     },
     {
@@ -74,9 +82,14 @@ const homeFAQSchema = {
 
 const faqs = [
   {
-    question: "Where is Gole Khaja Ghar located in Pokhara?",
+    question: "Where is Gole Khaja Ghar located in Sisuwa, Pokhara?",
     answer:
-      "Gole Khaja Ghar (गोल खाजा घर) is located in Sisuwa, Pokhara-30, Kaski, Nepal. We are easily accessible for dine-in meals, takeaway parcels, and fast home deliveries across the Lekhnath and Sisuwa area.",
+      "Gole Khaja Ghar (गोल खाजा घर) is located in Sisuwa, Pokhara-30, Kaski, Nepal. We are easily accessible for dine-in meals, takeaway parcels, and fast home deliveries across the Sisuwa and Lekhnath area.",
+  },
+  {
+    question: "Is Gole Khaja Ghar also known as Gole Khaja or Gole Ghar?",
+    answer:
+      "Yes! Regular patrons and local residents in Sisuwa often refer to us as Gole Khaja (गोले खाजा) or Gole Ghar (गोले घर). In local colloquial conversations, guests also refer to our eatery as 'होटल तथा खाजा घर'. We are the same local restaurant serving fresh, authentic food in Sisuwa.",
   },
   {
     question: "What are your signature dishes and snacks?",
@@ -84,7 +97,7 @@ const faqs = [
       "Our most popular dishes include our signature Nepali Khaja Sets (crispy beaten rice, spiced bhatmas, tarkari, and homemade pickles), fresh juicy Momos (Buff & Chicken steam, fried, or jhol), wok-seared Chowmein, spicy Sekuwa, and delicious local snacks.",
   },
   {
-    question: "Do you offer food delivery in Pokhara-30 and Sisuwa?",
+    question: "Do you offer food delivery in Sisuwa and Pokhara-30?",
     answer:
       "Yes, we provide fast local delivery across Sisuwa, Pokhara-30, and nearby Lekhnath neighborhoods. Orders are packed fresh and delivered hot to your doorstep.",
   },
@@ -164,9 +177,9 @@ export default function HomePage() {
     <div className="flex flex-col bg-background">
       {/* SEO Metadata & FAQ JSON-LD Schema */}
       <SEO
-        title="Gole Khaja Ghar | Best Nepali Khaja, Momo & Restaurant in Pokhara (Sisuwa)"
-        description="Authentic Nepali Khaja Ghar & Restaurant in Sisuwa, Pokhara-30. Taste fresh delicious momos, traditional khaja sets, chowmein, sekuwa & snacks. Dine-in, pickup & fast home delivery in Pokhara."
-        keywords="Gole Khaja Ghar, गोल खाजा घर, khaja ghar pokhara, restaurant in sisuwa pokhara, best momo pokhara, nepali khaja set pokhara, khaja ghar sisuwa, food delivery pokhara 30, lekhnath khaja, authentic nepali food pokhara"
+        title="Gole Khaja Ghar | Restaurant & Khaja Ghar in Sisuwa"
+        description="Visit Gole Khaja Ghar in Sisuwa, Pokhara-30 for fresh authentic Nepali khaja sets, steaming momos, chowmein, sekuwa and restaurant dining. Order online for fast local delivery."
+        keywords="Gole Khaja Ghar, Gole Khaja, Gole Ghar, Gole Khaja Ghar Sisuwa, Gole Khaja Sisuwa, Gole Ghar Sisuwa, Gole Khaja Ghar Restaurant, Restaurant in Sisuwa, Khaja Ghar in Sisuwa, Restaurant near Sisuwa, गोल खाजा घर, Pokhara khaja, buff momo pokhara, chicken momo pokhara, chowmein sisuwa"
         canonical="https://golekhajaghar.com/"
         schema={homeFAQSchema}
       />
@@ -176,54 +189,63 @@ export default function HomePage() {
         {/* Desktop Background image */}
         <img
           src="/images/hero_bg.jpg"
-          alt="Authentic Nepali Khaja and Momo Feast at Gole Khaja Ghar Pokhara"
+          alt="Authentic Nepali Khaja and Momo Feast at Gole Khaja Ghar in Sisuwa"
           className="absolute inset-0 w-full h-full object-cover object-center hidden md:block"
         />
         {/* Mobile Background image */}
         <img
           src="/images/hero_bg_mobile.jpg"
-          alt="Authentic Nepali Khaja and Momo Feast at Gole Khaja Ghar Pokhara"
+          alt="Authentic Nepali Khaja and Momo Feast at Gole Khaja Ghar in Sisuwa"
           className="absolute inset-0 w-full h-full object-cover object-right block md:hidden"
         />
 
         {/* Gradient overlay for readability */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-transparent md:to-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/75 to-transparent md:to-black/40" />
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full">
-          <div className="w-[85%] md:w-1/2 flex flex-col items-start text-left pt-8 md:pt-0">
-            <span className="inline-block text-orange-500 font-bold uppercase tracking-wider text-xs md:text-sm bg-orange-500/10 border border-orange-500/30 px-3 py-1 rounded-full mb-3 backdrop-blur-sm">
-              Sisuwa, Pokhara-30 • Authentic Taste
+          <div className="w-full md:w-3/5 flex flex-col items-start text-left pt-6 md:pt-0">
+            <span className="inline-block text-orange-400 font-black uppercase tracking-wider text-xs md:text-sm bg-orange-500/15 border border-orange-500/30 px-3.5 py-1 rounded-full mb-3 backdrop-blur-sm">
+              Sisuwa, Pokhara-30 • Authentic Nepali Taste
             </span>
             <h1
-              className="uppercase text-[3rem] leading-[1] md:text-[4.75rem] font-black tracking-tight mb-2 md:mb-4"
+              className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-3 md:mb-4 leading-[1.1]"
               style={{
-                fontFamily: "'Anton', 'Archivo Black', system-ui, sans-serif",
+                fontFamily: "'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif",
               }}
             >
-              <span className="text-white block">Authentic.</span>
-              <span className="text-primary block">Delicious.</span>
-              <span className="text-white block">Fresh.</span>
+              Gole Khaja Ghar
+              <span className="text-primary block text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black mt-1">
+                Restaurant & Khaja Ghar in Sisuwa
+              </span>
             </h1>
-            <p className="hidden md:block text-base md:text-lg text-white/90 mb-8 max-w-[360px] font-medium leading-snug">
-              Taste the true flavors of Nepal. Freshly prepared Khaja sets,
-              juicy momos, chowmein, and local delicacies in Sisuwa, Pokhara.
+            <p className="text-sm sm:text-base md:text-lg text-white/90 mb-7 max-w-xl font-medium leading-relaxed">
+              Taste the true flavors of Nepal at Gole Khaja Ghar (also known locally as Gole Khaja or Gole Ghar). Freshly prepared Khaja sets, juicy momos, chowmein, and local delicacies in Sisuwa, Pokhara-30.
             </p>
 
-            <div className="flex flex-wrap items-center gap-3 mt-4 md:mt-0">
+            <div className="flex flex-wrap items-center gap-3">
               <Link
                 to="/shop"
-                className="px-6 py-2.5 md:px-8 md:py-3.5 bg-orange-600 text-white font-black rounded-xl hover:bg-orange-500 transition-all text-sm tracking-wider uppercase shadow-xl shadow-orange-600/30 cursor-pointer"
+                className="px-6 py-2.5 md:px-8 md:py-3.5 bg-orange-600 text-white font-black rounded-xl hover:bg-orange-500 transition-all text-xs sm:text-sm tracking-wider uppercase shadow-xl shadow-orange-600/30 cursor-pointer inline-flex items-center gap-2"
               >
-                EXPLORE MENU
+                <span>EXPLORE MENU</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+
+              <Link
+                to="/contact"
+                className="px-5 py-2.5 md:px-6 md:py-3.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl border border-white/20 transition-all text-xs sm:text-sm flex items-center gap-2 backdrop-blur-sm cursor-pointer"
+              >
+                <MapPin className="w-4 h-4 text-primary" />
+                <span>Visit Us in Sisuwa</span>
               </Link>
 
               {!isInstalled && (
                 <button
                   onClick={handleHeroInstall}
-                  className="px-4 py-2.5 md:px-5 md:py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded md:rounded-md border border-white/20 transition-all text-sm flex items-center gap-2 backdrop-blur-sm cursor-pointer"
+                  className="px-4 py-2.5 md:px-5 md:py-3.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl border border-white/20 transition-all text-xs sm:text-sm flex items-center gap-2 backdrop-blur-sm cursor-pointer"
                 >
                   <Download className="w-4 h-4 text-primary" />
-                  Install App
+                  <span>Install App</span>
                 </button>
               )}
             </div>

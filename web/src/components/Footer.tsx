@@ -33,7 +33,9 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-stone-600 max-w-sm mb-6 leading-relaxed">
-              Authentic Nepalese Restaurant & Khaja Ghar. Taste real traditional flavors! Freshly prepared Khaja sets, momos, chowmein, and local delicacies.
+              Authentic Nepali Restaurant & Khaja Ghar in Sisuwa, Pokhara-30.
+              Known locally as Gole Khaja or Gole Ghar. Freshly prepared Khaja sets,
+              momos, chowmein, and traditional dining.
             </p>
             <div className="flex items-center space-x-4">
               <a
@@ -69,13 +71,18 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/orders" className="text-stone-600 hover:text-primary transition-colors">
-                  My Orders
+                <Link to="/about" className="text-stone-600 hover:text-primary transition-colors">
+                  About Gole Khaja Ghar
                 </Link>
               </li>
               <li>
-                <Link to="/account" className="text-stone-600 hover:text-primary transition-colors">
-                  My Account
+                <Link to="/contact" className="text-stone-600 hover:text-primary transition-colors">
+                  Location & Directions (Sisuwa)
+                </Link>
+              </li>
+              <li>
+                <Link to="/orders" className="text-stone-600 hover:text-primary transition-colors">
+                  My Orders
                 </Link>
               </li>
               <li>
@@ -97,10 +104,18 @@ export default function Footer() {
             <ul className="space-y-4 text-stone-600 text-sm font-medium">
               <li className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                <span>
-                  Sisuwa, Pokhara-30,<br />
-                  Kaski, Nepal
-                </span>
+                <div>
+                  <p>
+                    Sisuwa, Pokhara-30,<br />
+                    Kaski, Nepal
+                  </p>
+                  <Link
+                    to="/contact"
+                    className="text-xs text-primary font-bold hover:underline inline-block mt-1"
+                  >
+                    View Map & Directions →
+                  </Link>
+                </div>
               </li>
               <li className="flex items-start gap-3">
                 <Phone className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />

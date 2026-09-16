@@ -97,14 +97,14 @@ export default function ShopPage() {
   };
 
   const shopTitle = category
-    ? `${category} Menu | Gole Khaja Ghar Pokhara`
+    ? `${category} Menu | Gole Khaja Ghar Sisuwa`
     : query
-    ? `Search "${query}" | Menu - Gole Khaja Ghar`
-    : "Our Menu | Authentic Nepali Khaja, Momos & Snacks - Gole Khaja Ghar";
+    ? `Search "${query}" | Menu - Gole Khaja Ghar Sisuwa`
+    : "Menu | Gole Khaja Ghar Sisuwa";
 
   const shopDesc = category
-    ? `Order fresh and delicious ${category} at Gole Khaja Ghar in Sisuwa, Pokhara-30. Authentic Nepali recipes prepared hot to order.`
-    : "Explore our full menu of authentic Nepali snacks, signature khaja sets, steaming buff & chicken momos, chowmein, sekuwa, and refreshing drinks in Sisuwa, Pokhara-30.";
+    ? `Order fresh ${category} at Gole Khaja Ghar in Sisuwa, Pokhara-30. Authentic Nepali recipes prepared hot to order with fast local delivery.`
+    : "Explore the full menu of Gole Khaja Ghar in Sisuwa, Pokhara-30. Fresh Nepali khaja sets, steamed and fried momos, spicy sekuwa, chowmein, breakfast, and beverages.";
 
   const shopBreadcrumbSchema = {
     "@context": "https://schema.org",
@@ -131,7 +131,7 @@ export default function ShopPage() {
         title={shopTitle}
         description={shopDesc}
         canonical="https://golekhajaghar.com/shop"
-        keywords="Nepali khaja menu, momo price pokhara, khaja set sisuwa, chowmein, sekuwa, food delivery pokhara"
+        keywords="Menu Gole Khaja Ghar, Gole Khaja Ghar Sisuwa menu, momo price pokhara, khaja set sisuwa, chowmein, sekuwa, food delivery pokhara"
         schema={shopBreadcrumbSchema}
       />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">

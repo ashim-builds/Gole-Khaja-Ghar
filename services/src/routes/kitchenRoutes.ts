@@ -9,8 +9,8 @@ import { requireRoles } from '../middleware/auth.js';
 
 const router = Router();
 
-// Kitchen Display System & POS KOT updates
-router.use(requireRoles(['KITCHEN', 'CHEF', 'WAITER', 'CASHIER', 'STAFF']));
+// Kitchen Display System & POS KOT updates - accessible to Kitchen staff, Waiters, and Admins
+router.use(requireRoles(['KITCHEN', 'CHEF', 'WAITER', 'CASHIER', 'STAFF', 'ADMIN', 'SUPER_ADMIN']));
 
 router.get('/tickets', getActiveKotTickets);
 router.patch('/tickets/:id/status', updateKotStatus);

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma.js';
 import { AuthenticatedRequest } from '../middleware/auth.js';
-import { BillStatus, PaymentMethod, PaymentStatus } from '@prisma/client';
+import { BillStatus, PaymentMethod, PaymentStatus, OrderStatus } from '@prisma/client';
 import { emitEvent, emitPaymentRecorded, emitTableUpdated } from '../lib/socket.js';
 
 export async function generateBill(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -56,6 +56,11 @@ export async function generateBill(req: AuthenticatedRequest, res: Response): Pr
 
       if (!order) {
         res.status(404).json({ error: 'Order not found' });
+        return;
+      }
+
+      if (order.status === OrderStatus.CANCELLED) {
+        res.status(400).json({ error: 'Cannot generate bill for a cancelled order.' });
         return;
       }
 
@@ -148,6 +153,11 @@ export async function recordPayment(req: AuthenticatedRequest, res: Response): P
 
     if (!bill) {
       res.status(404).json({ error: 'Bill not found' });
+      return;
+    }
+
+    if (bill.order?.status === OrderStatus.CANCELLED) {
+      res.status(400).json({ error: 'Cannot record payment for a cancelled order.' });
       return;
     }
 

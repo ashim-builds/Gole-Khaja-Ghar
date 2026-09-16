@@ -229,8 +229,8 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full mx-auto bg-white p-8 rounded-3xl shadow-sm border border-stone-200">
+    <div className="min-h-screen bg-stone-50 flex flex-col justify-center py-8 sm:py-12 px-3 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full mx-auto bg-white p-5 sm:p-8 rounded-3xl shadow-sm border border-stone-200">
         {step === "form" ? (
           <>
             <div className="text-center mb-6">
@@ -428,15 +428,20 @@ export default function RegisterPage() {
             )}
 
             {successMessage && (
-              <div className="bg-green-50 text-green-700 p-3.5 rounded-xl text-xs font-semibold flex items-center gap-2 border border-green-200 mb-4">
-                <CheckCircle2 className="w-4 h-4 shrink-0" />
-                <span>{successMessage}</span>
+              <div className="bg-green-50 text-green-700 p-3.5 rounded-xl text-xs font-semibold flex items-start gap-2.5 border border-green-200 mb-4">
+                <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+                <div className="flex flex-col gap-0.5">
+                  <span className="font-bold">{successMessage}</span>
+                  <span className="text-[11px] text-green-800 font-normal">
+                    Tip: If it doesn't appear in your Inbox within a minute, please check your <strong>Spam / Junk</strong> folder.
+                  </span>
+                </div>
               </div>
             )}
 
             <form onSubmit={handleVerifyOtp} className="flex flex-col gap-5">
-              {/* 6 OTP Input Boxes */}
-              <div className="flex justify-between gap-2 sm:gap-2.5">
+              {/* 6 OTP Input Boxes - Fully Responsive on Mobile & Desktop */}
+              <div className="flex justify-between items-center gap-1.5 sm:gap-2.5 w-full">
                 {otp.map((digit, idx) => (
                   <input
                     key={idx}
@@ -445,12 +450,13 @@ export default function RegisterPage() {
                     }}
                     type="text"
                     inputMode="numeric"
+                    autoComplete="one-time-code"
                     maxLength={1}
                     value={digit}
                     onChange={(e) => handleOtpChange(idx, e.target.value)}
                     onKeyDown={(e) => handleOtpKeyDown(idx, e)}
                     onPaste={idx === 0 ? handleOtpPaste : undefined}
-                    className="w-12 h-14 sm:w-13 sm:h-15 text-center text-2xl font-black rounded-2xl border-2 border-stone-200 bg-stone-50 text-stone-900 focus:outline-none focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10 transition-all"
+                    className="flex-1 min-w-0 max-w-[46px] sm:max-w-[54px] h-12 sm:h-14 text-center text-xl sm:text-2xl font-black rounded-xl sm:rounded-2xl border-2 border-stone-200 bg-stone-50 text-stone-900 focus:outline-none focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10 transition-all p-0 shadow-sm"
                   />
                 ))}
               </div>
@@ -476,7 +482,7 @@ export default function RegisterPage() {
 
             <div className="mt-6 text-center">
               <p className="text-xs text-stone-500">
-                Didn't receive the code?
+                Didn't receive the code in your inbox or spam?
               </p>
               <button
                 type="button"

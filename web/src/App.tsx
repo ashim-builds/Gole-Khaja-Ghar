@@ -26,6 +26,8 @@ const AccountPage = lazy(() => import("@/pages/shop/AccountPage"));
 const PrivacyPolicyPage = lazy(() => import("@/pages/shop/PrivacyPolicyPage"));
 const TermsPage = lazy(() => import("@/pages/shop/TermsPage"));
 const PaymentPage = lazy(() => import("@/pages/shop/PaymentPage"));
+const AboutPage = lazy(() => import("@/pages/shop/AboutPage"));
+const ContactPage = lazy(() => import("@/pages/shop/ContactPage"));
 
 const LoginPage = lazy(() => import("@/pages/auth/LoginPage"));
 const RegisterPage = lazy(() => import("@/pages/auth/RegisterPage"));
@@ -58,6 +60,9 @@ export default function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="/shop" element={<ShopPage />} />
               <Route path="/product/:slug" element={<ProductDetailPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/location" element={<ContactPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/payment/:id" element={<PaymentPage />} />
               <Route path="/order/:orderNumber" element={<OrderTrackingPage />} />
@@ -74,11 +79,11 @@ export default function App() {
               </Route>
             </Route>
 
-            <Route element={<RoleRoute allowedRoles={["WAITER", "CASHIER"]} title="Dine-In POS Terminal" description="Access restricted to Waiters and Cashiers." />}>
+            <Route element={<RoleRoute allowedRoles={["WAITER", "CASHIER"]} allowAdmin={false} title="Dine-In POS Terminal" description="Access restricted to Waiters only." />}>
               <Route path="/pos" element={<PosTerminalPage />} />
             </Route>
 
-            <Route element={<RoleRoute allowedRoles={["KITCHEN", "CHEF"]} title="Kitchen Display Screen" description="Access restricted to Kitchen staff." />}>
+            <Route element={<RoleRoute allowedRoles={["KITCHEN", "CHEF", "ADMIN", "SUPER_ADMIN"]} title="Kitchen Display Screen" description="Access restricted to Kitchen staff and Admin." />}>
               <Route path="/kitchen" element={<KitchenDisplayPage />} />
             </Route>
 

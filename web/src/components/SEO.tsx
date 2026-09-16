@@ -57,20 +57,34 @@ export default function SEO({
       setMetaTag("name", "keywords", keywords);
     }
 
-    // 5. Open Graph Type & Image
+    // 5. Open Graph Type, Site Name & Image
     setMetaTag("property", "og:type", ogType);
+    setMetaTag("property", "og:site_name", "Gole Khaja Ghar");
     setMetaTag("property", "og:image", ogImage);
+    setMetaTag("name", "twitter:card", "summary_large_image");
     setMetaTag("name", "twitter:image", ogImage);
 
     // 6. Robots directive
     if (noindex) {
       setMetaTag("name", "robots", "noindex, nofollow");
     } else {
-      setMetaTag("name", "robots", "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1");
+      setMetaTag(
+        "name",
+        "robots",
+        "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+      );
     }
 
-    // 7. Canonical URL
-    const canonicalUrl = canonical || (typeof window !== "undefined" ? window.location.href : "https://golekhajaghar.com");
+    // 7. Canonical URL (Strictly HTTPS, https://golekhajaghar.com, stripped of query strings)
+    let canonicalUrl = canonical;
+    if (!canonicalUrl && typeof window !== "undefined") {
+      const cleanPath = window.location.pathname.replace(/\/+$/, "") || "/";
+      canonicalUrl = `https://golekhajaghar.com${cleanPath}`;
+    }
+    if (!canonicalUrl) {
+      canonicalUrl = "https://golekhajaghar.com/";
+    }
+
     let linkCanonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
     if (!linkCanonical) {
       linkCanonical = document.createElement("link");

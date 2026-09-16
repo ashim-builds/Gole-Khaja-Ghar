@@ -9,7 +9,7 @@ import {
   notifyCustomerPaymentConfirmed,
 } from '../integrations/whatsapp.js';
 import { BillStatus, PaymentMethod, PaymentStatus, OrderStatus, OrderType, UserRole } from '@prisma/client';
-import { emitEvent, emitPaymentRecorded, emitOrderStatusChanged } from '../lib/socket.js';
+import { emitEvent, emitPaymentRecorded, emitOrderStatusChanged, emitKotStatusChanged } from '../lib/socket.js';
 
 const orderInclude = {
   items: {
@@ -663,10 +663,53 @@ export async function updateOrderStatus(req: Request, res: Response): Promise<vo
     const { id, status: rawStatus } = validation.data;
     const status = rawStatus.toUpperCase() as OrderStatus;
 
-    const order = await prisma.order.findUnique({ where: { id } });
+    const order = await prisma.order.findUnique({
+      where: { id },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    });
     if (!order) {
       res.status(404).json({ error: 'Order not found' });
       return;
+    }
+
+    // Guard: Once cancelled, all features are locked! Status cannot be modified.
+    if (order.status === 'CANCELLED') {
+      res.status(400).json({ error: 'This order is cancelled and its status cannot be modified.' });
+      return;
+    }
+
+    // Optimization: If already the same status, no-op immediately (no extra DB writes/processes)
+    if (order.status === status) {
+      res.json({ success: true, order: mapOrder(order), message: 'Status already up to date.' });
+      return;
+    }
+
+    // If cancelling, also cancel any active KOT tickets and notify kitchen
+    if (status === 'CANCELLED') {
+      const activeKots = await prisma.kotTicket.findMany({
+        where: { orderId: order.id, status: { in: ['QUEUED', 'PREPARING'] } },
+        select: { id: true, ticketNumber: true },
+      });
+      if (activeKots.length > 0) {
+        await prisma.kotTicket.updateMany({
+          where: { orderId: order.id, status: { in: ['QUEUED', 'PREPARING'] } },
+          data: { status: 'CANCELLED' },
+        });
+        for (const kot of activeKots) {
+          emitKotStatusChanged({
+            kotTicketId: kot.id,
+            ticketNumber: kot.ticketNumber,
+            status: 'CANCELLED',
+            orderId: order.id,
+          });
+        }
+      }
     }
 
     const updated = await prisma.order.update({
@@ -712,6 +755,19 @@ export async function updateOrderStatus(req: Request, res: Response): Promise<vo
       }
     }
 
+    // Live Socket Updates
+    emitOrderStatusChanged({
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      status,
+    });
+    emitEvent('order:status_changed', {
+      id: order.id,
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      status,
+    });
+
     res.json({ success: true, order: mapOrder(updated) });
   } catch (error) {
     console.error('updateOrderStatus error:', error);
@@ -744,6 +800,12 @@ export async function updatePaymentStatus(req: Request, res: Response): Promise<
 
     if (!order) {
       res.status(404).json({ error: 'Order not found' });
+      return;
+    }
+
+    // Guard: If order is CANCELLED, payment status cannot be updated!
+    if (order.status === 'CANCELLED') {
+      res.status(400).json({ error: 'This order is cancelled. Payment status cannot be changed.' });
       return;
     }
 
@@ -905,6 +967,11 @@ export async function settleOnlinePayment(req: Request, res: Response): Promise<
 
     if (!order) {
       res.status(404).json({ error: 'Order not found' });
+      return;
+    }
+
+    if (order.status === 'CANCELLED') {
+      res.status(400).json({ error: 'Cannot record payment for a cancelled order.' });
       return;
     }
 

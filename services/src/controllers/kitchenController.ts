@@ -86,6 +86,11 @@ export async function updateKotStatus(req: Request, res: Response): Promise<void
       return;
     }
 
+    if (ticket.order?.status === OrderStatus.CANCELLED && status !== KotStatus.CANCELLED) {
+      res.status(400).json({ error: 'This order is cancelled. KOT tickets cannot be updated.' });
+      return;
+    }
+
     // Map KOT status to KOT item status & Order status
     let itemStatus: KotItemStatus = KotItemStatus.PENDING;
     let newOrderStatus: OrderStatus | null = null;

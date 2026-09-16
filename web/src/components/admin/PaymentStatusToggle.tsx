@@ -1,17 +1,21 @@
 import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
-import { Loader2, CheckCircle2, Clock, Check } from "lucide-react";
+import { Loader2, CheckCircle2, Clock, Check, Lock } from "lucide-react";
 
 export default function PaymentStatusToggle({
   orderId,
   currentPaymentStatus,
+  disabled = false,
   onStatusChange,
 }: {
   orderId: string;
   currentPaymentStatus: "pending" | "paid";
+  disabled?: boolean;
   onStatusChange?: (newStatus: "pending" | "paid") => void;
 }) {
-  const [status, setStatus] = useState<"pending" | "paid">(currentPaymentStatus || "pending");
+  const [status, setStatus] = useState<"pending" | "paid">(
+    currentPaymentStatus || "pending"
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -22,13 +26,15 @@ export default function PaymentStatusToggle({
   }, [currentPaymentStatus]);
 
   const toggle = async () => {
-    if (!orderId) return;
+    if (!orderId || disabled || loading) return;
     const newStatus = status === "paid" ? "pending" : "paid";
     setLoading(true);
     setError("");
     try {
       const res = await api.orders.updatePayment(orderId, newStatus);
-      const updatedStatus = (res?.order?.paymentStatus || newStatus) as "pending" | "paid";
+      const updatedStatus = (res?.order?.paymentStatus || newStatus) as
+        | "pending"
+        | "paid";
       setStatus(updatedStatus);
       if (onStatusChange) {
         onStatusChange(updatedStatus);
@@ -49,15 +55,25 @@ export default function PaymentStatusToggle({
         {/* Badge */}
         <span
           className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black uppercase transition-colors ${
-            isPaid
-              ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
-              : "bg-amber-100 text-amber-800 border border-amber-300"
+            disabled
+              ? "bg-stone-100 text-stone-500 border border-stone-200"
+              : isPaid
+                ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                : "bg-amber-100 text-amber-800 border border-amber-300"
           }`}
         >
           {isPaid ? (
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+            <CheckCircle2
+              className={`w-3.5 h-3.5 ${
+                disabled ? "text-stone-400" : "text-emerald-600"
+              }`}
+            />
           ) : (
-            <Clock className="w-3.5 h-3.5 text-amber-600" />
+            <Clock
+              className={`w-3.5 h-3.5 ${
+                disabled ? "text-stone-400" : "text-amber-600"
+              }`}
+            />
           )}
           {status}
         </span>
@@ -66,14 +82,26 @@ export default function PaymentStatusToggle({
         <button
           type="button"
           onClick={toggle}
-          disabled={loading}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all disabled:opacity-50 cursor-pointer ${
-            isPaid
-              ? "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100"
-              : "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
+          disabled={loading || disabled}
+          title={
+            disabled
+              ? "Payment status is locked because the order is cancelled"
+              : undefined
+          }
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
+            disabled
+              ? "bg-stone-100 border-stone-200 text-stone-400 cursor-not-allowed opacity-75"
+              : isPaid
+                ? "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100 cursor-pointer"
+                : "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100 cursor-pointer"
           }`}
         >
-          {loading ? (
+          {disabled ? (
+            <span className="flex items-center gap-1 font-semibold">
+              <Lock className="w-3.5 h-3.5 text-stone-400" />
+              Locked
+            </span>
+          ) : loading ? (
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
           ) : isPaid ? (
             "Mark Unpaid"
@@ -85,7 +113,13 @@ export default function PaymentStatusToggle({
           )}
         </button>
       </div>
+      {disabled && (
+        <p className="text-[11px] text-stone-400 font-medium">
+          Payment status locked (Order cancelled)
+        </p>
+      )}
       {error && <p className="text-xs text-red-500 font-semibold">{error}</p>}
     </div>
   );
 }
+

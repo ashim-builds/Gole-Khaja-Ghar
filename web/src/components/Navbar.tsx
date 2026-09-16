@@ -13,6 +13,8 @@ import {
   LogIn,
   ShoppingBag,
   Sparkles,
+  Info,
+  MapPin,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/context/CartContext";
@@ -58,6 +60,8 @@ export default function Navbar() {
   }[] = [
     { name: "Home", href: "/", onClick: scrollToTop },
     { name: "Menu", href: "/shop" },
+    { name: "About", href: "/about", icon: Info },
+    { name: "Contact", href: "/contact", icon: MapPin },
   ];
 
   if (user) {
@@ -136,14 +140,24 @@ export default function Navbar() {
           <div className="flex items-center gap-2.5 xl:gap-3.5 border-l border-white/10 pl-3.5 xl:pl-5 shrink-0">
             {/* Admin or Staff prominent action button */}
             {isAdmin ? (
-              <Link
-                to="/admin"
-                className="flex items-center gap-2 text-white bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600 hover:from-orange-500 hover:to-amber-500 transition-all text-xs xl:text-sm font-black px-3.5 py-1.5 sm:py-2 rounded-full border border-orange-400/40 shadow-lg shadow-orange-600/25 tracking-wide group active:scale-95 duration-200"
-                title="Open Admin Control Panel"
-              >
-                <LayoutDashboard className="w-4 h-4 text-white group-hover:rotate-6 transition-transform duration-200" />
-                <span>Admin Dashboard</span>
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/admin"
+                  className="flex items-center gap-2 text-white bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600 hover:from-orange-500 hover:to-amber-500 transition-all text-xs xl:text-sm font-black px-3.5 py-1.5 sm:py-2 rounded-full border border-orange-400/40 shadow-lg shadow-orange-600/25 tracking-wide group active:scale-95 duration-200"
+                  title="Open Admin Control Panel"
+                >
+                  <LayoutDashboard className="w-4 h-4 text-white group-hover:rotate-6 transition-transform duration-200" />
+                  <span>Admin Dashboard</span>
+                </Link>
+                <Link
+                  to="/kitchen"
+                  className="flex items-center gap-1.5 text-amber-300 bg-amber-950/60 hover:bg-amber-900/80 transition-all text-xs xl:text-sm font-bold px-3 py-1.5 sm:py-2 rounded-full border border-amber-600/40 shadow-sm group active:scale-95 duration-200"
+                  title="Open Kitchen Display System"
+                >
+                  <ChefHat className="w-4 h-4 text-amber-400 group-hover:rotate-6 transition-transform duration-200" />
+                  <span>KDS</span>
+                </Link>
+              </div>
             ) : isWaiterOrCashier ? (
               <Link
                 to="/pos"
@@ -252,31 +266,47 @@ export default function Navbar() {
                       {role}
                     </span>
                   </div>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    <Link
-                      to="/admin"
-                      onClick={() => setIsOpen(false)}
-                      className="flex flex-col items-center justify-center p-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-[11px] text-center shadow-md active:scale-95 transition-all"
-                    >
-                      <LayoutDashboard className="w-4 h-4 mb-1" />
-                      <span>Admin</span>
-                    </Link>
-                    <Link
-                      to="/pos"
-                      onClick={() => setIsOpen(false)}
-                      className="flex flex-col items-center justify-center p-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-emerald-400 font-bold text-[11px] text-center border border-stone-700 active:scale-95 transition-all"
-                    >
-                      <Store className="w-4 h-4 mb-1 text-emerald-400" />
-                      <span>POS</span>
-                    </Link>
-                    <Link
-                      to="/kitchen"
-                      onClick={() => setIsOpen(false)}
-                      className="flex flex-col items-center justify-center p-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-amber-400 font-bold text-[11px] text-center border border-stone-700 active:scale-95 transition-all"
-                    >
-                      <ChefHat className="w-4 h-4 mb-1 text-amber-400" />
-                      <span>Kitchen</span>
-                    </Link>
+                  <div className={`grid ${isAdmin ? "grid-cols-2" : "grid-cols-1"} gap-1.5`}>
+                    {isAdmin && (
+                      <>
+                        <Link
+                          to="/admin"
+                          onClick={() => setIsOpen(false)}
+                          className="flex flex-col items-center justify-center p-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-[11px] text-center shadow-md active:scale-95 transition-all"
+                        >
+                          <LayoutDashboard className="w-4 h-4 mb-1" />
+                          <span>Admin</span>
+                        </Link>
+                        <Link
+                          to="/kitchen"
+                          onClick={() => setIsOpen(false)}
+                          className="flex flex-col items-center justify-center p-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-amber-400 font-bold text-[11px] text-center border border-stone-700 active:scale-95 transition-all"
+                        >
+                          <ChefHat className="w-4 h-4 mb-1 text-amber-400" />
+                          <span>KDS</span>
+                        </Link>
+                      </>
+                    )}
+                    {!isAdmin && isWaiterOrCashier && (
+                      <Link
+                        to="/pos"
+                        onClick={() => setIsOpen(false)}
+                        className="flex flex-col items-center justify-center p-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-emerald-400 font-bold text-[11px] text-center border border-stone-700 active:scale-95 transition-all"
+                      >
+                        <Store className="w-4 h-4 mb-1 text-emerald-400" />
+                        <span>POS Terminal</span>
+                      </Link>
+                    )}
+                    {!isAdmin && !isWaiterOrCashier && isKitchen && (
+                      <Link
+                        to="/kitchen"
+                        onClick={() => setIsOpen(false)}
+                        className="flex flex-col items-center justify-center p-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-amber-400 font-bold text-[11px] text-center border border-stone-700 active:scale-95 transition-all"
+                      >
+                        <ChefHat className="w-4 h-4 mb-1 text-amber-400" />
+                        <span>KDS</span>
+                      </Link>
+                    )}
                   </div>
                 </div>
               )}

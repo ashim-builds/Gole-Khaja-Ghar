@@ -493,15 +493,7 @@ export default function AdminSettingsPage() {
           <p className="text-[11px] font-black uppercase tracking-wider text-stone-400 mb-2">
             Quick Application Launchers
           </p>
-          <div className="grid grid-cols-3 gap-2">
-            <Link
-              to="/pos"
-              className="p-2.5 bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-center flex flex-col items-center justify-center gap-1 transition-all active:scale-95 shadow-xs cursor-pointer"
-            >
-              <UtensilsCrossed className="w-4 h-4 text-orange-400" />
-              <span className="text-[11px] font-bold">POS Terminal</span>
-            </Link>
-
+          <div className="grid grid-cols-2 gap-2">
             <Link
               to="/kitchen"
               className="p-2.5 bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-center flex flex-col items-center justify-center gap-1 transition-all active:scale-95 shadow-xs cursor-pointer"

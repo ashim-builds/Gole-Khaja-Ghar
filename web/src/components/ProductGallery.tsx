@@ -20,7 +20,7 @@ export default function ProductGallery({ images, productName, isAvailable }: Pro
       <div className="relative w-full aspect-square md:aspect-[4/5] rounded-[24px] bg-[#f5f5f5] overflow-hidden shadow-sm">
         <img
           src={getImageUrl(allImages[activeImage])}
-          alt={`${productName} - Image ${activeImage + 1}`}
+          alt={`${productName} served fresh at Gole Khaja Ghar in Sisuwa`}
           onError={(e) => {
             const target = e.currentTarget;
             if (!target.src.endsWith('/images/logo.png')) {
@@ -59,7 +59,11 @@ export default function ProductGallery({ images, productName, isAvailable }: Pro
                   : 'border-stone-200 hover:border-stone-400 opacity-70 hover:opacity-100'
               }`}
             >
-              <img src={getImageUrl(src)} alt={`${productName} thumbnail ${i + 1}`} className="w-full h-full object-cover" />
+              <img
+                src={getImageUrl(src)}
+                alt={`${productName} preview photo ${i + 1} - Gole Khaja Ghar Sisuwa`}
+                className="w-full h-full object-cover"
+              />
             </button>
           ))}
         </div>

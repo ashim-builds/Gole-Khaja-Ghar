@@ -287,13 +287,15 @@ export default function AdminBillingPage() {
         </div>
 
         <div className="flex items-center gap-2.5">
-          <Link
-            to="/pos"
-            className="px-3.5 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all"
-          >
-            <UtensilsCrossed className="w-4 h-4 text-orange-400" />
-            <span>POS Terminal</span>
-          </Link>
+          {!isAdmin && (
+            <Link
+              to="/pos"
+              className="px-3.5 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all"
+            >
+              <UtensilsCrossed className="w-4 h-4 text-orange-400" />
+              <span>POS Terminal</span>
+            </Link>
+          )}
           <button
             onClick={fetchTablesAndBills}
             className="p-2.5 bg-white border border-stone-200 hover:bg-stone-50 rounded-xl text-stone-600 transition-colors shadow-sm cursor-pointer"

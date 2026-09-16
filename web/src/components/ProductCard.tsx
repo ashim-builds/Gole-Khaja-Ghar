@@ -162,7 +162,7 @@ export default function ProductCard({
               <div className="w-full h-full rounded-full overflow-hidden relative shadow-[inset_0_4px_10px_rgba(0,0,0,0.35),0_1px_2px_rgba(255,255,255,0.9)] border border-stone-300/70 bg-stone-100">
                 <img
                   src={getImageUrl(image)}
-                  alt={name}
+                  alt={`${name} at Gole Khaja Ghar in Sisuwa`}
                   loading="lazy"
                   decoding="async"
                   onError={(e) => {
@@ -187,7 +187,7 @@ export default function ProductCard({
               <div className="w-full h-full rounded-full overflow-hidden relative shadow-[inset_0_4px_10px_rgba(0,0,0,0.3),0_1px_2px_rgba(255,255,255,0.9)] border border-amber-200/80 bg-stone-900/5">
                 <img
                   src={getImageUrl(image)}
-                  alt={name}
+                  alt={`${name} at Gole Khaja Ghar in Sisuwa`}
                   loading="lazy"
                   decoding="async"
                   onError={(e) => {

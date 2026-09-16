@@ -5,12 +5,14 @@ import { useUser } from '@/context/UserContext';
 
 interface RoleRouteProps {
   allowedRoles: string[];
+  allowAdmin?: boolean;
   title?: string;
   description?: string;
 }
 
 export default function RoleRoute({
   allowedRoles,
+  allowAdmin = true,
   title = 'Restricted Staff Portal',
   description = 'This section requires specific staff role permissions.',
 }: RoleRouteProps) {
@@ -39,10 +41,9 @@ export default function RoleRoute({
 
   const userRole = (user.role || '').toUpperCase();
   const normalizedAllowed = allowedRoles.map((r) => r.toUpperCase());
+  const isAdminRole = userRole === 'ADMIN' || userRole === 'SUPER_ADMIN';
   const isAuthorized =
-    userRole === 'ADMIN' ||
-    userRole === 'SUPER_ADMIN' ||
-    normalizedAllowed.includes(userRole);
+    (allowAdmin && isAdminRole) || normalizedAllowed.includes(userRole);
 
   if (!isAuthorized) {
     return (

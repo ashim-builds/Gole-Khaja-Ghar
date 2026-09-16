@@ -22,6 +22,7 @@ import {
   X,
   Check,
   User,
+  Lock,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { subscribeToEvent, playAudioAlert } from "@/lib/socket";
@@ -120,6 +121,12 @@ export default function AdminOrdersClient({
     orderId: string,
     currentStatus: string,
   ) => {
+    const target = orders.find(
+      (o) => o.id === orderId || o._id === orderId,
+    );
+    if (target && (target.status || "").toUpperCase() === "CANCELLED") {
+      return;
+    }
     const nextStatus = currentStatus === "paid" ? "pending" : "paid";
     try {
       setUpdatingPaymentId(orderId);
@@ -569,24 +576,36 @@ export default function AdminOrdersClient({
 
                   {/* 1-tap Payment toggle */}
                   <button
-                    onClick={() =>
-                      handleTogglePaymentStatus(orderId, order.paymentStatus)
+                    onClick={() => {
+                      if (status === "CANCELLED") return;
+                      handleTogglePaymentStatus(orderId, order.paymentStatus);
+                    }}
+                    disabled={updatingPaymentId === orderId || status === "CANCELLED"}
+                    title={
+                      status === "CANCELLED"
+                        ? "Payment locked for cancelled order"
+                        : "Toggle payment status"
                     }
-                    disabled={updatingPaymentId === orderId}
-                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer border ${
-                      isPaid
-                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                        : "bg-amber-50 text-amber-700 border-amber-200"
+                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black transition-all border ${
+                      status === "CANCELLED"
+                        ? "bg-stone-100 text-stone-400 border-stone-200 cursor-not-allowed opacity-60"
+                        : isPaid
+                          ? "bg-emerald-50 text-emerald-700 border-emerald-200 cursor-pointer hover:bg-emerald-100"
+                          : "bg-amber-50 text-amber-700 border-amber-200 cursor-pointer hover:bg-amber-100"
                     }`}
                   >
                     {updatingPaymentId === orderId ? (
                       <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : status === "CANCELLED" ? (
+                      <Lock className="w-3 h-3 text-stone-400" />
                     ) : isPaid ? (
                       <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                     ) : (
                       <Clock className="w-3 h-3 text-amber-600" />
                     )}
-                    <span>{isPaid ? "PAID" : "UNPAID"}</span>
+                    <span>
+                      {status === "CANCELLED" ? "LOCKED" : isPaid ? "PAID" : "UNPAID"}
+                    </span>
                   </button>
                 </div>
 
@@ -757,29 +776,38 @@ export default function AdminOrdersClient({
                     {/* Payment Status & Toggle */}
                     <td className="p-4">
                       <button
-                        onClick={() =>
+                        onClick={() => {
+                          if (status === "CANCELLED") return;
                           handleTogglePaymentStatus(
                             orderId,
                             order.paymentStatus,
-                          )
-                        }
-                        disabled={updatingPaymentId === orderId}
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                          isPaid
-                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100"
-                            : "bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100"
+                          );
+                        }}
+                        disabled={updatingPaymentId === orderId || status === "CANCELLED"}
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black transition-all ${
+                          status === "CANCELLED"
+                            ? "bg-stone-100 text-stone-400 border border-stone-200 cursor-not-allowed opacity-60"
+                            : isPaid
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 cursor-pointer"
+                              : "bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 cursor-pointer"
                         }`}
-                        title="Click to toggle Paid/Pending"
+                        title={
+                          status === "CANCELLED"
+                            ? "Payment locked for cancelled order"
+                            : "Click to toggle Paid/Pending"
+                        }
                       >
                         {updatingPaymentId === orderId ? (
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : status === "CANCELLED" ? (
+                          <Lock className="w-3.5 h-3.5 text-stone-400" />
                         ) : isPaid ? (
                           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                         ) : (
                           <Clock className="w-3.5 h-3.5 text-amber-600" />
                         )}
-                        <span className="uppercase text-[10px]">
-                          {isPaid ? "PAID" : "UNPAID"}
+                        <span>
+                          {status === "CANCELLED" ? "LOCKED" : isPaid ? "PAID" : "UNPAID"}
                         </span>
                       </button>
                       <div className="flex items-center gap-1.5 mt-1 flex-wrap">

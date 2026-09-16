@@ -73,7 +73,8 @@ export default function BottomNav() {
           </span>
         </button>
 
-        {isWaiter && (
+        {/* POS: ONLY show to Waiter/Cashier (Never show to Admin) */}
+        {isWaiter && !isAdmin && (
           <Link
             to="/pos"
             className="flex flex-col items-center gap-1 group py-1 px-2.5"
@@ -89,7 +90,8 @@ export default function BottomNav() {
           </Link>
         )}
 
-        {isKitchen && (
+        {/* KDS: In mobile nav, add KDS (accessible to Admin & Kitchen) */}
+        {(isKitchen || isAdmin) && (
           <Link
             to="/kitchen"
             className="flex flex-col items-center gap-1 group py-1 px-2.5"
@@ -100,14 +102,14 @@ export default function BottomNav() {
             <span
               className={`text-[11px] font-bold ${isActive("/kitchen") ? "text-primary" : "text-amber-400 group-hover:text-primary"}`}
             >
-              Kitchen
+              KDS
             </span>
           </Link>
         )}
 
         {user ? (
           <>
-            {!isWaiter && !isKitchen && (
+            {!isWaiter && !isKitchen && !isAdmin && (
               <Link
                 to="/orders"
                 className="flex flex-col items-center gap-1 group py-1 px-2.5"
@@ -123,16 +125,16 @@ export default function BottomNav() {
               </Link>
             )}
             <Link
-              to="/account"
+              to={isAdmin ? "/admin" : "/account"}
               className="flex flex-col items-center gap-1 group py-1 px-2.5"
             >
               <User
-                className={`w-5 h-5 transition-transform group-active:scale-90 ${isActive("/account") ? "text-primary" : "text-white/60 group-hover:text-primary"}`}
+                className={`w-5 h-5 transition-transform group-active:scale-90 ${isActive(isAdmin ? "/admin" : "/account") ? "text-primary" : "text-white/60 group-hover:text-primary"}`}
               />
               <span
-                className={`text-[11px] font-bold ${isActive("/account") ? "text-primary" : "text-white/60 group-hover:text-primary"}`}
+                className={`text-[11px] font-bold ${isActive(isAdmin ? "/admin" : "/account") ? "text-primary" : "text-white/60 group-hover:text-primary"}`}
               >
-                Account
+                {isAdmin ? "Admin" : "Account"}
               </span>
             </Link>
           </>
