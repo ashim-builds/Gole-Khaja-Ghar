@@ -7,7 +7,6 @@ import {
   Phone,
   LayoutDashboard,
   Store,
-  ReceiptText,
   ChefHat,
   User,
   LogIn,
@@ -45,6 +44,11 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Close mobile drawer on route change
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
   };
@@ -79,34 +83,44 @@ export default function Navbar() {
     >
       {/* 
         Navbar Container:
-        - At top: 100% full width, edge-to-edge with bottom border.
-        - When scrolled: smooth transform into floating Apple-style compact blur capsule.
+        - At top: Full width with subtle dark glassmorphism
+        - When scrolled: Smooth floating capsule with max-w-6xl / 7xl for plenty of breathing space
       */}
       <nav
-        className={`pointer-events-auto relative w-full flex items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+        className={`pointer-events-auto relative w-full flex items-center justify-between gap-3 sm:gap-6 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
           scrolled
-            ? "max-w-5xl my-2 sm:my-2.5 h-14 sm:h-15 px-3.5 sm:px-6 rounded-full bg-[#0c0a09]/85 backdrop-blur-2xl border border-white/20 shadow-[0_12px_40px_rgba(0,0,0,0.65)] ring-1 ring-white/10"
+            ? "max-w-6xl xl:max-w-7xl my-2 sm:my-2.5 h-14 sm:h-16 px-3.5 sm:px-6 rounded-full bg-[#0c0a09]/90 backdrop-blur-2xl border border-white/20 shadow-[0_12px_40px_rgba(0,0,0,0.65)] ring-1 ring-white/10"
             : "max-w-none my-0 h-16 sm:h-20 px-4 sm:px-6 lg:px-8 rounded-none bg-[#111111]/95 backdrop-blur-md border-b border-[#222222] shadow-none ring-0"
         }`}
       >
-        {/* Subtle Ambient Radial Glow only when in floating capsule mode */}
+        {/* Subtle Ambient Glow when floating */}
         {scrolled && (
           <div className="absolute inset-0 -z-10 rounded-full bg-gradient-to-r from-orange-500/10 via-amber-500/5 to-orange-500/10 blur-xl pointer-events-none" />
         )}
 
-        {/* Brand Logo */}
+        {/* 1. Left: Brand Logo */}
         <div className="shrink-0 flex items-center">
-          <Link to="/" onClick={scrollToTop} className="flex items-center gap-2 sm:gap-2.5 group">
+          <Link
+            to="/"
+            onClick={scrollToTop}
+            className="flex items-center gap-2 sm:gap-2.5 group select-none"
+          >
             <div
               className={`relative rounded-full overflow-hidden border border-primary/40 bg-stone-900 flex items-center justify-center shrink-0 shadow-md group-hover:scale-105 transition-all duration-300 ${
                 scrolled ? "w-8 h-8 sm:w-9 sm:h-9" : "w-8 h-8 sm:w-10 sm:h-10"
               }`}
             >
-              <img src="/images/logo.png" alt="Gole Khaja Ghar Logo" className="w-full h-full object-cover" />
+              <img
+                src="/images/logo.png"
+                alt="Gole Khaja Ghar Logo"
+                className="w-full h-full object-cover"
+              />
             </div>
             <span
               className={`font-extrabold tracking-tight text-white whitespace-nowrap transition-all duration-300 ${
-                scrolled ? "text-sm sm:text-lg lg:text-xl" : "text-base sm:text-xl lg:text-2xl"
+                scrolled
+                  ? "text-sm sm:text-base xl:text-lg"
+                  : "text-base sm:text-xl lg:text-2xl"
               }`}
             >
               Gole <span className="text-primary">Khaja Ghar</span>
@@ -114,120 +128,110 @@ export default function Navbar() {
           </Link>
         </div>
 
-        {/* Desktop Center Navigation (>= 1024px) */}
-        <div className="hidden lg:flex items-center gap-5 xl:gap-8">
-          <div className="flex items-center gap-4 xl:gap-6">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                to={link.href}
-                onClick={link.onClick}
-                className={`relative font-semibold whitespace-nowrap py-1 transition-colors duration-200 group ${
-                  scrolled ? "text-xs xl:text-sm" : "text-sm xl:text-base"
-                } ${isActive(link.href) ? "text-primary font-bold" : "text-stone-300 hover:text-primary"}`}
-              >
-                {link.name}
-                <span
-                  className={`absolute -bottom-1 left-0 h-0.5 bg-primary transition-all duration-300 ${
-                    isActive(link.href) ? "w-full" : "w-0 group-hover:w-full"
-                  }`}
+        {/* 2. Center: Desktop Navigation Links (>= 1024px) */}
+        <div className="hidden lg:flex items-center gap-2 xl:gap-5 min-w-0">
+          {navLinks.map((link) => (
+            <Link
+              key={link.name}
+              to={link.href}
+              onClick={link.onClick}
+              className={`relative font-semibold whitespace-nowrap px-2 xl:px-2.5 py-1 rounded-lg transition-all duration-200 group ${
+                scrolled ? "text-xs xl:text-sm" : "text-sm xl:text-base"
+              } ${
+                isActive(link.href)
+                  ? "text-primary font-bold bg-primary/10"
+                  : "text-stone-300 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              {link.name}
+              {isActive(link.href) && (
+                <motion.span
+                  layoutId="activeNavIndicator"
+                  className="absolute bottom-0 left-2 right-2 h-0.5 bg-primary rounded-full"
+                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
                 />
-              </Link>
-            ))}
-          </div>
+              )}
+            </Link>
+          ))}
+        </div>
 
-          {/* Right Side Desktop Actions */}
-          <div className="flex items-center gap-2.5 xl:gap-3.5 border-l border-white/10 pl-3.5 xl:pl-5 shrink-0">
-            {/* Admin or Staff prominent action button */}
+        {/* 3. Right: Action Buttons (Staff controls, Cart, Notifications, Hamburger) */}
+        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          {/* Desktop Staff / Quick Action Buttons (hidden < 1024px) */}
+          <div className="hidden lg:flex items-center gap-1.5 xl:gap-2">
             {isAdmin ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 xl:gap-2">
                 <Link
                   to="/admin"
-                  className="flex items-center gap-2 text-white bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600 hover:from-orange-500 hover:to-amber-500 transition-all text-xs xl:text-sm font-black px-3.5 py-1.5 sm:py-2 rounded-full border border-orange-400/40 shadow-lg shadow-orange-600/25 tracking-wide group active:scale-95 duration-200"
+                  className="flex items-center gap-1.5 text-white bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600 hover:from-orange-500 hover:to-amber-500 transition-all text-xs xl:text-sm font-bold px-3 py-1.5 rounded-full border border-orange-400/40 shadow-md shadow-orange-600/20 active:scale-95"
                   title="Open Admin Control Panel"
                 >
-                  <LayoutDashboard className="w-4 h-4 text-white group-hover:rotate-6 transition-transform duration-200" />
-                  <span>Admin Dashboard</span>
+                  <LayoutDashboard className="w-3.5 h-3.5 text-white shrink-0" />
+                  <span>Admin</span>
                 </Link>
                 <Link
                   to="/kitchen"
-                  className="flex items-center gap-1.5 text-amber-300 bg-amber-950/60 hover:bg-amber-900/80 transition-all text-xs xl:text-sm font-bold px-3 py-1.5 sm:py-2 rounded-full border border-amber-600/40 shadow-sm group active:scale-95 duration-200"
+                  className="flex items-center gap-1 text-amber-300 bg-amber-950/70 hover:bg-amber-900/90 transition-all text-xs xl:text-sm font-bold px-2.5 xl:px-3 py-1.5 rounded-full border border-amber-600/40 shadow-sm active:scale-95"
                   title="Open Kitchen Display System"
                 >
-                  <ChefHat className="w-4 h-4 text-amber-400 group-hover:rotate-6 transition-transform duration-200" />
+                  <ChefHat className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                   <span>KDS</span>
                 </Link>
               </div>
             ) : isWaiterOrCashier ? (
               <Link
                 to="/pos"
-                className="flex items-center gap-2 text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 transition-all text-xs xl:text-sm font-black px-3.5 py-1.5 sm:py-2 rounded-full border border-emerald-400/40 shadow-lg shadow-emerald-600/25 tracking-wide group active:scale-95 duration-200"
+                className="flex items-center gap-1.5 text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 transition-all text-xs xl:text-sm font-bold px-3 py-1.5 rounded-full border border-emerald-400/40 shadow-md shadow-emerald-600/20 active:scale-95"
                 title="Open POS Terminal"
               >
-                <Store className="w-4 h-4 text-white group-hover:scale-110 transition-transform duration-200" />
-                <span>Dine-In POS</span>
+                <Store className="w-3.5 h-3.5 text-white shrink-0" />
+                <span>POS</span>
               </Link>
             ) : isKitchen ? (
               <Link
                 to="/kitchen"
-                className="flex items-center gap-2 text-white bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 transition-all text-xs xl:text-sm font-black px-3.5 py-1.5 sm:py-2 rounded-full border border-amber-400/40 shadow-lg shadow-amber-600/25 tracking-wide group active:scale-95 duration-200"
+                className="flex items-center gap-1.5 text-white bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 transition-all text-xs xl:text-sm font-bold px-3 py-1.5 rounded-full border border-amber-400/40 shadow-md active:scale-95"
                 title="Open Kitchen Display System"
               >
-                <ChefHat className="w-4 h-4 text-white group-hover:rotate-6 transition-transform duration-200" />
-                <span>Kitchen KDS</span>
+                <ChefHat className="w-3.5 h-3.5 text-white shrink-0" />
+                <span>KDS</span>
               </Link>
             ) : (
               <a
                 href="tel:+9779846011810"
-                className="flex items-center gap-2 text-white hover:text-primary transition-colors duration-200 text-xs xl:text-sm font-bold bg-white/5 hover:bg-white/10 px-3.5 py-1.5 sm:py-2 rounded-full border border-white/10 active:scale-95"
+                className="flex items-center gap-1.5 text-white hover:text-primary transition-colors duration-200 text-xs xl:text-sm font-bold bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-full border border-white/10 active:scale-95"
               >
-                <Phone className="w-3.5 h-3.5 text-primary" />
-                <span>Order Now</span>
+                <Phone className="w-3.5 h-3.5 text-primary shrink-0" />
+                <span className="hidden xl:inline">Order Now</span>
+                <span className="xl:hidden">Call</span>
               </a>
             )}
 
-            {/* Push Notification Bell */}
-            <NotificationBell type="customer" />
-
-            {/* Cart Button */}
-            <button
-              onClick={openCart}
-              className="relative p-2 text-white hover:text-primary transition-colors duration-200 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 flex items-center justify-center shrink-0 active:scale-95"
-              aria-label="View Cart"
-            >
-              <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
-              {totalItems > 0 && (
-                <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1 text-[11px] font-black leading-none text-white bg-orange-600 rounded-full shadow-md border-2 border-black animate-pulse">
-                  {totalItems}
-                </span>
-              )}
-            </button>
+            {/* Subtle Divider */}
+            <div className="h-5 w-[1px] bg-white/15 mx-0.5" />
           </div>
-        </div>
 
-        {/* Mobile / Tablet Actions (< 1024px) */}
-        <div className="lg:hidden flex items-center gap-2">
-          {/* Notification Bell */}
+          {/* Customer Notification Bell */}
           <NotificationBell type="customer" />
 
-          {/* Cart Button */}
+          {/* Shopping Cart Button */}
           <button
             onClick={openCart}
-            className="relative p-2 text-white hover:text-orange-500 transition-colors bg-white/5 hover:bg-white/10 rounded-full border border-white/10 flex items-center justify-center shrink-0 active:scale-95"
+            className="relative p-2 text-white hover:text-primary transition-colors duration-200 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 flex items-center justify-center shrink-0 active:scale-95 cursor-pointer"
             aria-label="View Cart"
           >
             <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
             {totalItems > 0 && (
-              <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-black leading-none text-white bg-orange-600 rounded-full shadow-md border border-black">
+              <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[18px] h-[18px] sm:min-w-[20px] sm:h-5 px-1 text-[10px] sm:text-[11px] font-black leading-none text-white bg-orange-600 rounded-full shadow-md border-2 border-black animate-pulse">
                 {totalItems}
               </span>
             )}
           </button>
 
-          {/* Hamburger Menu Toggle */}
+          {/* Mobile / Tablet Hamburger Button (< 1024px) */}
           <button
             onClick={toggleMenu}
-            className="text-white hover:text-orange-400 p-2 focus:outline-none rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center shrink-0 active:scale-95 transition-colors"
+            className="lg:hidden text-white hover:text-orange-400 p-2 focus:outline-none rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center shrink-0 active:scale-95 transition-colors cursor-pointer"
             aria-label="Toggle navigation menu"
           >
             {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -244,7 +248,7 @@ export default function Navbar() {
             exit={{ height: 0, opacity: 0, y: -6 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
             className={`pointer-events-auto lg:hidden overflow-hidden w-full ${
-              scrolled ? "max-w-5xl mt-2 px-2" : "max-w-none mt-0"
+              scrolled ? "max-w-6xl xl:max-w-7xl mt-2 px-2 sm:px-4" : "max-w-none mt-0"
             }`}
           >
             <div
@@ -275,7 +279,7 @@ export default function Navbar() {
                           className="flex flex-col items-center justify-center p-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-[11px] text-center shadow-md active:scale-95 transition-all"
                         >
                           <LayoutDashboard className="w-4 h-4 mb-1" />
-                          <span>Admin</span>
+                          <span>Admin Panel</span>
                         </Link>
                         <Link
                           to="/kitchen"
@@ -283,7 +287,7 @@ export default function Navbar() {
                           className="flex flex-col items-center justify-center p-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-amber-400 font-bold text-[11px] text-center border border-stone-700 active:scale-95 transition-all"
                         >
                           <ChefHat className="w-4 h-4 mb-1 text-amber-400" />
-                          <span>KDS</span>
+                          <span>KDS Kitchen</span>
                         </Link>
                       </>
                     )}
@@ -304,7 +308,7 @@ export default function Navbar() {
                         className="flex flex-col items-center justify-center p-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-amber-400 font-bold text-[11px] text-center border border-stone-700 active:scale-95 transition-all"
                       >
                         <ChefHat className="w-4 h-4 mb-1 text-amber-400" />
-                        <span>KDS</span>
+                        <span>Kitchen KDS</span>
                       </Link>
                     )}
                   </div>
