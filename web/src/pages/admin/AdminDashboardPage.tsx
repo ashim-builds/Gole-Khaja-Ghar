@@ -32,12 +32,21 @@ export default function AdminDashboardPage() {
         if (!isMounted) return;
         const liveStats = (liveRes as any)?.stats;
         const orders = ordersRes.orders || [];
-        const totalOrders = liveStats?.totalOrders ?? (ordersRes.pagination?.total || orders.length);
+        const totalOrders =
+          liveStats?.totalOrders ??
+          (ordersRes.pagination?.total || orders.length);
 
         const totalProducts = liveStats?.totalProducts ?? 0;
         const availableProducts = liveStats?.availableProducts ?? 0;
-        const pendingOrders = liveStats?.pendingOrders ?? orders.filter((o: any) => (o.status || "").toLowerCase() === "pending").length;
-        const readyOrders = liveStats?.readyOrders ?? orders.filter((o: any) => (o.status || "").toLowerCase() === "ready").length;
+        const pendingOrders =
+          liveStats?.pendingOrders ??
+          orders.filter(
+            (o: any) => (o.status || "").toLowerCase() === "pending",
+          ).length;
+        const readyOrders =
+          liveStats?.readyOrders ??
+          orders.filter((o: any) => (o.status || "").toLowerCase() === "ready")
+            .length;
 
         setData({
           totalProducts,

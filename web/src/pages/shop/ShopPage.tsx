@@ -18,7 +18,10 @@ export default function ShopPage() {
   const category = searchParams.get("category") || undefined;
   const query = searchParams.get("q") || undefined;
   const sort = searchParams.get("sort") || "popular";
-  const currentPage = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+  const currentPage = Math.max(
+    1,
+    parseInt(searchParams.get("page") || "1", 10),
+  );
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
@@ -76,7 +79,8 @@ export default function ShopPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const startItem = totalItems === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1;
+  const startItem =
+    totalItems === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1;
   const endItem = Math.min(currentPage * ITEMS_PER_PAGE, totalItems);
 
   // Generate page numbers to show
@@ -88,9 +92,24 @@ export default function ShopPage() {
       if (currentPage <= 3) {
         pages.push(1, 2, 3, 4, "...", totalPages);
       } else if (currentPage >= totalPages - 2) {
-        pages.push(1, "...", totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+        pages.push(
+          1,
+          "...",
+          totalPages - 3,
+          totalPages - 2,
+          totalPages - 1,
+          totalPages,
+        );
       } else {
-        pages.push(1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages);
+        pages.push(
+          1,
+          "...",
+          currentPage - 1,
+          currentPage,
+          currentPage + 1,
+          "...",
+          totalPages,
+        );
       }
     }
     return pages;
@@ -99,8 +118,8 @@ export default function ShopPage() {
   const shopTitle = category
     ? `${category} Menu | Gole Khaja Ghar Sisuwa`
     : query
-    ? `Search "${query}" | Menu - Gole Khaja Ghar Sisuwa`
-    : "Menu | Gole Khaja Ghar Sisuwa";
+      ? `Search "${query}" | Menu - Gole Khaja Ghar Sisuwa`
+      : "Menu | Gole Khaja Ghar Sisuwa";
 
   const shopDesc = category
     ? `Order fresh ${category} at Gole Khaja Ghar in Sisuwa, Pokhara-30. Authentic Nepali recipes prepared hot to order with fast local delivery.`
@@ -109,20 +128,20 @@ export default function ShopPage() {
   const shopBreadcrumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    "itemListElement": [
+    itemListElement: [
       {
         "@type": "ListItem",
-        "position": 1,
-        "name": "Home",
-        "item": "https://golekhajaghar.com/"
+        position: 1,
+        name: "Home",
+        item: "https://golekhajaghar.com/",
       },
       {
         "@type": "ListItem",
-        "position": 2,
-        "name": category || "Menu",
-        "item": "https://golekhajaghar.com/shop"
-      }
-    ]
+        position: 2,
+        name: category || "Menu",
+        item: "https://golekhajaghar.com/shop",
+      },
+    ],
   };
 
   return (
@@ -142,12 +161,19 @@ export default function ShopPage() {
               <h1 className="text-3xl md:text-4xl font-black text-[#111111] uppercase tracking-tight mb-1">
                 MENU
               </h1>
-              <p className="text-[13px] text-stone-500 font-medium">Home / Menu</p>
+              <p className="text-[13px] text-stone-500 font-medium">
+                Home / Menu
+              </p>
             </div>
             {!loading && totalItems > 0 && (
               <p className="text-xs font-semibold text-stone-500">
-                Showing <span className="font-bold text-stone-900">{startItem}–{endItem}</span> of{" "}
-                <span className="font-bold text-stone-900">{totalItems}</span> items
+                Showing{" "}
+                <span className="font-bold text-stone-900">
+                  {startItem}–{endItem}
+                </span>{" "}
+                of{" "}
+                <span className="font-bold text-stone-900">{totalItems}</span>{" "}
+                items
               </p>
             )}
           </div>
@@ -179,7 +205,7 @@ export default function ShopPage() {
               <>
                 <AnimatePresence mode="wait">
                   <motion.div
-                    key={`grid-${currentPage}-${category || 'all'}-${query || ''}-${sort}`}
+                    key={`grid-${currentPage}-${category || "all"}-${query || ""}-${sort}`}
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -15 }}
@@ -204,71 +230,83 @@ export default function ShopPage() {
                   </motion.div>
                 </AnimatePresence>
 
-              {/* Pagination Controls */}
-              {totalPages > 1 && (
-                <div className="mt-12 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-stone-100 pt-6">
-                  <div className="text-xs text-stone-500 font-medium">
-                    Page <span className="font-bold text-stone-900">{currentPage}</span> of{" "}
-                    <span className="font-bold text-stone-900">{totalPages}</span>
-                  </div>
-
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 1}
-                      className="p-2 rounded-xl border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer font-bold text-xs flex items-center gap-1"
-                      aria-label="Previous Page"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                      <span className="hidden sm:inline">Prev</span>
-                    </button>
-
-                    <div className="flex items-center gap-1">
-                      {getPageNumbers().map((pageNum, idx) =>
-                        typeof pageNum === "number" ? (
-                          <button
-                            key={idx}
-                            type="button"
-                            onClick={() => handlePageChange(pageNum)}
-                            className={`w-9 h-9 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                              currentPage === pageNum
-                                ? "bg-orange-600 text-white shadow-md shadow-orange-600/20"
-                                : "bg-white text-stone-700 border border-stone-200 hover:bg-stone-50"
-                            }`}
-                          >
-                            {pageNum}
-                          </button>
-                        ) : (
-                          <span key={idx} className="px-2 text-xs font-bold text-stone-400">
-                            {pageNum}
-                          </span>
-                        )
-                      )}
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="mt-12 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-stone-100 pt-6">
+                    <div className="text-xs text-stone-500 font-medium">
+                      Page{" "}
+                      <span className="font-bold text-stone-900">
+                        {currentPage}
+                      </span>{" "}
+                      of{" "}
+                      <span className="font-bold text-stone-900">
+                        {totalPages}
+                      </span>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                      className="p-2 rounded-xl border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer font-bold text-xs flex items-center gap-1"
-                      aria-label="Next Page"
-                    >
-                      <span className="hidden sm:inline">Next</span>
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="p-2 rounded-xl border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer font-bold text-xs flex items-center gap-1"
+                        aria-label="Previous Page"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        <span className="hidden sm:inline">Prev</span>
+                      </button>
+
+                      <div className="flex items-center gap-1">
+                        {getPageNumbers().map((pageNum, idx) =>
+                          typeof pageNum === "number" ? (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => handlePageChange(pageNum)}
+                              className={`w-9 h-9 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                                currentPage === pageNum
+                                  ? "bg-orange-600 text-white shadow-md shadow-orange-600/20"
+                                  : "bg-white text-stone-700 border border-stone-200 hover:bg-stone-50"
+                              }`}
+                            >
+                              {pageNum}
+                            </button>
+                          ) : (
+                            <span
+                              key={idx}
+                              className="px-2 text-xs font-bold text-stone-400"
+                            >
+                              {pageNum}
+                            </span>
+                          ),
+                        )}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className="p-2 rounded-xl border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer font-bold text-xs flex items-center gap-1"
+                        aria-label="Next Page"
+                      >
+                        <span className="hidden sm:inline">Next</span>
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="text-center py-20 bg-stone-50 rounded-2xl border border-stone-100">
-              <h3 className="text-xl font-bold text-black mb-2">No items found</h3>
-              <p className="text-stone-500">
-                We couldn't find any menu items matching your search. Try different keywords or browse all categories.
-              </p>
-            </div>
-          )}
+                )}
+              </>
+            ) : (
+              <div className="text-center py-20 bg-stone-50 rounded-2xl border border-stone-100">
+                <h3 className="text-xl font-bold text-black mb-2">
+                  No items found
+                </h3>
+                <p className="text-stone-500">
+                  We couldn't find any menu items matching your search. Try
+                  different keywords or browse all categories.
+                </p>
+              </div>
+            )}
           </ScrollAnimation>
         </div>
       </div>
