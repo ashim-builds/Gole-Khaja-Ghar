@@ -6,6 +6,7 @@ import { useStoreHours } from "@/lib/storeHours";
 import StoreClosedNotice from "@/components/StoreClosedNotice";
 import { Truck, ArrowRight, Loader2, MapPin, Edit3, QrCode, Banknote, X, Pin, CheckCircle, Phone, User, Clock, AlertTriangle } from "lucide-react";
 import { useUser } from "@/context/UserContext";
+import { showLiveNotification } from "@/lib/socket";
 
 const MapPicker = lazy(() => import("@/components/MapPicker"));
 
@@ -125,7 +126,7 @@ export default function CheckoutPage() {
               onClick={() => navigate("/login?redirect=/checkout")}
               className="w-full py-4 bg-orange-600 hover:bg-orange-500 text-white font-black uppercase text-xs tracking-wider rounded-xl shadow-lg shadow-orange-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
-              Log In / Register to Order
+              Sign In with Google to Order
               <ArrowRight className="w-4 h-4" />
             </button>
             <button
@@ -140,7 +141,7 @@ export default function CheckoutPage() {
     );
   }
 
-  const DELIVERY_THRESHOLD = 100;
+  const DELIVERY_THRESHOLD = 500;
   const DELIVERY_FEE = cartTotal < DELIVERY_THRESHOLD ? 20 : 0;
   const grandTotal = cartTotal + (formData.orderType === "delivery" ? DELIVERY_FEE : 0);
 
@@ -245,6 +246,12 @@ export default function CheckoutPage() {
 
       if (res.success && res.orderNumber) {
         clearCart();
+        void showLiveNotification(
+          "🎉 Order Placed Successfully!",
+          `Order #${res.orderNumber} received. We are preparing your order!`,
+          `order-${res.orderNumber}`,
+          `/order/${res.orderNumber}`
+        );
         navigate(`/order/${res.orderNumber}`);
       } else {
         setErrorMsg("Failed to place order. Please try again.");

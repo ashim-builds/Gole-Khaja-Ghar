@@ -9,243 +9,19 @@ import { saveOtp, getOtp, deleteOtp } from '../lib/otpStore.js';
 import { sendOtpEmail, verifySmtp } from '../lib/mailer.js';
 
 export async function register(req: Request, res: Response): Promise<void> {
-  try {
-    const validation = registerSchema.safeParse(req.body);
-    if (!validation.success) {
-      const errorMessage = validation.error.issues[0]?.message || 'Invalid input data';
-      res.status(400).json({ error: errorMessage });
-      return;
-    }
-
-    const { name, email, phone, password } = validation.data;
-    const lowerEmail = email.toLowerCase();
-    const existingUser = await prisma.user.findUnique({
-      where: { email: lowerEmail },
-    });
-
-    if (existingUser) {
-      res.status(400).json({ error: 'Account with this email already exists' });
-      return;
-    }
-
-    const salt = await bcrypt.genSalt(12);
-    const passwordHash = await bcrypt.hash(password, salt);
-
-    // If OTP is disabled via REQUIRE_EMAIL_OTP=false, register user immediately without email roadblock
-    if (process.env.REQUIRE_EMAIL_OTP === 'false') {
-      const user = await prisma.user.create({
-        data: {
-          name,
-          email: lowerEmail,
-          phone: phone || null,
-          passwordHash,
-          role: 'CUSTOMER',
-          authProvider: 'LOCAL',
-        },
-      });
-
-      const token = await signUserToken(user.id, user.email || '', user.role.toLowerCase());
-
-      res.cookie('user_token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        maxAge: 30 * 24 * 60 * 60 * 1000,
-        path: '/',
-      });
-
-      res.status(201).json({
-        success: true,
-        directLogin: true,
-        token,
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          phone: user.phone,
-          role: user.role.toLowerCase(),
-        },
-      });
-      return;
-    }
-
-    // Generate random 6-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-    // Store in-memory with 5-minute expiry
-    saveOtp({
-      name,
-      email: lowerEmail,
-      phone: phone || null,
-      passwordHash,
-      otp,
-      ttlMinutes: 5,
-    });
-
-    // Send OTP email
-    const emailResult = await sendOtpEmail(lowerEmail, name, otp);
-
-    if (!emailResult.success && !emailResult.simulated) {
-      console.warn(`⚠️ [OTP] SMTP delivery failed (${emailResult.error}). Fallback active: OTP is [ ${otp} ], master bypass code [ 123456 ].`);
-      if (process.env.STRICT_SMTP === 'true') {
-        res.status(400).json({
-          error: `Could not send verification email: ${emailResult.error || 'SMTP delivery error'}. Please verify your email or try again.`,
-        });
-        return;
-      }
-    }
-
-    res.status(200).json({
-      success: true,
-      otpSent: true,
-      email: lowerEmail,
-      simulated: emailResult.simulated,
-      message: emailResult.simulated
-        ? `Verification code generated (Check server console: ${otp})`
-        : 'Verification code has been sent to your email address.',
-    });
-  } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+  res.status(400).json({
+    error: 'Direct registration is disabled. Please sign in with Google.',
+  });
 }
 
 export async function verifyOtp(req: Request, res: Response): Promise<void> {
-  try {
-    const validation = verifyOtpSchema.safeParse(req.body);
-    if (!validation.success) {
-      const errorMessage = validation.error.issues[0]?.message || 'Invalid verification data';
-      res.status(400).json({ error: errorMessage });
-      return;
-    }
-
-    const { email, otp } = validation.data;
-    const lowerEmail = email.toLowerCase();
-    const record = getOtp(lowerEmail);
-
-    if (!record) {
-      res.status(400).json({
-        error: 'Verification code expired or not found. Please register again.',
-      });
-      return;
-    }
-
-    const isDevBypass = (process.env.ALLOW_DEV_OTP === 'true' || process.env.NODE_ENV !== 'production') && otp.trim() === '123456';
-    if (!isDevBypass && record.otp !== otp.trim()) {
-      res.status(400).json({ error: 'Invalid verification code. Please check and try again.' });
-      return;
-    }
-
-    // Double-check user duplicate before inserting
-    const existingUser = await prisma.user.findUnique({
-      where: { email: lowerEmail },
-    });
-
-    if (existingUser) {
-      deleteOtp(lowerEmail);
-      res.status(400).json({ error: 'Account with this email already exists' });
-      return;
-    }
-
-    // Create user in DB
-    const user = await prisma.user.create({
-      data: {
-        name: record.name,
-        email: lowerEmail,
-        phone: record.phone || null,
-        passwordHash: record.passwordHash,
-        role: 'CUSTOMER',
-        authProvider: 'LOCAL',
-      },
-    });
-
-    // Remove OTP from in-memory store
-    deleteOtp(lowerEmail);
-
-    const token = await signUserToken(user.id, user.email || '', user.role.toLowerCase());
-
-    res.cookie('user_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-      path: '/',
-    });
-
-    res.status(201).json({
-      success: true,
-      token,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        role: user.role.toLowerCase(),
-      },
-    });
-  } catch (error) {
-    console.error('Verify OTP error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+  res.json({ success: true, message: 'OTP verification is no longer required.' });
 }
 
 export async function resendOtp(req: Request, res: Response): Promise<void> {
-  try {
-    const validation = resendOtpSchema.safeParse(req.body);
-    if (!validation.success) {
-      const errorMessage = validation.error.issues[0]?.message || 'Invalid email';
-      res.status(400).json({ error: errorMessage });
-      return;
-    }
-
-    const { email } = validation.data;
-    const lowerEmail = email.toLowerCase();
-    const record = getOtp(lowerEmail);
-
-    if (!record) {
-      res.status(400).json({
-        error: 'No pending registration session found. Please fill out the registration form again.',
-      });
-      return;
-    }
-
-    // Generate new OTP
-    const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
-
-    saveOtp({
-      name: record.name,
-      email: lowerEmail,
-      phone: record.phone,
-      passwordHash: record.passwordHash,
-      otp: newOtp,
-      ttlMinutes: 5,
-    });
-
-    const emailResult = await sendOtpEmail(lowerEmail, record.name, newOtp);
-
-    if (!emailResult.success && !emailResult.simulated) {
-      if (process.env.NODE_ENV !== 'production' || process.env.ALLOW_DEV_OTP === 'true') {
-        console.warn(`⚠️ [OTP] SMTP delivery failed (${emailResult.error}). Non-production mode fallback: OTP is [ ${newOtp} ].`);
-      } else {
-        res.status(400).json({
-          error: `Could not send verification email: ${emailResult.error || 'SMTP delivery error'}. Please try again later.`,
-        });
-        return;
-      }
-    }
-
-    res.json({
-      success: true,
-      simulated: emailResult.simulated,
-      message: emailResult.simulated
-        ? `New verification code generated (Check server console: ${newOtp})`
-        : 'A new verification code has been sent to your email.',
-    });
-  } catch (error) {
-    console.error('Resend OTP error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+  res.json({ success: true, message: 'OTP is no longer required.' });
 }
+
 
 
 export async function login(req: Request, res: Response): Promise<void> {
@@ -273,6 +49,11 @@ export async function login(req: Request, res: Response): Promise<void> {
 
     if (!user) {
       res.status(401).json({ error: 'Invalid credentials' });
+      return;
+    }
+
+    if (user.role === 'CUSTOMER') {
+      res.status(401).json({ error: 'Customer accounts must sign in with Google.' });
       return;
     }
 

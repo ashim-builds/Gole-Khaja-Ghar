@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import RootLayout from "@/layouts/RootLayout";
 import ShopLayout from "@/layouts/ShopLayout";
 import AdminLayout from "@/layouts/AdminLayout";
@@ -30,7 +30,6 @@ const AboutPage = lazy(() => import("@/pages/shop/AboutPage"));
 const ContactPage = lazy(() => import("@/pages/shop/ContactPage"));
 
 const LoginPage = lazy(() => import("@/pages/auth/LoginPage"));
-const RegisterPage = lazy(() => import("@/pages/auth/RegisterPage"));
 
 const AdminLoginPage = lazy(() => import("@/pages/admin/AdminLoginPage"));
 const AdminDashboardPage = lazy(() => import("@/pages/admin/AdminDashboardPage"));
@@ -70,7 +69,7 @@ export default function App() {
               <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/register" element={<Navigate to="/login" replace />} />
 
               <Route element={<ProtectedRoute />}>
                 <Route path="/orders" element={<OrdersPage />} />

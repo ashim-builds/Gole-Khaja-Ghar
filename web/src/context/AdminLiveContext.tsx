@@ -1,6 +1,6 @@
 import { api } from "@/lib/api";
 import React, { createContext, useContext, useState, useEffect, useRef } from "react";
-import { subscribeToEvent, playAudioAlert } from "@/lib/socket";
+import { subscribeToEvent, playAudioAlert, showLiveNotification } from "@/lib/socket";
 
 interface AdminStats {
   totalProducts: number;
@@ -77,7 +77,6 @@ export function AdminLiveProvider({ children }: { children: React.ReactNode }) {
 
     async function fetchUpdates() {
       if (!active) return;
-      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
       try {
         const result = await api.orders.getAdminLiveUpdates().catch(() => null);
         if (!active || !result || !result.success) return;
@@ -103,6 +102,12 @@ export function AdminLiveProvider({ children }: { children: React.ReactNode }) {
               customerName: latestOrder.customerInfo?.name || "Customer",
               amount: latestOrder.totalAmount
             });
+            void showLiveNotification(
+              `🍲 New Order #${latestOrder.orderNumber}`,
+              `${latestOrder.customerInfo?.name || "Customer"} • Rs. ${Number(latestOrder.totalAmount || 0).toFixed(2)} (${latestOrder.orderType || "Order"})`,
+              `admin-order-${latestOrder.orderNumber}`,
+              `/admin/orders`
+            );
           }
           
           // Update ref with latest order number

@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useUser } from "@/context/UserContext";
-import { subscribeToEvent } from "@/lib/socket";
+import { subscribeToEvent, showLiveNotification } from "@/lib/socket";
 
 interface KotItem {
   id: string;
@@ -87,12 +87,23 @@ export default function KitchenDisplayPage() {
   };
 
   const fetchTickets = async () => {
-    if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
     try {
       const res = await api.kitchen.getTickets();
       if (res.success) {
         if (res.tickets.length > previousTicketCountRef.current && previousTicketCountRef.current !== 0) {
           playNotificationSound();
+          const newest = res.tickets[0];
+          const ticketLabel = newest?.tableSession?.table?.tableNumber
+            ? `Table ${newest.tableSession.table.tableNumber}`
+            : newest?.order?.orderNumber
+            ? `Order #${newest.order.orderNumber}`
+            : "Online Order";
+          void showLiveNotification(
+            "👨‍🍳 New Kitchen Ticket",
+            newest ? `Ticket #${newest.ticketNumber} • ${ticketLabel}` : "New order arrived in kitchen",
+            `kot-${newest?.id || Date.now()}`,
+            "/kitchen"
+          );
         }
         previousTicketCountRef.current = res.tickets.length;
         setTickets(res.tickets);

@@ -4,7 +4,7 @@ import { AuthenticatedRequest } from '../middleware/auth.js';
 
 export async function subscribePush(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
-    const { subscription, type } = req.body;
+    const { subscription, type, userId: bodyUserId } = req.body;
     if (!subscription?.endpoint || !subscription?.keys?.p256dh || !subscription?.keys?.auth) {
       res.status(400).json({ error: 'Invalid subscription payload' });
       return;
@@ -12,7 +12,7 @@ export async function subscribePush(req: AuthenticatedRequest, res: Response): P
 
     const isAdmin = type === 'admin';
     const clientType = isAdmin ? 'ADMIN' : 'CUSTOMER';
-    const userId = !isAdmin && req.user?.userId ? req.user.userId : null;
+    const userId = !isAdmin ? (req.user?.userId || bodyUserId || null) : null;
 
     await prisma.pushSubscription.upsert({
       where: { endpoint: subscription.endpoint },

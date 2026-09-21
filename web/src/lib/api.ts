@@ -220,10 +220,14 @@ export const api = {
   // ── Authentication ──
   auth: {
     async register(data: { name: string; email: string; phone?: string; password: string }) {
-      return request<{ success: boolean; otpSent?: boolean; message?: string }>('/auth/register', {
+      const res = await request<{ success: boolean; directLogin?: boolean; token?: string; user?: UserProfile; message?: string }>('/auth/register', {
         method: 'POST',
         body: JSON.stringify(data),
       });
+      if (res.token) {
+        setAuthToken(res.token);
+      }
+      return res;
     },
     async verifyOtp(email: string, otp: string) {
       const res = await request<{ success: boolean; token?: string; user: UserProfile }>('/auth/verify-otp', {
@@ -788,10 +792,10 @@ export const api = {
 
   // ── Push Subscriptions ──
   push: {
-    async subscribe(subscription: any, type: 'customer' | 'admin' = 'customer') {
+    async subscribe(subscription: any, type: 'customer' | 'admin' = 'customer', userId?: string) {
       return request<{ success: boolean }>('/push/subscribe', {
         method: 'POST',
-        body: JSON.stringify({ subscription, type }),
+        body: JSON.stringify({ subscription, type, userId }),
       });
     },
     async unsubscribe(endpoint: string) {

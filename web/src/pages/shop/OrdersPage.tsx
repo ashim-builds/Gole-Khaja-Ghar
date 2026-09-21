@@ -68,7 +68,7 @@ export default function OrdersPage() {
               onClick={() => navigate("/login?redirect=/orders")}
               className="w-full py-4 bg-orange-600 hover:bg-orange-500 text-white font-black uppercase text-xs tracking-wider rounded-xl shadow-lg shadow-orange-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
-              Log In / Register
+              Sign In with Google
               <ArrowRight className="w-4 h-4" />
             </button>
             <Link

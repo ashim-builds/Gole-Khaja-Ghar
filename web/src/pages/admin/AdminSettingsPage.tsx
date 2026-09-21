@@ -31,6 +31,7 @@ import {
 } from "@/lib/pushManager";
 import { api } from "@/lib/api";
 import { StoreOperationalMode } from "@/lib/storeHours";
+import { showLiveNotification } from "@/lib/socket";
 
 export default function AdminSettingsPage() {
   const [pushStatus, setPushStatus] = useState<{
@@ -185,11 +186,17 @@ export default function AdminSettingsPage() {
     setTestingPush(true);
     setPushFeedback(null);
     try {
+      void showLiveNotification(
+        "🔔 Admin Notification Test",
+        "Your Notification Center is connected! You will receive live order alerts here.",
+        "admin-test",
+        "/admin"
+      );
       const res = await api.admin.testPush();
       if (res.success) {
         setPushFeedback({
           type: "success",
-          text: "Test notification sent! Check your desktop/mobile notifications.",
+          text: "Test notification sent! Check your notification center & device alerts.",
         });
         if (soundEnabled) {
           playAlertSound();

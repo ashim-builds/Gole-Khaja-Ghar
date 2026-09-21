@@ -52,9 +52,18 @@ export function unlockAudioAlerts() {
   }
 }
 
-export async function showLiveNotification(title: string, body: string, tag: string) {
+export async function showLiveNotification(
+  title: string,
+  body: string,
+  tag: string = `gkg-${Date.now()}`,
+  url: string = '/'
+) {
   try {
-    if (typeof window === 'undefined' || !('Notification' in window) || Notification.permission !== 'granted') {
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      return;
+    }
+
+    if (Notification.permission !== 'granted') {
       return;
     }
 
@@ -64,17 +73,32 @@ export async function showLiveNotification(title: string, body: string, tag: str
       badge: '/favicon-circle.png',
       tag,
       requireInteraction: true,
+      renotify: true,
       silent: false,
       vibrate: [350, 100, 350, 100, 500],
-      data: { url: '/pos' },
+      data: { url },
     } as NotificationOptions & { vibrate: number[] };
 
-    const registration = await navigator.serviceWorker?.ready;
-    if (registration) {
-      await registration.showNotification(title, options);
-    } else {
-      new Notification(title, options);
+    if ('serviceWorker' in navigator) {
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        if (registration && registration.showNotification) {
+          await registration.showNotification(title, options);
+          return;
+        }
+      } catch (swErr) {
+        console.warn('[LiveNotification] SW notification failed, falling back to window Notification:', swErr);
+      }
     }
+
+    const n = new Notification(title, options);
+    n.onclick = () => {
+      window.focus();
+      if (url && url !== '/') {
+        window.location.href = url;
+      }
+      n.close();
+    };
   } catch (e) {
     console.warn('[LiveNotification] Unable to show notification:', e);
   }

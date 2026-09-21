@@ -25,7 +25,7 @@ import {
   Lock,
 } from "lucide-react";
 import { api } from "@/lib/api";
-import { subscribeToEvent, playAudioAlert } from "@/lib/socket";
+import { subscribeToEvent, playAudioAlert, showLiveNotification } from "@/lib/socket";
 import ThermalReceiptModal from "./ThermalReceiptModal";
 
 interface AdminOrdersClientProps {
@@ -75,8 +75,16 @@ export default function AdminOrdersClient({
     fetchOrders();
 
     // Subscribe to live WebSocket updates
-    const unsubOrder = subscribeToEvent("order:status_changed", () => {
+    const unsubOrder = subscribeToEvent("order:status_changed", (data: any) => {
       playAudioAlert("order");
+      if (data?.orderNumber) {
+        void showLiveNotification(
+          `Order #${data.orderNumber} Updated`,
+          `Status: ${data.status || 'Updated'}`,
+          `admin-order-${data.orderNumber}`,
+          `/admin/orders`
+        );
+      }
       fetchOrders();
     });
 

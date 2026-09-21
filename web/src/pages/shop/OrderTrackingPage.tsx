@@ -279,7 +279,7 @@ ${order.orderType === "delivery" ? "Delivery" : "Pickup"}${
       </div>
 
       {/* Push notification opt-in for customers */}
-      {order.userId && <PushNotificationSetup userId={order.userId.toString()} />}
+      <PushNotificationSetup userId={order.userId ? order.userId.toString() : undefined} />
     </div>
   );
 }

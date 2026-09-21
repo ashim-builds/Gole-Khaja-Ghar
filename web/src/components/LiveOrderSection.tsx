@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useTransition } from "react";
-import { Ban, Loader2, CreditCard, Banknote, Check, AlertCircle } from "lucide-react";
+import { Ban, Loader2, CreditCard, Banknote, Check } from "lucide-react";
 import { api } from "@/lib/api";
-import { subscribeToEvent, playAudioAlert } from "@/lib/socket";
+import { subscribeToEvent, playAudioAlert, showLiveNotification } from "@/lib/socket";
 
 interface LiveOrderSectionProps {
   orderNumber: string;
@@ -22,12 +22,21 @@ export default function LiveOrderSection({
   const [cancelError, setCancelError] = useState("");
 
   const refreshStatus = async () => {
-    if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
     try {
       const res = await api.orders.getStatus(orderNumber);
       if (res.success && res.order) {
         if (res.order.status) {
-          setStatus(res.order.status.toLowerCase());
+          const newStatus = res.order.status.toLowerCase();
+          if (newStatus !== status) {
+            playAudioAlert("ready");
+            void showLiveNotification(
+              `🍲 Order #${orderNumber} Update`,
+              `Your order is now ${newStatus.toUpperCase()}`,
+              `order-${orderNumber}`,
+              `/order/${orderNumber}`
+            );
+          }
+          setStatus(newStatus);
         }
         if (res.order.paymentStatus) {
           setCurrentPaymentStatus(res.order.paymentStatus.toLowerCase());

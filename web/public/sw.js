@@ -8,65 +8,65 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('push', (event) => {
-  if (!event.data) return;
-
-  try {
-    let data;
+  let data = {};
+  if (event.data) {
     try {
       data = event.data.json();
     } catch {
-      data = { title: 'Gole Khaja Ghar', body: event.data.text() };
+      data = { title: '🍲 Gole Khaja Ghar', body: event.data.text() };
     }
+  }
 
-    const title = data.title || '🍲 Gole Khaja Ghar Update';
-    const body =
-      data.body ||
-      data.message ||
-      'You have an update regarding your order at Gole Khaja Ghar.';
-    const targetUrl =
-      data.url ||
-      (data.orderNumber ? `/orders/${data.orderNumber}` : data.linkUrl || '/');
+  const title = data.title || '🍲 Gole Khaja Ghar Update';
+  const body =
+    data.body ||
+    data.message ||
+    'You have an update regarding your order at Gole Khaja Ghar.';
+  const targetUrl =
+    data.url ||
+    (data.orderNumber ? `/order/${data.orderNumber}` : data.linkUrl || '/');
 
-    const options = {
-      body,
-      icon: data.icon || '/favicon-circle.png',
-      badge: '/favicon-circle.png',
-      image: data.image || undefined,
-      data: {
-        url: targetUrl,
-        orderId: data.orderId,
-        orderNumber: data.orderNumber,
-        timestamp: Date.now(),
+  const options = {
+    body,
+    icon: data.icon || '/favicon-circle.png',
+    badge: data.badge || '/favicon-circle.png',
+    image: data.image || undefined,
+    data: {
+      url: targetUrl,
+      orderId: data.orderId,
+      orderNumber: data.orderNumber,
+      timestamp: Date.now(),
+    },
+    vibrate: [300, 100, 300, 100, 400],
+    tag: data.tag || `gkg-${data.orderNumber || Date.now()}`,
+    renotify: true,
+    requireInteraction: true,
+    silent: false,
+    actions: [
+      {
+        action: 'open',
+        title: '👉 View Order',
       },
-      vibrate: [300, 100, 300, 100, 400],
-      tag: data.tag || `gkg-${data.orderNumber || Date.now()}`,
-      renotify: true,
-      requireInteraction: true,
-      silent: false,
-      actions: [
-        {
-          action: 'open',
-          title: '👉 View Order',
-        },
-        {
-          action: 'dismiss',
-          title: 'Dismiss',
-        },
-      ],
-    };
+      {
+        action: 'dismiss',
+        title: 'Dismiss',
+      },
+    ],
+  };
 
-    event.waitUntil(self.registration.showNotification(title, options));
-  } catch (err) {
-    console.error('[SW] Push error:', err);
-    event.waitUntil(
-      self.registration.showNotification('🍲 Gole Khaja Ghar', {
-        body: event.data ? event.data.text() : 'New order update received.',
+  event.waitUntil(
+    self.registration.showNotification(title, options).catch((err) => {
+      console.warn('[SW] showNotification with actions failed, trying fallback:', err);
+      return self.registration.showNotification(title, {
+        body,
         icon: '/favicon-circle.png',
         badge: '/favicon-circle.png',
         vibrate: [300, 100, 300],
-      })
-    );
-  }
+        tag: `gkg-${Date.now()}`,
+        data: { url: targetUrl },
+      });
+    })
+  );
 });
 
 self.addEventListener('notificationclick', (event) => {
