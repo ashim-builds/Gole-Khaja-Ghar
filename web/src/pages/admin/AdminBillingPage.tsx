@@ -28,6 +28,7 @@ import {
 import { api } from "@/lib/api";
 import { subscribeToEvent } from "@/lib/socket";
 import { useUser } from "@/context/UserContext";
+import QRCode from "qrcode";
 
 interface BillPayment {
   id: string;
@@ -67,8 +68,22 @@ export default function AdminBillingPage() {
   const [recordingPayment, setRecordingPayment] = useState(false);
   const [successNotice, setSuccessNotice] = useState("");
 
-  // FonePay QR Modal
+  // FonePay QR Modal & Receipt QR
   const [showQrModal, setShowQrModal] = useState(false);
+  const [receiptQrUrl, setReceiptQrUrl] = useState<string>("");
+
+  useEffect(() => {
+    if (bill) {
+      const qrTarget = bill.billNumber ? `https://golekhajaghar.com/order/${bill.billNumber}` : "https://golekhajaghar.com/shop";
+      QRCode.toDataURL(qrTarget, {
+        margin: 1,
+        width: 140,
+        color: { dark: "#000000", light: "#ffffff" },
+      })
+        .then((url) => setReceiptQrUrl(url))
+        .catch((err) => console.error("[AdminBillingPage] QR generate error:", err));
+    }
+  }, [bill]);
 
   const fetchTablesAndBills = async () => {
     if (typeof document !== "undefined" && document.visibilityState !== "visible") {
@@ -620,7 +635,7 @@ export default function AdminBillingPage() {
                         Sisuwa, Pokhara-30, Nepal • Ph: +977 9804146136 / 9846011810
                       </p>
                       <p className="text-[9px] font-bold text-stone-700">
-                        PAN / VAT No: 601982345
+                        PAN / VAT No: 698001198
                       </p>
                     </div>
 
@@ -722,19 +737,35 @@ export default function AdminBillingPage() {
                     </div>
 
                     {/* Bottom Nepali Cultural Blessing & QR */}
-                    <div className="text-center pt-2 space-y-1">
+                    <div className="text-center pt-2 space-y-1.5">
                       <p className="font-bold text-stone-900 text-[11px]">
                         धन्यवाद! फेरि पाल्नुहोला
                       </p>
                       <p className="text-[9px] text-stone-500">
                         Thank you for dining with us at Gole Khaja Ghar!
                       </p>
-                      <div className="pt-2 flex items-center justify-center gap-2">
-                        <QrCode className="w-8 h-8 text-stone-400" />
-                        <span className="text-[8px] text-stone-400 text-left leading-tight">
-                          Scan to View Menu<br />& Order Online
-                        </span>
-                      </div>
+                      {receiptQrUrl ? (
+                        <div className="pt-2 flex flex-col items-center justify-center space-y-1">
+                          <div className="p-1.5 bg-white border border-stone-300 rounded-xl inline-block shadow-xs">
+                            <img
+                              src={receiptQrUrl}
+                              alt="Receipt QR Code"
+                              className="w-20 h-20 object-contain mx-auto"
+                            />
+                          </div>
+                          <span className="text-[8px] text-stone-500 font-bold block leading-tight">
+                            Scan for Live Bill, Reorder & Menu<br />
+                            <span className="text-orange-600 font-mono">golekhajaghar.com</span>
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="pt-2 flex items-center justify-center gap-2">
+                          <QrCode className="w-8 h-8 text-stone-400" />
+                          <span className="text-[8px] text-stone-400 text-left leading-tight">
+                            Scan to View Menu<br />& Order Online
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

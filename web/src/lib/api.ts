@@ -790,7 +790,7 @@ export const api = {
     },
   },
 
-  // ── Push Subscriptions ──
+  // ── Push Subscriptions & Marketing Broadcasts ──
   push: {
     async subscribe(subscription: any, type: 'customer' | 'admin' = 'customer', userId?: string) {
       return request<{ success: boolean }>('/push/subscribe', {
@@ -806,6 +806,112 @@ export const api = {
     },
     async getVapidPublicKey() {
       return request<{ publicKey: string }>('/push/vapid-public-key');
+    },
+    async getSubscribersCount() {
+      return request<{
+        success: boolean;
+        customers: number;
+        admins: number;
+        total: number;
+      }>('/push/subscribers-count');
+    },
+    async getTemplates() {
+      return request<{
+        success: boolean;
+        templates: Array<{
+          id: string;
+          category: 'MEAL' | 'PARTY' | 'HOTEL' | 'OFFER' | 'CLOSING';
+          name: string;
+          emoji: string;
+          defaultTimeNPT?: string;
+          title: string;
+          body: string;
+          icon?: string;
+          url: string;
+        }>;
+      }>('/push/templates');
+    },
+    async getScheduleStatus() {
+      return request<{
+        success: boolean;
+        autoEnabled: boolean;
+        nepalCurrentTime: string;
+        nepalCurrentDate: string;
+        nepalFullFormatted: string;
+        nextScheduledSlot: {
+          id: string;
+          name: string;
+          emoji: string;
+          timeNPT: string;
+          enabled: boolean;
+          templateId: string;
+          targetDay: string;
+        } | null;
+        slots: Array<{
+          id: string;
+          name: string;
+          emoji: string;
+          timeNPT: string;
+          enabled: boolean;
+          templateId: string;
+          sentToday: boolean;
+          sentAt: string | null;
+        }>;
+        recentBroadcasts: Array<{
+          success: boolean;
+          recipientsCount: number;
+          deliveredCount: number;
+          templateId?: string;
+          title: string;
+          body: string;
+          url: string;
+          timestamp: string;
+        }>;
+      }>('/push/schedule-status');
+    },
+    async updateScheduleStatus(data: {
+      autoEnabled?: boolean;
+      slotId?: string;
+      updates?: { enabled?: boolean; timeNPT?: string; templateId?: string };
+    }) {
+      return request<{
+        success: boolean;
+        message: string;
+        autoEnabled: boolean;
+        nepalCurrentTime: string;
+        slots: any[];
+      }>('/push/schedule-status', {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      });
+    },
+    async broadcast(data: {
+      templateId?: string;
+      title: string;
+      body: string;
+      url?: string;
+      icon?: string;
+      targetRole?: 'CUSTOMER' | 'ADMIN';
+      saveToDb?: boolean;
+    }) {
+      return request<{
+        success: boolean;
+        message: string;
+        result: {
+          success: boolean;
+          recipientsCount: number;
+          deliveredCount: number;
+          failedCount: number;
+          templateId?: string;
+          title: string;
+          body: string;
+          url: string;
+          timestamp: string;
+        };
+      }>('/push/broadcast', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
     },
   },
 };

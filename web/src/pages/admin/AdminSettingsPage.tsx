@@ -32,6 +32,7 @@ import {
 import { api } from "@/lib/api";
 import { StoreOperationalMode } from "@/lib/storeHours";
 import { showLiveNotification, playAudioAlert } from "@/lib/socket";
+import AdminPushBroadcastCard from "@/components/AdminPushBroadcastCard";
 
 export default function AdminSettingsPage() {
   const [pushStatus, setPushStatus] = useState<{
@@ -138,8 +139,8 @@ export default function AdminSettingsPage() {
             mode === "MANUAL_OPEN"
               ? "FORCED OPEN"
               : mode === "MANUAL_CLOSED"
-              ? "FORCED CLOSED"
-              : "AUTOMATIC SCHEDULE (8 AM – 9 PM)"
+                ? "FORCED CLOSED"
+                : "AUTOMATIC SCHEDULE (8 AM – 9 PM)"
           }`,
         });
       }
@@ -190,7 +191,7 @@ export default function AdminSettingsPage() {
         "🔔 Admin Notification Test",
         "Your Notification Center is connected! You will receive live order alerts here.",
         "admin-test",
-        "/admin"
+        "/admin",
       );
       const res = await api.admin.testPush();
       if (res.success) {
@@ -240,7 +241,8 @@ export default function AdminSettingsPage() {
             </h1>
           </div>
           <p className="text-xs text-stone-500 font-medium mt-0.5">
-            Store open/close controls, live push alerts, kitchen chime, and business info
+            Store open/close controls, live push alerts, kitchen chime, and
+            business info
           </p>
         </div>
       </div>
@@ -305,8 +307,8 @@ export default function AdminSettingsPage() {
               {storeStatus.mode === "MANUAL_OPEN"
                 ? "Open (Manual)"
                 : storeStatus.mode === "MANUAL_CLOSED"
-                ? "Closed (Manual)"
-                : "Auto (8AM–9PM)"}
+                  ? "Closed (Manual)"
+                  : "Auto (8AM–9PM)"}
             </span>
           </div>
         </div>
@@ -324,7 +326,9 @@ export default function AdminSettingsPage() {
                 : "text-stone-600 hover:text-stone-900 font-bold hover:bg-white/60"
             }`}
           >
-            <Clock className={`w-3.5 h-3.5 ${storeStatus.mode === "AUTO" ? "text-orange-600" : "text-stone-400"}`} />
+            <Clock
+              className={`w-3.5 h-3.5 ${storeStatus.mode === "AUTO" ? "text-orange-600" : "text-stone-400"}`}
+            />
             <span className="text-[11px] leading-tight">Auto Schedule</span>
           </button>
 
@@ -339,7 +343,9 @@ export default function AdminSettingsPage() {
                 : "text-stone-600 hover:text-emerald-700 font-bold hover:bg-white/60"
             }`}
           >
-            <Unlock className={`w-3.5 h-3.5 ${storeStatus.mode === "MANUAL_OPEN" ? "text-white" : "text-emerald-600"}`} />
+            <Unlock
+              className={`w-3.5 h-3.5 ${storeStatus.mode === "MANUAL_OPEN" ? "text-white" : "text-emerald-600"}`}
+            />
             <span className="text-[11px] leading-tight">Force Open</span>
           </button>
 
@@ -354,7 +360,9 @@ export default function AdminSettingsPage() {
                 : "text-stone-600 hover:text-red-700 font-bold hover:bg-white/60"
             }`}
           >
-            <Lock className={`w-3.5 h-3.5 ${storeStatus.mode === "MANUAL_CLOSED" ? "text-white" : "text-red-600"}`} />
+            <Lock
+              className={`w-3.5 h-3.5 ${storeStatus.mode === "MANUAL_CLOSED" ? "text-white" : "text-red-600"}`}
+            />
             <span className="text-[11px] leading-tight">Force Close</span>
           </button>
         </div>
@@ -504,6 +512,9 @@ export default function AdminSettingsPage() {
         </div>
       </div>
 
+      {/* SMART MARKETING & MEAL-TIME PUSH BROADCAST HUB */}
+      <AdminPushBroadcastCard />
+
       {/* 3 & 4. NOTIFICATIONS & AUDIO ALERTS (Horizontal 2-Column Grid) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
         {/* PUSH NOTIFICATIONS */}
@@ -527,15 +538,15 @@ export default function AdminSettingsPage() {
                       pushStatus.isSubscribed
                         ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
                         : pushStatus.permission === "denied"
-                        ? "bg-red-100 text-red-800 border border-red-200"
-                        : "bg-stone-100 text-stone-600"
+                          ? "bg-red-100 text-red-800 border border-red-200"
+                          : "bg-stone-100 text-stone-600"
                     }`}
                   >
                     {pushStatus.isSubscribed
                       ? "Active"
                       : pushStatus.permission === "denied"
-                      ? "Blocked"
-                      : "Disabled"}
+                        ? "Blocked"
+                        : "Disabled"}
                   </span>
                 </div>
                 <p className="text-[10px] sm:text-[11px] text-stone-500 truncate">

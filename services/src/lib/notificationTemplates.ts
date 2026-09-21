@@ -1,0 +1,136 @@
+export interface NotificationTemplate {
+  id: string;
+  category: 'MEAL' | 'PARTY' | 'HOTEL' | 'OFFER' | 'CLOSING';
+  name: string;
+  emoji: string;
+  defaultTimeNPT?: string; // e.g. "08:30"
+  title: string;
+  body: string;
+  icon?: string;
+  url: string;
+  badge?: string;
+}
+
+export const NOTIFICATION_TEMPLATES: Record<string, NotificationTemplate> = {
+  morning_breakfast: {
+    id: 'morning_breakfast',
+    category: 'MEAL',
+    name: 'Morning Breakfast & Fresh Tea',
+    emoji: '🌅',
+    defaultTimeNPT: '08:30',
+    title: '🌅 Good Morning from Gole Khaja Ghar!',
+    body: 'Start your morning with steaming Masala Tea, hot Parathas, Jerry Swari, Samosas & Fresh Bakery. Hot breakfast is ready for you! ☕🍳',
+    icon: '/favicon-circle.png',
+    url: '/shop?category=breakfast',
+  },
+  afternoon_lunch: {
+    id: 'afternoon_lunch',
+    category: 'MEAL',
+    name: 'Afternoon Lunch & Nepali Thali',
+    emoji: '🍛',
+    defaultTimeNPT: '12:30',
+    title: '🍛 Lunch Hour Special is Live!',
+    body: 'Hungry for lunch? Enjoy authentic Nepali Khana Set, Chicken Fried Rice, Chowmein & freshly grilled Sekuwa. Order now for fast table service or delivery! 🍽️',
+    icon: '/favicon-circle.png',
+    url: '/shop',
+  },
+  khaja_time: {
+    id: 'khaja_time',
+    category: 'MEAL',
+    name: 'Khaja Time (4 PM Snacks & MoMo)',
+    emoji: '🥟',
+    defaultTimeNPT: '16:00',
+    title: '🥟 Khaja Time is Here! (4:00 PM)',
+    body: 'Craving spicy C-MoMo, crunchy Khaja Sets, Sukuti & fresh Sekuwa? Gather your friends or order to your doorstep now! 😋🔥',
+    icon: '/favicon-circle.png',
+    url: '/shop',
+  },
+  night_party: {
+    id: 'night_party',
+    category: 'PARTY',
+    name: 'Night Party & Evening Hangout',
+    emoji: '🎉',
+    defaultTimeNPT: '19:30',
+    title: '🎉 Night Party & Evening Vibes!',
+    body: 'The charcoal grill is smoking! Crispy Chhoila, sizzling Sekuwa platters, chilled drinks and great music await you at Gole Khaja Ghar tonight. 🍗🍻✨',
+    icon: '/favicon-circle.png',
+    url: '/shop',
+  },
+  night_shop_close: {
+    id: 'night_shop_close',
+    category: 'CLOSING',
+    name: 'Night 9:00 PM Shop Closing Alert',
+    emoji: '🌙',
+    defaultTimeNPT: '21:00',
+    title: '🌙 Shop Closing for Tonight (9:00 PM)',
+    body: 'Gole Khaja Ghar is now closing orders for tonight! Thank you for dining with us today. Have a peaceful night and see you fresh tomorrow morning at 8:00 AM! 😴✨',
+    icon: '/favicon-circle.png',
+    url: '/shop',
+  },
+  hotel_room_service: {
+    id: 'hotel_room_service',
+    category: 'HOTEL',
+    name: 'Hotel Room Dining & Stay Specials',
+    emoji: '🏨',
+    defaultTimeNPT: '',
+    title: '🏨 Hotel Guests & In-Room Dining',
+    body: 'Relax in comfort! Room dining service is active. Order delicious dishes directly from your phone for direct table & room delivery.',
+    icon: '/favicon-circle.png',
+    url: '/shop',
+  },
+  party_reservation: {
+    id: 'party_reservation',
+    category: 'PARTY',
+    name: 'Party, Birthday & Group Bookings',
+    emoji: '🎂',
+    defaultTimeNPT: '',
+    title: '🎂 Celebrate Your Birthday & Events With Us!',
+    body: 'Planning a party, family gathering or birthday? Book your reserved tables & special party combo menus today at Gole Khaja Ghar!',
+    icon: '/favicon-circle.png',
+    url: '/contact',
+  },
+  chef_special: {
+    id: 'chef_special',
+    category: 'HOTEL',
+    name: "Today's Chef Recommendation",
+    emoji: '👨‍🍳',
+    defaultTimeNPT: '',
+    title: "👨‍🍳 Today's Chef Special Recommendation!",
+    body: 'Our chef has prepared an exclusive Special Dish today made with fresh local herbs & authentic spices. Check out today\'s menu!',
+    icon: '/favicon-circle.png',
+    url: '/shop',
+  },
+  weekend_special: {
+    id: 'weekend_special',
+    category: 'PARTY',
+    name: 'Weekend Feast & Family Special',
+    emoji: '🥂',
+    defaultTimeNPT: '',
+    title: '🥂 Weekend Celebration at Gole Khaja Ghar!',
+    body: 'Unwind your weekend with family & friends! Enjoy special discounts on giant Khaja Platters, Sekuwa and tasty snacks.',
+    icon: '/favicon-circle.png',
+    url: '/shop',
+  },
+  rainy_day_comfort: {
+    id: 'rainy_day_comfort',
+    category: 'HOTEL',
+    name: 'Rainy Day Hot Soupy Comfort Food',
+    emoji: '🌧️',
+    defaultTimeNPT: '',
+    title: '🌧️ Chilly Day? Warm Up With Hot Soupy Khaja!',
+    body: 'Rainy vibes call for piping hot Jhol MoMo, spicy Thukpa & hot Masala Tea. Stay warm and let us deliver right to your door! 🥣🥟',
+    icon: '/favicon-circle.png',
+    url: '/shop',
+  },
+  flash_discount: {
+    id: 'flash_discount',
+    category: 'OFFER',
+    name: 'Happy Hour & Flash Discount',
+    emoji: '🏷️',
+    defaultTimeNPT: '',
+    title: '🏷️ Flash Offer: Special Discounts Today!',
+    body: 'Special discount alert! Enjoy limited-time exclusive prices on selected snacks, drinks & khaja combos. Order while offers last! ⚡',
+    icon: '/favicon-circle.png',
+    url: '/shop',
+  },
+};

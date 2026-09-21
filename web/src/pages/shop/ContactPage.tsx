@@ -124,7 +124,8 @@ export default function ContactPage() {
             `
             <div style="font-family: sans-serif; padding: 4px; text-align: center;">
               <strong style="font-size: 14px; color: #111;">Gole Khaja Ghar</strong><br />
-              <span style="font-size: 12px; color: #666;">Sisuwa, Pokhara-30, Kaski</span><br />
+              <span style="font-size: 12px; color: #333; font-weight: 600;">Sisuwa, Pokhara-30, Kaski</span><br />
+              <span style="font-size: 11px; color: #666;">Gandaki Province 33700</span><br />
               <span style="font-size: 11px; color: #ea580c; font-weight: bold;">Open 8:00 AM – 9:00 PM</span>
             </div>
           `
@@ -150,9 +151,9 @@ export default function ContactPage() {
     <div className="bg-background min-h-screen">
       <SEO
         title="Gole Khaja Ghar Sisuwa | Location & Contact"
-        description="Visit or contact Gole Khaja Ghar in Sisuwa, Pokhara-30. Direct phone numbers (+977 9804146136, 9846011810), interactive map directions, hours and local delivery info."
+        description="Visit or contact Gole Khaja Ghar in Sisuwa, Pokhara-30, Gandaki Province 33700. Direct phone numbers (+977 9804146136, 9846011810), interactive map directions, hours and local delivery info."
         canonical="https://golekhajaghar.com/contact"
-        keywords="Gole Khaja Ghar Sisuwa, Gole Khaja Sisuwa, Restaurant in Sisuwa, Khaja Ghar in Sisuwa, Restaurant near Sisuwa, Gole Khaja contact, Gole Ghar Sisuwa"
+        keywords="Gole Khaja Ghar Sisuwa, Gole Khaja Pokhara-30, Restaurant in Sisuwa, Restaurant near Sisuwa, Gole Khaja contact, Gole Ghar"
         schema={contactSchema}
       />
 
@@ -162,13 +163,13 @@ export default function ContactPage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
           <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-black uppercase tracking-wider text-orange-400 bg-orange-500/10 border border-orange-500/20 px-3 py-1.5 rounded-full mb-3">
             <MapPin className="w-3.5 h-3.5 text-orange-400" />
-            Pokhara-30, Kaski • Gandaki Province
+            Sisuwa, Pokhara-30 • Gandaki Province
           </span>
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight mb-3 text-white">
             Gole Khaja Ghar in Sisuwa
           </h1>
           <p className="text-stone-300 text-sm sm:text-base max-w-xl mx-auto font-medium leading-relaxed">
-            Find our restaurant location, get driving directions, view opening
+            Find our restaurant location, get Google Maps driving directions, view opening
             hours, or call us directly for takeaway and fast local delivery.
           </p>
         </div>
@@ -193,7 +194,7 @@ export default function ContactPage() {
                 <div>
                   <h3 className="font-bold text-stone-900 text-sm">Location Address</h3>
                   <p className="text-stone-600 text-sm mt-0.5 leading-relaxed">
-                    Sisuwa, Pokhara-30,<br />
+                    <strong>Sisuwa, Pokhara-30</strong>,<br />
                     Kaski, Gandaki Province,<br />
                     Postal Code: 33700, Nepal
                   </p>
@@ -269,7 +270,7 @@ export default function ContactPage() {
             <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-6 rounded-3xl border border-orange-200/80 space-y-3">
               <div className="flex items-center gap-2 text-orange-700 font-bold text-sm">
                 <Truck className="w-4 h-4" />
-                <span>Delivery Across Pokhara-30</span>
+                <span>Delivery Across Sisuwa & Pokhara-30</span>
               </div>
               <p className="text-stone-700 text-xs sm:text-sm leading-relaxed">
                 We deliver hot, freshly packed food across Sisuwa, Lekhnath, and
@@ -293,15 +294,15 @@ export default function ContactPage() {
                   <h2 className="text-xl font-black text-stone-900">
                     Location Map & Directions
                   </h2>
-                  <p className="text-xs sm:text-sm text-stone-500">
-                    Coordinates: 28.1630° N, 84.0730° E (Sisuwa, Pokhara-30)
+                  <p className="text-xs sm:text-sm text-stone-600 font-medium">
+                    Sisuwa, Pokhara-30, Gandaki Province 33700
                   </p>
                 </div>
                 <a
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${LAT},${LNG}`}
+                  href={`https://www.google.com/maps/dir/?api=1&destination=536C%2BPFH+Bus+Stop%2C+Sisuwa%2C+Pokhara-30%2C+Gandaki+Province+33700`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-xs sm:text-sm font-black inline-flex items-center gap-2 shadow-md transition-transform active:scale-95"
+                  className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-xs sm:text-sm font-black inline-flex items-center gap-2 shadow-md transition-transform active:scale-95 shrink-0"
                 >
                   <Navigation className="w-4 h-4 text-orange-400" />
                   <span>Get Directions on Google Maps</span>

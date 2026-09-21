@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import fs from 'fs';
 import path from 'path';
+import { getNepaliDate } from '../lib/nepaliDate.js';
 
 export type StoreOperationalMode = 'AUTO' | 'MANUAL_OPEN' | 'MANUAL_CLOSED';
 
@@ -71,8 +72,7 @@ function getNepalDate(): Date {
 export function evaluateStoreStatus() {
   const config = getStoredConfig();
   const nepalDate = getNepalDate();
-  const dayOfWeek = nepalDate.getDay(); // 0 = Sun, 2 = Tue
-  const dayOfMonth = nepalDate.getDate();
+  const nepaliDateInfo = getNepaliDate(nepalDate);
   const hours = nepalDate.getHours();
   const minutes = nepalDate.getMinutes();
 
@@ -80,7 +80,8 @@ export function evaluateStoreStatus() {
   const openTimeInMinutes = 8 * 60; // 08:00 AM
   const closeTimeInMinutes = 21 * 60; // 09:00 PM
 
-  const isFirstTuesday = dayOfWeek === 2 && dayOfMonth <= 7;
+  // Accurate Bikram Sambat (BS) 1st Tuesday of Nepali Month calculation
+  const isFirstTuesday = nepaliDateInfo.isFirstTuesdayBS;
   const isOutsideHours = currentTimeInMinutes < openTimeInMinutes || currentTimeInMinutes >= closeTimeInMinutes;
 
   const timeFormatter = new Intl.DateTimeFormat('en-US', {
@@ -97,6 +98,8 @@ export function evaluateStoreStatus() {
       mode: 'MANUAL_OPEN' as StoreOperationalMode,
       isFirstTuesday,
       isOutsideHours,
+      nepaliDateBS: nepaliDateInfo.formattedBS,
+      nepaliMonth: nepaliDateInfo.monthName,
       statusText: 'Open (Admin Override)',
       badgeLabel: 'Open Now (Manual)',
       reason: config.customReason || 'Store is currently open by Admin override.',
@@ -112,6 +115,8 @@ export function evaluateStoreStatus() {
       mode: 'MANUAL_CLOSED' as StoreOperationalMode,
       isFirstTuesday,
       isOutsideHours,
+      nepaliDateBS: nepaliDateInfo.formattedBS,
+      nepaliMonth: nepaliDateInfo.monthName,
       statusText: 'Closed by Admin',
       badgeLabel: 'Closed (Admin Control)',
       reason: config.customReason || 'Store is temporarily closed by management.',
@@ -128,9 +133,11 @@ export function evaluateStoreStatus() {
       mode: 'AUTO' as StoreOperationalMode,
       isFirstTuesday: true,
       isOutsideHours: false,
+      nepaliDateBS: nepaliDateInfo.formattedBS,
+      nepaliMonth: nepaliDateInfo.monthName,
       statusText: 'Closed Today',
-      badgeLabel: 'Closed Today (1st Tuesday)',
-      reason: 'Closed today for our scheduled monthly maintenance (1st Tuesday of every month).',
+      badgeLabel: `Closed Today (1st Tuesday - ${nepaliDateInfo.monthName} BS)`,
+      reason: `Closed today for scheduled monthly maintenance (1st Tuesday of ${nepaliDateInfo.monthName} BS • ${nepaliDateInfo.formattedBS}).`,
       nextOpening: 'Tomorrow at 8:00 AM',
       nepalTimeFormatted,
       updatedAt: config.updatedAt,
@@ -144,6 +151,8 @@ export function evaluateStoreStatus() {
       mode: 'AUTO' as StoreOperationalMode,
       isFirstTuesday: false,
       isOutsideHours: true,
+      nepaliDateBS: nepaliDateInfo.formattedBS,
+      nepaliMonth: nepaliDateInfo.monthName,
       statusText: 'Currently Closed',
       badgeLabel: 'Closed (Opens 8:00 AM)',
       reason: 'Our store is currently closed. Online ordering is available from 8:00 AM to 9:00 PM.',
@@ -158,6 +167,8 @@ export function evaluateStoreStatus() {
     mode: 'AUTO' as StoreOperationalMode,
     isFirstTuesday: false,
     isOutsideHours: false,
+    nepaliDateBS: nepaliDateInfo.formattedBS,
+    nepaliMonth: nepaliDateInfo.monthName,
     statusText: 'Open Now',
     badgeLabel: 'Open (8:00 AM – 9:00 PM)',
     reason: 'We are currently open and accepting fresh dine-in, takeaway, and delivery orders!',

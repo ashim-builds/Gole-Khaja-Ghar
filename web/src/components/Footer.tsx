@@ -107,7 +107,7 @@ export default function Footer() {
                 <div>
                   <p>
                     Sisuwa, Pokhara-30,<br />
-                    Kaski, Nepal
+                    Kaski, Gandaki Province 33700, Nepal
                   </p>
                   <Link
                     to="/contact"

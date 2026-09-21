@@ -170,12 +170,21 @@ process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 process.on("SIGUSR2", () => gracefulShutdown("SIGUSR2"));
 
+import { notificationScheduler } from './lib/notificationScheduler.js';
+
 // Start Server
 async function startServer() {
   httpServer.listen(PORT, () => {
     console.log(`[Backend Service & WebSockets] Running on port ${PORT}`);
     console.log(`[CORS] Configured for frontend origins: ${rawOrigins.join(', ')}`);
   });
+
+  // Start Nepal Time notification auto-push scheduler
+  try {
+    notificationScheduler.start();
+  } catch (err) {
+    console.error('[NotificationScheduler] Failed to start:', err);
+  }
 
   // Connect to database without blocking server port binding
   connectToDatabase().catch((error) => {

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import api from "@/lib/api";
+import { getNepaliDate as getBSDate } from "@/lib/nepaliDate";
 
 export type StoreOperationalMode = "AUTO" | "MANUAL_OPEN" | "MANUAL_CLOSED";
 
@@ -8,6 +9,7 @@ export interface StoreStatus {
   mode?: StoreOperationalMode;
   isFirstTuesday: boolean;
   isOutsideHours: boolean;
+  nepaliDateBS?: string;
   statusText: string;
   badgeLabel: string;
   reason: string;
@@ -26,12 +28,11 @@ export function getNepalDate(): Date {
 }
 
 /**
- * Local fallback calculation (Follows standard 8 AM - 9 PM, 1st Tuesday closed rule)
+ * Local fallback calculation (Follows standard 8 AM - 9 PM, 1st Tuesday of Nepali BS Month closed rule)
  */
 export function getLocalStoreStatus(): StoreStatus {
   const nepalDate = getNepalDate();
-  const dayOfWeek = nepalDate.getDay(); // 0 = Sunday, 2 = Tuesday
-  const dayOfMonth = nepalDate.getDate();
+  const nepaliDateInfo = getBSDate(nepalDate);
   const hours = nepalDate.getHours();
   const minutes = nepalDate.getMinutes();
 
@@ -39,7 +40,8 @@ export function getLocalStoreStatus(): StoreStatus {
   const openTimeInMinutes = 8 * 60; // 08:00 AM
   const closeTimeInMinutes = 21 * 60; // 09:00 PM
 
-  const isFirstTuesday = dayOfWeek === 2 && dayOfMonth <= 7;
+  // Accurate Bikram Sambat (BS) 1st Tuesday check
+  const isFirstTuesday = nepaliDateInfo.isFirstTuesdayBS;
   const isOutsideHours = currentTimeInMinutes < openTimeInMinutes || currentTimeInMinutes >= closeTimeInMinutes;
 
   const timeFormatter = new Intl.DateTimeFormat("en-US", {
@@ -55,9 +57,10 @@ export function getLocalStoreStatus(): StoreStatus {
       mode: "AUTO",
       isFirstTuesday: true,
       isOutsideHours: false,
+      nepaliDateBS: nepaliDateInfo.formattedBS,
       statusText: "Closed Today",
-      badgeLabel: "Closed Today (1st Tuesday)",
-      reason: "Closed today for our scheduled monthly maintenance (1st Tuesday of every month).",
+      badgeLabel: `Closed Today (1st Tuesday - ${nepaliDateInfo.monthName} BS)`,
+      reason: `Closed today for scheduled monthly maintenance (1st Tuesday of ${nepaliDateInfo.monthName} BS • ${nepaliDateInfo.formattedBS}).`,
       nextOpening: "Tomorrow at 8:00 AM",
       nepalTimeFormatted,
     };

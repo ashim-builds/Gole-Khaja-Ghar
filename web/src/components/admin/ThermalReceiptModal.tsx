@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import QRCode from "qrcode";
 import {
   Printer,
   X,
@@ -38,6 +39,29 @@ export default function ThermalReceiptModal({
   isOpen,
   onClose,
 }: ThermalReceiptModalProps) {
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>("");
+
+  useEffect(() => {
+    if (order) {
+      const orderRef = order.orderNumber || order.billNumber || order.id || "";
+      const qrTarget = orderRef
+        ? `https://golekhajaghar.com/order/${orderRef}`
+        : "https://golekhajaghar.com/shop";
+      QRCode.toDataURL(qrTarget, {
+        margin: 1,
+        width: 140,
+        color: {
+          dark: "#000000",
+          light: "#ffffff",
+        },
+      })
+        .then((url) => setQrCodeDataUrl(url))
+        .catch((err) =>
+          console.error("[ThermalReceiptModal] QR generate error:", err),
+        );
+    }
+  }, [order]);
+
   if (!isOpen || !order) return null;
 
   const handlePrint = () => {
@@ -64,11 +88,15 @@ export default function ThermalReceiptModal({
   // Calculate Subtotal if not explicitly provided
   const itemsSubtotal = items.reduce((acc, item) => {
     const q = item.qty || item.quantity || 1;
-    const p = item.calculatedPrice ?? ((item.unitPriceAtTimeOfOrder || item.price || 0) * q);
+    const p =
+      item.calculatedPrice ??
+      (item.unitPriceAtTimeOfOrder || item.price || 0) * q;
     return acc + Number(p);
   }, 0);
 
-  const grandTotal = Number(order.totalAmount || order.netAmount || itemsSubtotal);
+  const grandTotal = Number(
+    order.totalAmount || order.netAmount || itemsSubtotal,
+  );
   const deliveryCharge = Number(order.deliveryFee || order.deliveryCharge || 0);
   const discountAmount = Number(order.discountAmount || 0);
   const taxAmount = Number(order.taxAmount || 0);
@@ -79,12 +107,13 @@ export default function ThermalReceiptModal({
     order.paymentMethod === "FONEPAY_QR"
       ? "FonePay QR / Online"
       : order.paymentMethod === "card"
-      ? "Card (POS)"
-      : isDelivery
-      ? "Cash on Delivery (COD)"
-      : "Cash";
+        ? "Card (POS)"
+        : isDelivery
+          ? "Cash on Delivery (COD)"
+          : "Cash";
 
-  const customerName = order.customerInfo?.name || order.customerName || "Walk-in Guest";
+  const customerName =
+    order.customerInfo?.name || order.customerName || "Walk-in Guest";
   const customerPhone = order.customerInfo?.phone || order.customerPhone || "";
   const address = order.deliveryAddress || order.address || "";
 
@@ -102,8 +131,8 @@ export default function ThermalReceiptModal({
                 isCancelled
                   ? "bg-red-100 text-red-800"
                   : isPaid
-                  ? "bg-emerald-100 text-emerald-800"
-                  : "bg-amber-100 text-amber-800"
+                    ? "bg-emerald-100 text-emerald-800"
+                    : "bg-amber-100 text-amber-800"
               }`}
             >
               {isCancelled ? "CANCELLED" : isPaid ? "PAID" : "UNPAID / COD"}
@@ -136,7 +165,11 @@ export default function ThermalReceiptModal({
             {/* Top Watermark / Status Header */}
             <div className="flex justify-between items-center pb-2 border-b border-stone-200">
               <span className="text-[9px] font-black uppercase tracking-widest text-stone-500">
-                {isCancelled ? "VOID / CANCELLED" : isPaid ? "TAX INVOICE" : "PROVISIONAL BILL / ESTIMATE"}
+                {isCancelled
+                  ? "VOID / CANCELLED"
+                  : isPaid
+                    ? "TAX INVOICE"
+                    : "PROVISIONAL BILL / ESTIMATE"}
               </span>
               {isCancelled ? (
                 <span className="text-[9px] font-black uppercase px-2 py-0.5 bg-red-100 text-red-800 rounded-full border border-red-300 flex items-center gap-1">
@@ -175,7 +208,7 @@ export default function ThermalReceiptModal({
                 Sisuwa, Pokhara-30, Nepal • Ph: +977 9804146136 / 9846011810
               </p>
               <p className="text-[9px] font-bold text-stone-700">
-                PAN / VAT No: 601982345
+                PAN / VAT No: 698001198
               </p>
             </div>
 
@@ -193,16 +226,23 @@ export default function ThermalReceiptModal({
                   {isDineIn
                     ? `Dine-In (${order.tableNumber ? `Table ${order.tableNumber}` : "Table"})`
                     : isPickup
-                    ? "Online Pickup"
-                    : "Online Delivery"}
+                      ? "Online Pickup"
+                      : "Online Delivery"}
                 </strong>
               </div>
-              {(order.waiterName || order.tableSession?.waiter?.user?.fullName || order.tableSession?.waiterName) && (
+              {(order.waiterName ||
+                order.tableSession?.waiter?.user?.fullName ||
+                order.tableSession?.waiterName) && (
                 <div className="flex justify-between">
                   <span>Server / Waiter:</span>
                   <strong className="text-stone-900">
-                    {order.waiterName || order.tableSession?.waiter?.user?.fullName || order.tableSession?.waiterName}
-                    {order.waiterCode || order.tableSession?.waiter?.employeeCode ? ` (${order.waiterCode || order.tableSession?.waiter?.employeeCode})` : ""}
+                    {order.waiterName ||
+                      order.tableSession?.waiter?.user?.fullName ||
+                      order.tableSession?.waiterName}
+                    {order.waiterCode ||
+                    order.tableSession?.waiter?.employeeCode
+                      ? ` (${order.waiterCode || order.tableSession?.waiter?.employeeCode})`
+                      : ""}
                   </strong>
                 </div>
               )}
@@ -211,8 +251,11 @@ export default function ThermalReceiptModal({
                 <span>
                   {order.createdAt
                     ? `${new Date(order.createdAt).toLocaleDateString()} ${new Date(
-                        order.createdAt
-                      ).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+                        order.createdAt,
+                      ).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}`
                     : "-"}
                 </span>
               </div>
@@ -225,12 +268,15 @@ export default function ThermalReceiptModal({
               {customerPhone && (
                 <div className="flex justify-between">
                   <span>Phone:</span>
-                  <span className="font-mono text-stone-800">{customerPhone}</span>
+                  <span className="font-mono text-stone-800">
+                    {customerPhone}
+                  </span>
                 </div>
               )}
               {address && isDelivery && (
                 <div className="pt-0.5 text-[9px] text-stone-500">
-                  <span className="font-bold text-stone-700">Address:</span> {address}
+                  <span className="font-bold text-stone-700">Address:</span>{" "}
+                  {address}
                 </div>
               )}
             </div>
@@ -255,7 +301,8 @@ export default function ThermalReceiptModal({
                     ? `${it.selectedWeightInGrams / 1000}kg`
                     : `${it.selectedWeightInGrams}g`
                   : "";
-                const variantLabel = it.selectedVariantName || it.variantName || weightLabel;
+                const variantLabel =
+                  it.selectedVariantName || it.variantName || weightLabel;
 
                 return (
                   <div
@@ -321,17 +368,25 @@ export default function ThermalReceiptModal({
               </span>
               <div className="flex justify-between text-stone-600">
                 <span>Payment Mode:</span>
-                <span className="font-bold text-stone-900">{paymentMethodLabel}</span>
+                <span className="font-bold text-stone-900">
+                  {paymentMethodLabel}
+                </span>
               </div>
               {order.txRef && (
                 <div className="flex justify-between text-stone-600">
                   <span>Tx Reference:</span>
-                  <span className="font-mono text-stone-900 font-bold">{order.txRef}</span>
+                  <span className="font-mono text-stone-900 font-bold">
+                    {order.txRef}
+                  </span>
                 </div>
               )}
               <div className="flex justify-between font-bold pt-1 border-t border-stone-200">
                 <span>Total Settled:</span>
-                <span className={isPaid ? "text-emerald-700 font-black" : "text-stone-600"}>
+                <span
+                  className={
+                    isPaid ? "text-emerald-700 font-black" : "text-stone-600"
+                  }
+                >
                   Rs. {isPaid ? grandTotal.toFixed(0) : "0"}
                 </span>
               </div>
@@ -344,19 +399,35 @@ export default function ThermalReceiptModal({
             </div>
 
             {/* Footer & Nepali Greeting */}
-            <div className="text-center pt-2 space-y-1">
+            <div className="text-center pt-2 space-y-1.5">
               <p className="font-bold text-stone-900 text-[11px]">
                 धन्यवाद! फेरि पाल्नुहोला
               </p>
               <p className="text-[9px] text-stone-500">
                 Thank you for ordering with Gole Khaja Ghar!
               </p>
-              <div className="pt-2 flex items-center justify-center gap-2">
-                <QrCode className="w-8 h-8 text-stone-400" />
-                <span className="text-[8px] text-stone-400 text-left leading-tight">
-                  Scan to View Menu<br />& Order Online
-                </span>
-              </div>
+              {qrCodeDataUrl ? (
+                <div className="pt-2 flex flex-col items-center justify-center space-y-1">
+                  <div className="p-1.5 bg-white border border-stone-300 rounded-xl inline-block shadow-xs">
+                    <img
+                      src={qrCodeDataUrl}
+                      alt="Receipt QR Code"
+                      className="w-20 h-20 object-contain mx-auto"
+                    />
+                  </div>
+                  <span className="text-[8px] text-stone-500 font-bold block leading-tight">
+                    Scan for Live Bill, Reorder & Menu<br />
+                    <span className="text-orange-600 font-mono">golekhajaghar.com</span>
+                  </span>
+                </div>
+              ) : (
+                <div className="pt-2 flex items-center justify-center gap-2">
+                  <QrCode className="w-8 h-8 text-stone-400" />
+                  <span className="text-[8px] text-stone-400 text-left leading-tight">
+                    Scan to View Menu<br />& Order Online
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>

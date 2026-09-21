@@ -92,15 +92,15 @@ export default function StaticMapView({ address }: StaticMapViewProps) {
           <Loader2 className="w-6 h-6 animate-spin text-primary" />
         </div>
       )}
-      {/* "View Larger Map" link */}
+      {/* "View Larger Map" Google Maps Link */}
       {isReady && (
         <a
-          href={`https://www.openstreetmap.org/search?query=${encodeURIComponent(address)}`}
+          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="absolute bottom-2 right-2 bg-white text-xs font-bold text-stone-600 px-2 py-1 rounded-lg shadow border border-stone-200 hover:bg-stone-50 transition-colors z-[1000]"
+          className="absolute bottom-2 right-2 bg-white text-xs font-bold text-stone-700 px-2.5 py-1 rounded-lg shadow-md border border-stone-200 hover:bg-stone-50 hover:text-orange-600 transition-colors z-[1000] flex items-center gap-1"
         >
-          Open Map ↗
+          <span>Open in Google Maps ↗</span>
         </a>
       )}
     </div>
