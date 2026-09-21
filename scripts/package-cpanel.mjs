@@ -147,7 +147,7 @@ console.log(`✓ Generated full_database_setup.sql (${(fullSetupSql.length / 102
 // STEP 2: BUILD & PACKAGE FRONTEND
 // =============================================================================
 console.log('\n--- Step 2: Building & Packaging Frontend (web/dist) ---');
-execSync('npm --prefix web run build', { cwd: rootDir, stdio: 'inherit' });
+execSync('npm run build', { cwd: webDir, stdio: 'inherit', shell: true });
 
 // Ensure .htaccess for React SPA routing is in dist
 const webHtaccess = path.join(webDir, 'public/.htaccess');
@@ -159,14 +159,14 @@ if (fs.existsSync(webHtaccess)) {
 
 const frontendZip = path.join(deploymentDir, 'frontend-dist.zip');
 if (fs.existsSync(frontendZip)) fs.unlinkSync(frontendZip);
-execSync(`tar -a -cf "${frontendZip}" -C "${path.join(webDir, 'dist')}" .`);
+execSync(`tar -a -cf "${frontendZip}" -C "${path.join(webDir, 'dist')}" .`, { shell: true });
 console.log(`✓ Frontend packaged: frontend-dist.zip (${(fs.statSync(frontendZip).size / 1024 / 1024).toFixed(2)} MB)`);
 
 // =============================================================================
 // STEP 3: BUILD & PACKAGE BACKEND
 // =============================================================================
 console.log('\n--- Step 3: Building & Packaging Backend (services) ---');
-execSync('npm --prefix services run build', { cwd: rootDir, stdio: 'inherit' });
+execSync('npm run build', { cwd: servicesDir, stdio: 'inherit', shell: true });
 
 const stageDir = path.join(deploymentDir, 'backend-stage');
 const tempProdDir = path.join(deploymentDir, 'temp_prod');
@@ -253,7 +253,7 @@ fs.writeFileSync(path.join(stageDir, '.env'), prodEnvContent, 'utf8');
 // Production dependencies preparation
 console.log('Installing production-only dependencies for bundle...');
 fs.copyFileSync(path.join(servicesDir, 'package.json'), path.join(tempProdDir, 'package.json'));
-execSync('npm install --omit=dev --no-audit --no-fund --ignore-scripts', { cwd: tempProdDir, stdio: 'inherit' });
+execSync('npm install --omit=dev --no-audit --no-fund --ignore-scripts', { cwd: tempProdDir, stdio: 'inherit', shell: true });
 
 console.log('Copying production node_modules to bundle...');
 copyDirSync(path.join(tempProdDir, 'node_modules'), path.join(stageDir, 'node_modules'));
@@ -268,7 +268,7 @@ copyDirSync(
 const backendZip = path.join(deploymentDir, 'backend-deploy.zip');
 if (fs.existsSync(backendZip)) fs.unlinkSync(backendZip);
 console.log('Compressing backend-deploy.zip...');
-execSync(`tar -a -cf "${backendZip}" -C "${stageDir}" .`);
+execSync(`tar -a -cf "${backendZip}" -C "${stageDir}" .`, { shell: true });
 console.log(`✓ Backend packaged: backend-deploy.zip (${(fs.statSync(backendZip).size / 1024 / 1024).toFixed(2)} MB)`);
 
 // Cleanup temporary build directories
