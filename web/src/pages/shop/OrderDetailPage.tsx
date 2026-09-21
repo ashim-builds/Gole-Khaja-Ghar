@@ -125,8 +125,25 @@ export default function OrderDetailPage() {
               </div>
               {order.orderType === "delivery" && (
                 <div className="flex justify-between text-stone-600 font-medium text-sm">
-                  <span>Delivery Charge</span>
-                  <span>{Number(order.deliveryCharge || 0) > 0 ? `+ Rs. ${Number(order.deliveryCharge).toFixed(2)}` : "Free"}</span>
+                  <span>
+                    Delivery Charge{" "}
+                    {Number(order.deliveryCharge || 0) === 0 && (
+                      <span className="text-xs text-stone-400 font-normal">
+                        {(order.subtotalAmount !== undefined ? Number(order.subtotalAmount) : Number(order.totalAmount)) >= 500
+                          ? "(Free ≥ Rs. 500)"
+                          : "(Free)"}
+                      </span>
+                    )}
+                  </span>
+                  <span className={Number(order.deliveryCharge || 0) > 0 ? "font-bold text-stone-800" : "font-black text-emerald-600"}>
+                    {Number(order.deliveryCharge || 0) > 0 ? `+ Rs. ${Number(order.deliveryCharge).toFixed(2)}` : "Free"}
+                  </span>
+                </div>
+              )}
+              {order.orderType === "pickup" && (
+                <div className="flex justify-between text-stone-600 font-medium text-sm">
+                  <span>Order Type</span>
+                  <span className="font-bold text-stone-700">Self Pickup (No Delivery Fee)</span>
                 </div>
               )}
               {Number(order.discountAmount || 0) > 0 && (

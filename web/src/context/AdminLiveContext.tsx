@@ -1,6 +1,6 @@
 import { api } from "@/lib/api";
 import React, { createContext, useContext, useState, useEffect, useRef } from "react";
-import { subscribeToEvent, playAudioAlert, showLiveNotification } from "@/lib/socket";
+import { subscribeToEvent, playAudioAlert, showLiveNotification, unlockAudioAlerts } from "@/lib/socket";
 
 interface AdminStats {
   totalProducts: number;
@@ -56,7 +56,10 @@ export function useAdminLive() {
 }
 
 const playNotificationSound = () => {
-  playAudioAlert('order');
+  const soundEnabled = localStorage.getItem("gole_sound_alerts_enabled") !== "false";
+  if (soundEnabled) {
+    playAudioAlert("order");
+  }
 };
 
 export function AdminLiveProvider({ children }: { children: React.ReactNode }) {
@@ -74,6 +77,14 @@ export function AdminLiveProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let active = true;
+
+    // Unlock browser audio context on first user click/touch/keypress in Admin
+    const handleUserInteraction = () => {
+      unlockAudioAlerts();
+    };
+    window.addEventListener("click", handleUserInteraction, { passive: true });
+    window.addEventListener("touchstart", handleUserInteraction, { passive: true });
+    window.addEventListener("keydown", handleUserInteraction, { passive: true });
 
     async function fetchUpdates() {
       if (!active) return;
@@ -100,7 +111,7 @@ export function AdminLiveProvider({ children }: { children: React.ReactNode }) {
               show: true,
               orderNumber: latestOrder.orderNumber,
               customerName: latestOrder.customerInfo?.name || "Customer",
-              amount: latestOrder.totalAmount
+              amount: latestOrder.totalAmount || 0,
             });
             void showLiveNotification(
               `🍲 New Order #${latestOrder.orderNumber}`,
@@ -124,9 +135,33 @@ export function AdminLiveProvider({ children }: { children: React.ReactNode }) {
     fetchUpdates();
 
     // Subscribe to real-time order and payment broadcasts
-    const unsubCreated = subscribeToEvent("order:created", () => {
+    const unsubCreated = subscribeToEvent("order:created", (data?: any) => {
+      if (data && data.orderNumber) {
+        lastSeenOrderNumber.current = data.orderNumber;
+        playNotificationSound();
+        setNewOrderNotification({
+          show: true,
+          orderNumber: data.orderNumber,
+          customerName: data.customerName || "Customer",
+          amount: Number(data.totalAmount || 0),
+        });
+        void showLiveNotification(
+          `🍲 New Order #${data.orderNumber}`,
+          `${data.customerName || "Customer"} • Rs. ${Number(data.totalAmount || 0).toFixed(2)} (${data.orderType || "Order"})`,
+          `admin-order-${data.orderNumber}`,
+          `/admin/orders`
+        );
+      }
       fetchUpdates();
     });
+
+    const unsubAdminNotif = subscribeToEvent("notification:admin", (payload?: any) => {
+      if (payload && payload.title && !payload.title.toLowerCase().includes("test")) {
+        playNotificationSound();
+      }
+      fetchUpdates();
+    });
+
     const unsubStatus = subscribeToEvent("order:status_changed", () => {
       fetchUpdates();
     });
@@ -154,7 +189,11 @@ export function AdminLiveProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       active = false;
+      window.removeEventListener("click", handleUserInteraction);
+      window.removeEventListener("touchstart", handleUserInteraction);
+      window.removeEventListener("keydown", handleUserInteraction);
       unsubCreated();
+      unsubAdminNotif();
       unsubStatus();
       unsubPayment();
       unsubKot();

@@ -177,6 +177,31 @@ function AdminProtectedLayoutContent() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
+        {/* Mobile Header Bar with Logo and NotificationBell */}
+        <header className="md:hidden bg-[#111111] text-white px-4 py-2.5 flex items-center justify-between border-b border-white/10 z-30 flex-shrink-0 shadow-sm">
+          <Link to="/admin" className="flex items-center gap-2">
+            <div className="relative w-7 h-7 rounded-full overflow-hidden border border-white/20 flex-shrink-0 bg-stone-900 flex items-center justify-center">
+              <img
+                src="/images/logo.png"
+                alt="Gole Khaja Ghar"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <span className="text-base font-black text-white">
+              Gole <span className="text-primary">Admin</span>
+            </span>
+          </Link>
+
+          <div className="flex items-center gap-2">
+            <NotificationBell type="admin" />
+            {stats && stats.pendingOrders > 0 && (
+              <span className="flex items-center justify-center px-2 py-0.5 bg-red-500 text-white rounded-full text-[10px] font-black animate-pulse shadow-sm">
+                {stats.pendingOrders} new
+              </span>
+            )}
+          </div>
+        </header>
+
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-8 bg-stone-50 pb-28 md:pb-8 custom-scrollbar">
           <Outlet />

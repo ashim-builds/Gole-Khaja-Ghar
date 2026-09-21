@@ -9,7 +9,14 @@ import {
   notifyCustomerPaymentConfirmed,
 } from '../integrations/whatsapp.js';
 import { BillStatus, PaymentMethod, PaymentStatus, OrderStatus, OrderType, UserRole } from '@prisma/client';
-import { emitEvent, emitPaymentRecorded, emitOrderStatusChanged, emitKotStatusChanged } from '../lib/socket.js';
+import {
+  emitEvent,
+  emitPaymentRecorded,
+  emitOrderStatusChanged,
+  emitKotStatusChanged,
+  emitOrderCreated,
+  emitNotification,
+} from '../lib/socket.js';
 
 const orderInclude = {
   items: {
@@ -411,6 +418,26 @@ export async function checkout(req: AuthenticatedRequest, res: Response): Promis
 
     notifyAdminNewOrder(orderNumber, customerInfo.name, totalAmount, rawOrderType).catch(() => {});
 
+    // Broadcast real-time order creation event to all admin & kitchen listeners
+    emitOrderCreated({
+      orderId: newOrder.id,
+      orderNumber,
+      customerName: customerInfo.name,
+      totalAmount,
+      orderType: rawOrderType,
+    });
+
+    emitNotification({
+      targetRole: 'ADMIN',
+      recipientType: 'ROLE_BROADCAST',
+      type: isQr ? 'PAYMENT_RECEIVED' : 'ORDER_CREATED',
+      title: isQr ? 'FonePay Payment To Verify' : 'New Order Received',
+      body: isQr
+        ? `Order #${orderNumber} • ${customerInfo.name} submitted FonePay payment (Rs. ${totalAmount.toFixed(2)})${txRef ? ` | Ref: ${txRef}` : ''} - Check bank & confirm.`
+        : `Order #${orderNumber} • ${customerInfo.name} • Rs. ${totalAmount.toFixed(2)}`,
+      linkUrl: `/admin/orders/${newOrder.id}`,
+    });
+
     emitEvent('order:status_changed', {
       orderId: newOrder.id,
       orderNumber,
@@ -562,6 +589,24 @@ export async function cancelOrder(req: AuthenticatedRequest, res: Response): Pro
       orderId: order.id,
       orderNumber: order.orderNumber,
       status: 'CANCELLED',
+    });
+
+    emitNotification({
+      targetRole: 'ADMIN',
+      recipientType: 'ROLE_BROADCAST',
+      type: 'ORDER_STATUS_CHANGED',
+      title: 'Order Cancelled',
+      body: `Order #${order.orderNumber} was cancelled by customer.`,
+      linkUrl: `/admin/orders/${order.id}`,
+    });
+
+    emitNotification({
+      userId: req.user.userId,
+      recipientType: 'USER',
+      type: 'ORDER_STATUS_CHANGED',
+      title: 'Order Cancelled',
+      body: `Your order #${order.orderNumber} has been cancelled.`,
+      linkUrl: `/orders`,
     });
 
     sendPushToAdmin({
@@ -1057,7 +1102,7 @@ export async function settleOnlinePayment(req: Request, res: Response): Promise<
     });
 
     // Notify Super Admin
-    await prisma.notification.create({
+    const notif = await prisma.notification.create({
       data: {
         targetRole: 'ADMIN',
         recipientType: 'ROLE_BROADCAST',
@@ -1066,7 +1111,11 @@ export async function settleOnlinePayment(req: Request, res: Response): Promise<
         body: `Rs. ${paymentAmount.toFixed(2)} via ${method}${txRef ? ` (Ref: ${txRef})` : ''}`,
         linkUrl: `/admin/orders/${order.id}`,
       },
-    }).catch(() => {});
+    }).catch(() => null);
+
+    if (notif) {
+      emitNotification(notif);
+    }
 
     res.json({
       success: true,

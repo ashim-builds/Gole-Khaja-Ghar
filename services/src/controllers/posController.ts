@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import prisma from '../lib/prisma.js';
 import { AuthenticatedRequest } from '../middleware/auth.js';
 import { sendPushToAdmin } from '../integrations/webpush.js';
-import { emitTableUpdated, emitKotStatusChanged, emitEvent } from '../lib/socket.js';
+import { emitTableUpdated, emitKotStatusChanged, emitEvent, emitOrderCreated, emitNotification } from '../lib/socket.js';
 
 export async function createTableOrder(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
@@ -197,6 +197,23 @@ export async function createTableOrder(req: AuthenticatedRequest, res: Response)
       items: result.order.items,
     });
 
+    emitOrderCreated({
+      orderId: result.order.id,
+      orderNumber: result.order.orderNumber,
+      customerName: result.order.customerName,
+      totalAmount: Number(result.order.totalAmount || 0),
+      orderType: 'DINE_IN',
+    });
+
+    emitNotification({
+      targetRole: 'KITCHEN',
+      recipientType: 'ROLE_BROADCAST',
+      type: 'KOT_NEW',
+      title: `New KOT #${result.kotTicket.ticketNumber} - Table ${session.table.tableNumber}`,
+      body: `${result.order.items.length} items sent to kitchen.`,
+      linkUrl: '/kitchen',
+    });
+
     emitEvent('order:status_changed', { tableId: session.tableId, orderId: result.order.id });
 
     // Send push alert
@@ -204,7 +221,7 @@ export async function createTableOrder(req: AuthenticatedRequest, res: Response)
       title: `New KOT - Table ${session.table.tableNumber}`,
       body: `Ticket #${result.kotTicket.ticketNumber} has arrived in the kitchen.`,
       url: '/kitchen',
-    }).catch((err) => console.error('Kitchen push alert error:', err));
+    }).catch((err: any) => console.error('Kitchen push alert error:', err));
 
     res.status(201).json({
       success: true,

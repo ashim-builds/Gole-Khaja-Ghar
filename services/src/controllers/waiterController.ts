@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import prisma from '../lib/prisma.js';
 import { sendPushToAdmin } from '../integrations/webpush.js';
+import { emitNotification } from '../lib/socket.js';
 
 export async function listWaiters(req: Request, res: Response): Promise<void> {
   try {
@@ -176,13 +177,46 @@ export async function deleteWaiter(req: Request, res: Response): Promise<void> {
 
 export async function testAdminPush(_req: Request, res: Response): Promise<void> {
   try {
+    const notif = await prisma.notification.create({
+      data: {
+        targetRole: 'ADMIN',
+        recipientType: 'ROLE_BROADCAST',
+        type: 'SYSTEM_ALERT',
+        title: '🔔 Test Notification',
+        body: 'Admin notifications are working perfectly! You will receive live alerts for all orders.',
+        linkUrl: '/admin',
+      },
+    });
+
+    emitNotification({
+      id: notif.id,
+      _id: notif.id,
+      targetRole: 'ADMIN',
+      recipientType: 'ROLE_BROADCAST',
+      type: 'SYSTEM_ALERT',
+      title: notif.title,
+      body: notif.body,
+      linkUrl: notif.linkUrl,
+      createdAt: notif.createdAt,
+    });
+
     await sendPushToAdmin({
       title: '🔔 Test Notification',
       body: 'Push notifications are working perfectly for Gole Khaja Ghar Admin!',
       url: '/admin',
-    });
+    }).catch(() => {});
 
-    res.json({ success: true, message: 'Test notification triggered' });
+    res.json({
+      success: true,
+      message: 'Test notification created and broadcasted successfully',
+      notification: {
+        id: notif.id,
+        title: notif.title,
+        message: notif.body,
+        linkUrl: notif.linkUrl,
+        createdAt: notif.createdAt,
+      },
+    });
   } catch (error) {
     console.error('Test push error:', error);
     res.status(500).json({ error: 'Failed to send test push' });

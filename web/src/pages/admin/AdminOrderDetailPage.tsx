@@ -331,10 +331,29 @@ export default function AdminOrderDetailPage() {
               {order.orderType === "delivery" && (
                 <tr>
                   <td colSpan={4} className="py-1 px-3 text-right font-bold text-stone-500">
-                    Delivery Charge {Number(order.deliveryCharge || 0) === 0 ? "(Free Delivery ≥ Rs. 500)" : ""}
+                    Delivery Charge{" "}
+                    {Number(order.deliveryCharge || 0) === 0
+                      ? (order.subtotalAmount !== undefined ? Number(order.subtotalAmount) : Number(order.totalAmount)) >= 500
+                        ? "(Free Delivery ≥ Rs. 500)"
+                        : "(Free / Waived)"
+                      : "(Standard Fee < Rs. 500)"}
                   </td>
                   <td className="py-1 px-3 text-right font-bold text-stone-900">
-                    {Number(order.deliveryCharge || 0) > 0 ? `+ Rs. ${Number(order.deliveryCharge).toFixed(2)}` : "Free"}
+                    {Number(order.deliveryCharge || 0) > 0 ? (
+                      `+ Rs. ${Number(order.deliveryCharge).toFixed(2)}`
+                    ) : (
+                      <span className="text-emerald-600 font-black">Free</span>
+                    )}
+                  </td>
+                </tr>
+              )}
+              {order.orderType === "pickup" && (
+                <tr>
+                  <td colSpan={4} className="py-1 px-3 text-right font-bold text-stone-500">
+                    Order Type
+                  </td>
+                  <td className="py-1 px-3 text-right font-bold text-stone-700">
+                    Self Pickup (No Delivery Fee)
                   </td>
                 </tr>
               )}

@@ -1,9 +1,11 @@
-import { useEffect, useState, useRef, useContext } from "react";
-import { Bell, BellOff, CheckCircle2, Loader2, Clock, Settings } from "lucide-react";
+import { useEffect, useState, useRef, useContext, useCallback } from "react";
+import { Bell, BellOff, CheckCircle2, Loader2, Clock, Settings, Sparkles } from "lucide-react";
 import { UserContext } from "@/context/UserContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
+import { subscribeToEvent, playAudioAlert } from "@/lib/socket";
+import { checkPushSubscription, subscribeToPush } from "@/lib/pushManager";
 
 interface NotificationBellProps {
   type: "customer" | "admin";
@@ -30,9 +32,15 @@ export default function NotificationBell({ type }: NotificationBellProps) {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [fetchingNotifications, setFetchingNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [pushStatus, setPushStatus] = useState<{
+    supported: boolean;
+    permission: NotificationPermission;
+    isSubscribed: boolean;
+  }>({ supported: false, permission: "default", isSubscribed: false });
+  const [enablingPush, setEnablingPush] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const fetchUnreadCount = async () => {
+  const fetchUnreadCount = useCallback(async () => {
     if (type === "customer" && !user) return;
     try {
       const res =
@@ -45,9 +53,9 @@ export default function NotificationBell({ type }: NotificationBellProps) {
     } catch {
       // Quietly ignore
     }
-  };
+  }, [type, user]);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     if (type === "customer" && !user) return;
     setFetchingNotifications(true);
     try {
@@ -63,6 +71,25 @@ export default function NotificationBell({ type }: NotificationBellProps) {
     } finally {
       setFetchingNotifications(false);
     }
+  }, [type, user]);
+
+  const refreshPushState = useCallback(async () => {
+    try {
+      const status = await checkPushSubscription();
+      setPushStatus(status);
+    } catch {}
+  }, []);
+
+  const handleEnablePush = async () => {
+    setEnablingPush(true);
+    try {
+      await subscribeToPush(type, user?.id);
+      await refreshPushState();
+    } catch (err) {
+      console.warn("[Bell] Enable push failed:", err);
+    } finally {
+      setEnablingPush(false);
+    }
   };
 
   const handleMarkAsRead = async (id: string) => {
@@ -73,7 +100,7 @@ export default function NotificationBell({ type }: NotificationBellProps) {
           : await api.notifications.markUserRead(id);
       if (res && res.success) {
         setNotifications((prev) =>
-          prev.map((n) => (n._id === id || n.id === id ? { ...n, read: true } : n))
+          prev.map((n) => (n._id === id || n.id === id ? { ...n, read: true, isRead: true } : n))
         );
         fetchUnreadCount();
       }
@@ -89,7 +116,7 @@ export default function NotificationBell({ type }: NotificationBellProps) {
           ? await api.notifications.markAdminReadAll()
           : await api.notifications.markUserReadAll();
       if (res && res.success) {
-        setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+        setNotifications((prev) => prev.map((n) => ({ ...n, read: true, isRead: true })));
         setUnreadCount(0);
       }
     } catch (err) {
@@ -100,12 +127,51 @@ export default function NotificationBell({ type }: NotificationBellProps) {
   useEffect(() => {
     if (isOpen) {
       fetchNotifications();
+      refreshPushState();
     }
-  }, [isOpen]);
+  }, [isOpen, fetchNotifications, refreshPushState]);
 
   useEffect(() => {
     if (type === "customer" && !user) return;
     fetchUnreadCount();
+    refreshPushState();
+
+    // Subscribe to live socket notification broadcasts
+    const handleIncomingNotif = (payload: any) => {
+      if (!payload) return;
+      
+      // Determine if notification belongs to this view
+      const belongs =
+        type === "admin"
+          ? payload.targetRole === "ADMIN" || payload.recipientType === "ROLE_BROADCAST" || !payload.userId
+          : payload.userId === user?.id || payload.recipientType === "ROLE_BROADCAST";
+
+      if (belongs) {
+        setUnreadCount((c) => c + 1);
+        setNotifications((prev) => {
+          const item = {
+            id: payload.id || payload._id || `notif-${Date.now()}`,
+            _id: payload.id || payload._id || `notif-${Date.now()}`,
+            title: payload.title,
+            message: payload.message || payload.body,
+            body: payload.body || payload.message,
+            linkUrl: payload.linkUrl,
+            read: false,
+            isRead: false,
+            createdAt: payload.createdAt || new Date().toISOString(),
+          };
+          // Avoid duplicates
+          if (prev.some((n) => (n.id || n._id) === item.id)) return prev;
+          return [item, ...prev];
+        });
+      }
+    };
+
+    const unsubAdmin = type === "admin" ? subscribeToEvent("notification:admin", handleIncomingNotif) : null;
+    const unsubNew = subscribeToEvent("notification:new", handleIncomingNotif);
+    const unsubOrder = type === "admin" ? subscribeToEvent("order:created", () => {
+      fetchUnreadCount();
+    }) : null;
 
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -127,15 +193,18 @@ export default function NotificationBell({ type }: NotificationBellProps) {
       if (document.visibilityState === "visible") {
         fetchUnreadCount();
       }
-    }, 60000);
+    }, 45000);
 
     return () => {
+      unsubAdmin?.();
+      unsubNew();
+      unsubOrder?.();
       document.removeEventListener("mousedown", handleClickOutside);
       window.removeEventListener("focus", handleVisibility);
       document.removeEventListener("visibilitychange", handleVisibility);
       clearInterval(interval);
     };
-  }, [user, type]);
+  }, [user, type, fetchUnreadCount, refreshPushState]);
 
   if (type === "customer" && !user) {
     return null;
@@ -212,14 +281,16 @@ export default function NotificationBell({ type }: NotificationBellProps) {
                 <div className="max-h-72 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
                   {notifications.map((notif) => {
                     const notifId = notif._id || notif.id;
+                    const rawTarget = notif.linkUrl || "";
                     const targetUrl =
-                      type === "admin"
+                      rawTarget ||
+                      (type === "admin"
                         ? notif.orderId
                           ? `/admin/orders/${notif.orderId}`
                           : "/admin/orders"
                         : notif.orderId
                         ? `/orders/${notif.orderId}`
-                        : "/orders";
+                        : "/orders");
 
                     return (
                       <Link
@@ -230,7 +301,7 @@ export default function NotificationBell({ type }: NotificationBellProps) {
                           handleMarkAsRead(notifId);
                         }}
                         className={`block rounded-xl p-3 border transition-all text-left ${
-                          notif.read
+                          notif.read || notif.isRead
                             ? "bg-white/[0.02] border-white/5 opacity-60 hover:opacity-90"
                             : "bg-primary/10 border-primary/30 hover:bg-primary/15 shadow-sm"
                         }`}
@@ -239,7 +310,7 @@ export default function NotificationBell({ type }: NotificationBellProps) {
                           <span className="text-[11px] font-black text-white flex items-center gap-1.5 leading-tight">
                             <Clock className="w-3.5 h-3.5 shrink-0 text-primary" />
                             {notif.title}
-                            {!notif.read && (
+                            {!notif.read && !notif.isRead && (
                               <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0 self-center" />
                             )}
                           </span>
@@ -249,7 +320,7 @@ export default function NotificationBell({ type }: NotificationBellProps) {
                         </div>
 
                         <p className="text-[11px] text-stone-300 mt-1 leading-normal whitespace-pre-line">
-                          {notif.message}
+                          {notif.message || notif.body}
                         </p>
                       </Link>
                     );
@@ -258,9 +329,35 @@ export default function NotificationBell({ type }: NotificationBellProps) {
               )}
             </div>
 
+            {/* Push Alert Quick Enable banner if not enabled */}
+            {pushStatus.supported && !pushStatus.isSubscribed && (
+              <div className="mb-2 p-2.5 rounded-xl bg-orange-950/40 border border-orange-500/30 flex items-center justify-between gap-2 text-[11px]">
+                <div className="flex items-center gap-1.5 text-orange-200">
+                  <Bell className="w-3.5 h-3.5 text-orange-400 shrink-0 animate-pulse" />
+                  <span>Enable device push alerts</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleEnablePush}
+                  disabled={enablingPush}
+                  className="px-2.5 py-1 bg-orange-600 hover:bg-orange-500 text-white font-bold rounded-lg text-[10px] transition-all cursor-pointer flex items-center gap-1 shrink-0 disabled:opacity-50"
+                >
+                  {enablingPush ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-3 h-3" />
+                  )}
+                  Enable
+                </button>
+              </div>
+            )}
+
             {/* Footer with Settings Link */}
             <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[11px] text-stone-400">
-              <span>Push alerts setting</span>
+              <span className="flex items-center gap-1.5">
+                <span className={`w-2 h-2 rounded-full ${pushStatus.isSubscribed ? "bg-emerald-500" : "bg-stone-500"}`} />
+                {pushStatus.isSubscribed ? "Push active" : "Push off"}
+              </span>
               <Link
                 to={settingsUrl}
                 onClick={() => setIsOpen(false)}

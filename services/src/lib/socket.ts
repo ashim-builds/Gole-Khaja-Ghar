@@ -134,7 +134,62 @@ export function emitOrderStatusChanged(payload: {
   emitEvent('order:status_changed', payload);
 }
 
+export function emitOrderCreated(payload: {
+  orderId: string;
+  orderNumber: string;
+  customerName?: string;
+  totalAmount?: number;
+  orderType?: string;
+}): void {
+  emitEvent('order:created', payload);
+  emitToRole('admin', 'order:created', payload);
+  emitToRole('kitchen', 'order:created', payload);
+}
+
+export function emitNotification(payload: {
+  id?: string;
+  _id?: string;
+  userId?: string | null;
+  targetRole?: string | null;
+  recipientType?: string;
+  type?: string;
+  title: string;
+  body?: string;
+  message?: string;
+  linkUrl?: string | null;
+  read?: boolean;
+  isRead?: boolean;
+  createdAt?: string | Date;
+}): void {
+  const formatted = {
+    id: payload.id || payload._id || `notif-${Date.now()}`,
+    _id: payload.id || payload._id || `notif-${Date.now()}`,
+    userId: payload.userId || null,
+    targetRole: payload.targetRole || null,
+    recipientType: payload.recipientType || 'USER',
+    type: payload.type || 'SYSTEM_ALERT',
+    title: payload.title,
+    body: payload.body || payload.message || '',
+    message: payload.body || payload.message || '',
+    linkUrl: payload.linkUrl || null,
+    read: payload.read ?? payload.isRead ?? false,
+    isRead: payload.read ?? payload.isRead ?? false,
+    createdAt: payload.createdAt || new Date().toISOString(),
+  };
+
+  emitEvent('notification:new', formatted);
+  if (payload.targetRole === 'ADMIN' || payload.recipientType === 'ROLE_BROADCAST') {
+    emitEvent('notification:admin', formatted);
+    emitToRole('admin', 'notification:admin', formatted);
+  }
+  if (payload.userId) {
+    emitEvent(`notification:user:${payload.userId}`, formatted);
+    emitEvent('notification:user', formatted);
+  }
+}
+
 export function emitProductUpdated(payload?: any): void {
   emitEvent('product:updated', payload);
   emitEvent('menu:updated', payload);
 }
+
