@@ -47,7 +47,9 @@ export default function PaymentPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const [paymentMethod, setPaymentMethod] = useState<"FONEPAY_QR" | "ESEWA" | "KHALTI" | "COD">("FONEPAY_QR");
+  const [paymentMethod, setPaymentMethod] = useState<
+    "FONEPAY_QR" | "ESEWA" | "KHALTI" | "COD"
+  >("FONEPAY_QR");
   const [txRef, setTxRef] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
@@ -117,7 +119,9 @@ export default function PaymentPage() {
       <div className="min-h-screen bg-stone-50 flex items-center justify-center p-4">
         <div className="text-center space-y-3">
           <Loader2 className="w-10 h-10 animate-spin text-orange-600 mx-auto" />
-          <p className="text-sm font-bold text-stone-600">Loading payment portal...</p>
+          <p className="text-sm font-bold text-stone-600">
+            Loading payment portal...
+          </p>
         </div>
       </div>
     );
@@ -129,7 +133,9 @@ export default function PaymentPage() {
         <div className="max-w-md w-full bg-white rounded-3xl p-8 border border-stone-200 text-center space-y-4 shadow-sm">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto" />
           <h2 className="text-xl font-black text-stone-900">Order Not Found</h2>
-          <p className="text-xs text-stone-500 font-medium">{error || "Could not retrieve order details."}</p>
+          <p className="text-xs text-stone-500 font-medium">
+            {error || "Could not retrieve order details."}
+          </p>
           <Link
             to="/shop"
             className="inline-block px-6 py-3 bg-orange-600 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-md hover:bg-orange-500"
@@ -149,14 +155,21 @@ export default function PaymentPage() {
             <CheckCircle2 className="w-10 h-10" />
           </div>
           <div>
-            <h2 className="text-2xl font-black text-stone-900">Payment Submitted!</h2>
+            <h2 className="text-2xl font-black text-stone-900">
+              Payment Submitted!
+            </h2>
             <p className="text-xs text-stone-500 mt-1 font-medium leading-relaxed">
-              Your FonePay payment reference for Order <strong>#{order.orderNumber}</strong> has been received. Our team will verify the payment in our bank account and confirm your order shortly.
+              Your FonePay payment reference for Order{" "}
+              <strong>#{order.orderNumber}</strong> has been received. Our team
+              will verify the payment in our bank account and confirm your order
+              shortly.
             </p>
           </div>
           <div className="p-4 bg-stone-50 rounded-2xl border border-stone-100 text-xs font-bold text-stone-700 flex justify-between items-center">
             <span>Payable Amount:</span>
-            <span className="text-orange-600 text-base font-black">Rs. {order.totalAmount.toFixed(0)}</span>
+            <span className="text-orange-600 text-base font-black">
+              Rs. {order.totalAmount.toFixed(0)}
+            </span>
           </div>
           <p className="text-[11px] text-stone-400 font-semibold animate-pulse">
             Redirecting to live order tracking...
@@ -180,9 +193,12 @@ export default function PaymentPage() {
           <span className="text-[11px] font-black uppercase tracking-widest text-orange-600 bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
             Secure Payment Portal
           </span>
-          <h1 className="text-3xl sm:text-4xl font-black text-stone-900 mt-2">Complete Your Payment</h1>
+          <h1 className="text-3xl sm:text-4xl font-black text-stone-900 mt-2">
+            Complete Your Payment
+          </h1>
           <p className="text-xs sm:text-sm text-stone-500 font-medium mt-1">
-            Order #{order.orderNumber} • {order.customerInfo.name} ({order.customerInfo.phone})
+            Order #{order.orderNumber} • {order.customerInfo.name} (
+            {order.customerInfo.phone})
           </p>
         </div>
 
@@ -234,15 +250,23 @@ export default function PaymentPage() {
                       {item.icon}
                       <span
                         className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                          paymentMethod === item.id ? "border-orange-600 bg-orange-600" : "border-stone-300"
+                          paymentMethod === item.id
+                            ? "border-orange-600 bg-orange-600"
+                            : "border-stone-300"
                         }`}
                       >
-                        {paymentMethod === item.id && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                        {paymentMethod === item.id && (
+                          <div className="w-1.5 h-1.5 bg-white rounded-full" />
+                        )}
                       </span>
                     </div>
                     <div>
-                      <p className="font-bold text-xs text-stone-900">{item.label}</p>
-                      <p className="text-[10px] text-stone-500 font-medium mt-0.5">{item.sub}</p>
+                      <p className="font-bold text-xs text-stone-900">
+                        {item.label}
+                      </p>
+                      <p className="text-[10px] text-stone-500 font-medium mt-0.5">
+                        {item.sub}
+                      </p>
                     </div>
                   </button>
                 ))}
@@ -261,8 +285,8 @@ export default function PaymentPage() {
                       className="w-full h-auto max-h-72 object-contain rounded-xl shadow-inner"
                       onError={(e) => {
                         const target = e.currentTarget;
-                        if (!target.src.includes('fonepay_qr.png')) {
-                          target.src = '/fonepay_qr.png';
+                        if (!target.src.includes("fonepay_qr.png")) {
+                          target.src = "/fonepay_qr.png";
                         }
                       }}
                     />
@@ -277,9 +301,17 @@ export default function PaymentPage() {
                     B L GOLE KHAJA GHAR
                   </p>
                   <div className="flex flex-wrap justify-center items-center gap-2 text-[11px] text-stone-600">
-                    <span>Terminal: <strong className="font-mono text-stone-900">2222040019079684</strong></span>
+                    <span>
+                      Terminal:{" "}
+                      <strong className="font-mono text-stone-900">
+                        2222040019079684
+                      </strong>
+                    </span>
                     <span>•</span>
-                    <span>Branch: <strong className="text-stone-900">TAALCHOWK</strong></span>
+                    <span>
+                      Branch:{" "}
+                      <strong className="text-stone-900">TAALCHOWK</strong>
+                    </span>
                   </div>
                 </div>
 
@@ -289,8 +321,16 @@ export default function PaymentPage() {
                     onClick={() => handleCopyAccount("2222040019079684")}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-stone-300 text-xs font-bold text-stone-700 hover:bg-stone-50 transition-all cursor-pointer shadow-sm active:scale-95"
                   >
-                    {copiedAccount ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{copiedAccount ? "Terminal Copied!" : "Copy Terminal: 2222040019079684"}</span>
+                    {copiedAccount ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5" />
+                    )}
+                    <span>
+                      {copiedAccount
+                        ? "Terminal Copied!"
+                        : "Copy Terminal: 2222040019079684"}
+                    </span>
                   </button>
                   <a
                     href="/images/fonepay-qr.png"
@@ -321,13 +361,15 @@ export default function PaymentPage() {
                     className="w-full px-4 py-3 rounded-xl border border-stone-300 bg-stone-50 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/20 text-sm font-semibold transition-all"
                   />
                   <p className="text-[10px] text-stone-400 mt-1">
-                    Enter the reference code from your payment receipt to instantly verify.
+                    Enter the reference code from your payment receipt to
+                    instantly verify.
                   </p>
                 </div>
               ) : (
                 <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 text-xs text-amber-900 font-medium">
-                  <strong>Cash on Delivery:</strong> Please keep exact change ready of{" "}
-                  <strong>Rs. {order.totalAmount.toFixed(0)}</strong> when your food arrives.
+                  <strong>Cash on Delivery:</strong> Please keep exact change
+                  ready of <strong>Rs. {order.totalAmount.toFixed(0)}</strong>{" "}
+                  when your food arrives.
                 </div>
               )}
 
@@ -340,8 +382,8 @@ export default function PaymentPage() {
                 {submitting
                   ? "Verifying Payment..."
                   : paymentMethod === "COD"
-                  ? "Confirm Cash on Delivery Order"
-                  : `Submit Payment Verification (Rs. ${order.totalAmount.toFixed(0)})`}
+                    ? "Confirm Cash on Delivery Order"
+                    : `Submit Payment Verification (Rs. ${order.totalAmount.toFixed(0)})`}
               </button>
             </form>
           </div>
@@ -349,22 +391,38 @@ export default function PaymentPage() {
           {/* Right Column: Order Summary */}
           <div className="lg:col-span-5 bg-white rounded-3xl border border-stone-200 p-6 sm:p-8 shadow-sm space-y-6">
             <div className="border-b border-stone-100 pb-4">
-              <span className="text-xs font-black uppercase tracking-wider text-stone-400">Order Summary</span>
-              <h3 className="text-xl font-black text-stone-900 mt-1">Rs. {order.totalAmount.toFixed(0)}</h3>
-              <p className="text-xs text-stone-500 font-medium">Includes food items & delivery</p>
+              <span className="text-xs font-black uppercase tracking-wider text-stone-400">
+                Order Summary
+              </span>
+              <h3 className="text-xl font-black text-stone-900 mt-1">
+                Rs. {order.totalAmount.toFixed(0)}
+              </h3>
+              <p className="text-xs text-stone-500 font-medium">
+                Includes food items & delivery
+              </p>
             </div>
 
             {/* Items List */}
             <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
               {order.items.map((it, idx) => (
-                <div key={idx} className="flex justify-between items-center text-xs pb-2 border-b border-stone-50 last:border-0">
+                <div
+                  key={idx}
+                  className="flex justify-between items-center text-xs pb-2 border-b border-stone-50 last:border-0"
+                >
                   <div className="space-y-0.5">
                     <p className="font-bold text-stone-900">{it.productName}</p>
                     <p className="text-[11px] text-stone-400">
-                      Qty: {it.quantity} {it.variantName ? `• ${it.variantName}` : it.selectedWeightInGrams ? `• ${it.selectedWeightInGrams}g` : ""}
+                      Qty: {it.quantity}{" "}
+                      {it.variantName
+                        ? `• ${it.variantName}`
+                        : it.selectedWeightInGrams
+                          ? `• ${it.selectedWeightInGrams}g`
+                          : ""}
                     </p>
                   </div>
-                  <span className="font-black text-stone-900">Rs. {Number(it.calculatedPrice).toFixed(0)}</span>
+                  <span className="font-black text-stone-900">
+                    Rs. {Number(it.calculatedPrice).toFixed(0)}
+                  </span>
                 </div>
               ))}
             </div>
@@ -373,15 +431,21 @@ export default function PaymentPage() {
             <div className="bg-stone-50 p-4 rounded-2xl space-y-2 text-xs font-semibold text-stone-600 border border-stone-100">
               <div className="flex justify-between">
                 <span>Subtotal:</span>
-                <span className="text-stone-900 font-bold">Rs. {order.subtotalAmount.toFixed(0)}</span>
+                <span className="text-stone-900 font-bold">
+                  Rs. {order.subtotalAmount.toFixed(0)}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span>Delivery Charge:</span>
-                <span className="text-stone-900 font-bold">Rs. {order.deliveryCharge.toFixed(0)}</span>
+                <span className="text-stone-900 font-bold">
+                  Rs. {order.deliveryCharge.toFixed(0)}
+                </span>
               </div>
               <div className="pt-2 border-t border-stone-200 flex justify-between text-sm font-black text-stone-900">
                 <span>Total Amount:</span>
-                <span className="text-orange-600 text-base">Rs. {order.totalAmount.toFixed(0)}</span>
+                <span className="text-orange-600 text-base">
+                  Rs. {order.totalAmount.toFixed(0)}
+                </span>
               </div>
             </div>
 
@@ -393,8 +457,19 @@ export default function PaymentPage() {
               </p>
               <p className="text-[11px]">
                 Call or WhatsApp our hotline directly at{" "}
-                <a href="tel:+9779804146136" className="font-bold text-orange-700 hover:underline">9804146136</a> /{" "}
-                <a href="tel:+9779846011810" className="font-bold text-orange-700 hover:underline">9846011810</a>
+                <a
+                  href="tel:+9779804146136"
+                  className="font-bold text-orange-700 hover:underline"
+                >
+                  9804146136
+                </a>{" "}
+                /{" "}
+                <a
+                  href="tel:+9779846011810"
+                  className="font-bold text-orange-700 hover:underline"
+                >
+                  9846011810
+                </a>
               </p>
             </div>
           </div>

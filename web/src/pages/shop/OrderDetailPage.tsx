@@ -2,7 +2,14 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useUser } from "@/context/UserContext";
 import { api } from "@/lib/api";
-import { ChevronLeft, MapPin, Phone, User, Package, Loader2 } from "lucide-react";
+import {
+  ChevronLeft,
+  MapPin,
+  Phone,
+  User,
+  Package,
+  Loader2,
+} from "lucide-react";
 
 export default function OrderDetailPage() {
   const { orderId } = useParams<{ orderId: string }>();
@@ -54,8 +61,12 @@ export default function OrderDetailPage() {
   if (error || !order) {
     return (
       <div className="min-h-screen bg-stone-50 flex flex-col items-center justify-center p-4">
-        <h1 className="text-2xl font-black text-stone-900 mb-2">Order Not Found</h1>
-        <p className="text-stone-500 mb-6">{error || "We couldn't locate this order."}</p>
+        <h1 className="text-2xl font-black text-stone-900 mb-2">
+          Order Not Found
+        </h1>
+        <p className="text-stone-500 mb-6">
+          {error || "We couldn't locate this order."}
+        </p>
         <Link
           to="/orders"
           className="px-6 py-3 bg-primary text-white font-bold rounded-xl shadow hover:opacity-90"
@@ -86,10 +97,10 @@ export default function OrderDetailPage() {
               order.status === "delivered"
                 ? "bg-green-100 text-green-800"
                 : order.status === "cancelled"
-                ? "bg-red-100 text-red-800"
-                : order.status === "ready"
-                ? "bg-blue-100 text-blue-800"
-                : "bg-orange-100 text-orange-800"
+                  ? "bg-red-100 text-red-800"
+                  : order.status === "ready"
+                    ? "bg-blue-100 text-blue-800"
+                    : "bg-orange-100 text-orange-800"
             }`}
           >
             {order.status}
@@ -104,7 +115,10 @@ export default function OrderDetailPage() {
             </h2>
             <div className="space-y-4">
               {order.items?.map((item: any, idx: number) => (
-                <div key={idx} className="flex justify-between py-2 border-b border-stone-50 last:border-0 last:pb-0">
+                <div
+                  key={idx}
+                  className="flex justify-between py-2 border-b border-stone-50 last:border-0 last:pb-0"
+                >
                   <div>
                     <p className="font-bold text-black">{item.productName}</p>
                     <p className="text-sm text-stone-500">
@@ -113,7 +127,9 @@ export default function OrderDetailPage() {
                         : `${item.selectedVariantName || ""} × ${item.qty}`}
                     </p>
                   </div>
-                  <p className="font-bold text-black">Rs. {item.calculatedPrice}</p>
+                  <p className="font-bold text-black">
+                    Rs. {item.calculatedPrice}
+                  </p>
                 </div>
               ))}
             </div>
@@ -121,7 +137,14 @@ export default function OrderDetailPage() {
             <div className="mt-6 pt-4 border-t border-stone-100 space-y-2">
               <div className="flex justify-between text-stone-600 font-medium text-sm">
                 <span>Subtotal</span>
-                <span>Rs. {Number(order.subtotalAmount !== undefined ? order.subtotalAmount : (order.totalAmount - (order.deliveryCharge || 0))).toFixed(2)}</span>
+                <span>
+                  Rs.{" "}
+                  {Number(
+                    order.subtotalAmount !== undefined
+                      ? order.subtotalAmount
+                      : order.totalAmount - (order.deliveryCharge || 0),
+                  ).toFixed(2)}
+                </span>
               </div>
               {order.orderType === "delivery" && (
                 <div className="flex justify-between text-stone-600 font-medium text-sm">
@@ -129,21 +152,33 @@ export default function OrderDetailPage() {
                     Delivery Charge{" "}
                     {Number(order.deliveryCharge || 0) === 0 && (
                       <span className="text-xs text-stone-400 font-normal">
-                        {(order.subtotalAmount !== undefined ? Number(order.subtotalAmount) : Number(order.totalAmount)) >= 500
+                        {(order.subtotalAmount !== undefined
+                          ? Number(order.subtotalAmount)
+                          : Number(order.totalAmount)) >= 500
                           ? "(Free ≥ Rs. 500)"
                           : "(Free)"}
                       </span>
                     )}
                   </span>
-                  <span className={Number(order.deliveryCharge || 0) > 0 ? "font-bold text-stone-800" : "font-black text-emerald-600"}>
-                    {Number(order.deliveryCharge || 0) > 0 ? `+ Rs. ${Number(order.deliveryCharge).toFixed(2)}` : "Free"}
+                  <span
+                    className={
+                      Number(order.deliveryCharge || 0) > 0
+                        ? "font-bold text-stone-800"
+                        : "font-black text-emerald-600"
+                    }
+                  >
+                    {Number(order.deliveryCharge || 0) > 0
+                      ? `+ Rs. ${Number(order.deliveryCharge).toFixed(2)}`
+                      : "Free"}
                   </span>
                 </div>
               )}
               {order.orderType === "pickup" && (
                 <div className="flex justify-between text-stone-600 font-medium text-sm">
                   <span>Order Type</span>
-                  <span className="font-bold text-stone-700">Self Pickup (No Delivery Fee)</span>
+                  <span className="font-bold text-stone-700">
+                    Self Pickup (No Delivery Fee)
+                  </span>
                 </div>
               )}
               {Number(order.discountAmount || 0) > 0 && (
@@ -168,10 +203,12 @@ export default function OrderDetailPage() {
             </h2>
             <div className="space-y-3 text-stone-600">
               <p className="flex items-center gap-2">
-                <User className="w-4 h-4 text-stone-400" /> {order.customerInfo?.name}
+                <User className="w-4 h-4 text-stone-400" />{" "}
+                {order.customerInfo?.name}
               </p>
               <p className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-stone-400" /> {order.customerInfo?.phone}
+                <Phone className="w-4 h-4 text-stone-400" />{" "}
+                {order.customerInfo?.phone}
               </p>
             </div>
           </div>
@@ -182,11 +219,15 @@ export default function OrderDetailPage() {
               Delivery Details
             </h2>
             <div className="space-y-3 text-stone-600">
-              <p className="font-medium capitalize text-black">Type: {order.orderType}</p>
+              <p className="font-medium capitalize text-black">
+                Type: {order.orderType}
+              </p>
               {order.address && <p className="text-sm">{order.address}</p>}
               {order.notes && (
                 <div className="mt-3 pt-3 border-t border-stone-100 text-sm">
-                  <span className="font-bold text-stone-700 block mb-1">Notes:</span>
+                  <span className="font-bold text-stone-700 block mb-1">
+                    Notes:
+                  </span>
                   {order.notes}
                 </div>
               )}

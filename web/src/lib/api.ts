@@ -188,7 +188,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     ...(options.headers as Record<string, string>),
   };
 
-  const isAdminEndpoint = endpoint.startsWith('/admin') || endpoint.startsWith('/notifications/admin');
+  const isAdminEndpoint = endpoint.startsWith('/admin') || endpoint.startsWith('/notifications/admin') || endpoint.startsWith('/push');
   const token = isAdminEndpoint ? (getAdminToken() || getAuthToken()) : (getAuthToken() || getAdminToken());
 
   if (token && !headers['Authorization']) {

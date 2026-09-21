@@ -10,10 +10,11 @@ import {
   Printer,
   Receipt,
   Lock,
+  Store,
 } from "lucide-react";
 import StatusUpdater from "@/components/admin/StatusUpdater";
 import PaymentStatusToggle from "@/components/admin/PaymentStatusToggle";
-import StaticMapView from "@/components/StaticMapView";
+import StaticMapView, { cleanAddressText } from "@/components/StaticMapView";
 import ThermalReceiptModal from "@/components/admin/ThermalReceiptModal";
 import { api } from "@/lib/api";
 
@@ -76,7 +77,7 @@ export default function AdminOrderDetailPage() {
   const isCancelled = (order.status || "").toLowerCase() === "cancelled";
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Link
@@ -143,141 +144,170 @@ export default function AdminOrderDetailPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Customer Info */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100 space-y-4">
-          <h2 className="text-lg font-black text-stone-900 border-b border-stone-100 pb-2 flex items-center gap-2">
-            <User className="w-5 h-5 text-primary" /> Customer Details
-          </h2>
-          <div className="space-y-3">
-            <div>
-              <p className="text-xs font-bold text-stone-400">Name</p>
-              <p className="font-bold text-stone-800">{order.customerInfo?.name}</p>
-            </div>
-            <div>
-              <p className="text-xs font-bold text-stone-400">Phone</p>
-              <div className="flex items-center gap-2">
-                <p className="font-bold text-stone-800">{order.customerInfo?.phone}</p>
-                <a
-                  href={`tel:${order.customerInfo?.phone}`}
-                  className="text-primary hover:underline text-sm font-bold"
-                >
-                  Call
-                </a>
-              </div>
-            </div>
-            {order.customerInfo?.email && (
+      {/* Main Order & Delivery Grid */}
+      <div className={`grid grid-cols-1 ${order.orderType === "delivery" ? "lg:grid-cols-12" : "md:grid-cols-2"} gap-5 sm:gap-6`}>
+        {/* Left Column: Customer Details + Order Details */}
+        <div className={`${order.orderType === "delivery" ? "lg:col-span-5" : "col-span-1"} space-y-5 sm:space-y-6`}>
+          {/* Customer Info */}
+          <div className="bg-white p-5 sm:p-6 rounded-2xl shadow-xs border border-stone-200/90 space-y-4">
+            <h2 className="text-base sm:text-lg font-black text-stone-900 border-b border-stone-100 pb-2 flex items-center gap-2">
+              <User className="w-5 h-5 text-primary" /> Customer Details
+            </h2>
+            <div className="space-y-3 text-xs sm:text-sm">
               <div>
-                <p className="text-xs font-bold text-stone-400">Email</p>
-                <p className="font-bold text-stone-800">{order.customerInfo?.email}</p>
+                <p className="text-xs font-bold text-stone-400">Name</p>
+                <p className="font-extrabold text-stone-800">{order.customerInfo?.name}</p>
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* Order Details */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100 space-y-4">
-          <h2 className="text-lg font-black text-stone-900 border-b border-stone-100 pb-2 flex items-center gap-2">
-            <Package className="w-5 h-5 text-primary" /> Order Info
-          </h2>
-          <div className="space-y-3">
-            <div>
-              <p className="text-xs font-bold text-stone-400">Date Placed</p>
-              <p className="font-bold text-stone-800">{new Date(order.createdAt).toLocaleString()}</p>
-            </div>
-            <div>
-              <p className="text-xs font-bold text-stone-400">Type</p>
-              <p className="font-bold text-stone-800 capitalize">{order.orderType}</p>
-            </div>
-            {(order.tableNumber || order.tableSession?.table?.tableNumber) && (
               <div>
-                <p className="text-xs font-bold text-stone-400">Table</p>
-                <p className="font-black text-stone-800">
-                  {order.tableNumber ? `Table ${order.tableNumber}` : `Table ${order.tableSession.table.tableNumber}`}
-                </p>
+                <p className="text-xs font-bold text-stone-400">Phone</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-extrabold text-stone-800">{order.customerInfo?.phone}</p>
+                  <a
+                    href={`tel:${order.customerInfo?.phone}`}
+                    className="text-primary hover:underline text-xs font-bold bg-orange-50 px-2 py-0.5 rounded-md border border-orange-200"
+                  >
+                    Call Customer
+                  </a>
+                </div>
               </div>
-            )}
-            {(order.waiterName || order.tableSession?.waiter?.user?.fullName || order.tableSession?.waiterName) && (
-              <div>
-                <p className="text-xs font-bold text-stone-400">Assigned Waiter / Server</p>
-                <p className="font-bold text-stone-800 flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-orange-500"></span>
-                  <span>{order.waiterName || order.tableSession?.waiter?.user?.fullName || order.tableSession?.waiterName}</span>
-                  {(order.waiterCode || order.tableSession?.waiter?.employeeCode) && (
-                    <span className="text-xs text-stone-500 font-mono">({order.waiterCode || order.tableSession?.waiter?.employeeCode})</span>
-                  )}
-                </p>
-              </div>
-            )}
-            <div>
-              <p className="text-xs font-bold text-stone-400">Total Amount</p>
-              <p className="font-black text-lg text-primary">
-                Rs. {Number(order.totalAmount).toFixed(2)}
-              </p>
-              {Number(order.deliveryCharge || 0) > 0 && (
-                <p className="text-[11px] text-stone-500 font-medium">
-                  (Includes Rs. {Number(order.deliveryCharge).toFixed(0)} delivery fee)
-                </p>
+              {order.customerInfo?.email && (
+                <div>
+                  <p className="text-xs font-bold text-stone-400">Email</p>
+                  <p className="font-bold text-stone-800">{order.customerInfo?.email}</p>
+                </div>
               )}
             </div>
-            <div>
-              <p className="text-xs font-bold text-stone-400">Payment Method</p>
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className="font-bold text-stone-800 capitalize">
-                  {order.paymentMethod === "qr" || order.paymentMethod === "fonepay_qr"
-                    ? "FonePay QR / Online"
-                    : "Cash on Delivery"}
-                </span>
-                {order.txRef && (
-                  <span className="text-[10px] font-mono bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-200">
-                    Tx: {order.txRef}
-                  </span>
+          </div>
+
+          {/* Order Details */}
+          <div className="bg-white p-5 sm:p-6 rounded-2xl shadow-xs border border-stone-200/90 space-y-4">
+            <h2 className="text-base sm:text-lg font-black text-stone-900 border-b border-stone-100 pb-2 flex items-center gap-2">
+              <Package className="w-5 h-5 text-primary" /> Order Info & Payment
+            </h2>
+            <div className="space-y-3 text-xs sm:text-sm">
+              <div>
+                <p className="text-xs font-bold text-stone-400">Date Placed</p>
+                <p className="font-bold text-stone-800">{new Date(order.createdAt).toLocaleString()}</p>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-stone-400">Type</p>
+                <p className="font-bold text-stone-800 capitalize">{order.orderType}</p>
+              </div>
+              {(order.tableNumber || order.tableSession?.table?.tableNumber) && (
+                <div>
+                  <p className="text-xs font-bold text-stone-400">Table</p>
+                  <p className="font-black text-stone-800">
+                    {order.tableNumber ? `Table ${order.tableNumber}` : `Table ${order.tableSession.table.tableNumber}`}
+                  </p>
+                </div>
+              )}
+              {(order.waiterName || order.tableSession?.waiter?.user?.fullName || order.tableSession?.waiterName) && (
+                <div>
+                  <p className="text-xs font-bold text-stone-400">Assigned Waiter / Server</p>
+                  <p className="font-bold text-stone-800 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-orange-500"></span>
+                    <span>{order.waiterName || order.tableSession?.waiter?.user?.fullName || order.tableSession?.waiterName}</span>
+                    {(order.waiterCode || order.tableSession?.waiter?.employeeCode) && (
+                      <span className="text-xs text-stone-500 font-mono">({order.waiterCode || order.tableSession?.waiter?.employeeCode})</span>
+                    )}
+                  </p>
+                </div>
+              )}
+              <div>
+                <p className="text-xs font-bold text-stone-400">Total Amount</p>
+                <p className="font-black text-lg text-primary">
+                  Rs. {Number(order.totalAmount).toFixed(2)}
+                </p>
+                {Number(order.deliveryCharge || 0) > 0 && (
+                  <p className="text-[11px] text-stone-500 font-medium">
+                    (Includes Rs. {Number(order.deliveryCharge).toFixed(0)} delivery fee)
+                  </p>
                 )}
               </div>
-            </div>
-            <div>
-              <PaymentStatusToggle
-                orderId={order._id?.toString() || order.id?.toString()}
-                currentPaymentStatus={order.paymentStatus as "pending" | "paid"}
-                disabled={isCancelled}
-                onStatusChange={(newStatus) =>
-                  setOrder((prev: any) =>
-                    prev ? { ...prev, paymentStatus: newStatus } : prev
-                  )
-                }
-              />
+              <div>
+                <p className="text-xs font-bold text-stone-400">Payment Method</p>
+                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                  <span className="font-bold text-stone-800 capitalize">
+                    {order.paymentMethod === "qr" || order.paymentMethod === "fonepay_qr"
+                      ? "FonePay QR / Online"
+                      : "Cash on Delivery"}
+                  </span>
+                  {order.txRef && (
+                    <span className="text-[10px] font-mono bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-200">
+                      Tx: {order.txRef}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="pt-1">
+                <PaymentStatusToggle
+                  orderId={order._id?.toString() || order.id?.toString()}
+                  currentPaymentStatus={order.paymentStatus as "pending" | "paid"}
+                  disabled={isCancelled}
+                  onStatusChange={(newStatus) =>
+                    setOrder((prev: any) =>
+                      prev ? { ...prev, paymentStatus: newStatus } : prev
+                    )
+                  }
+                />
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Delivery Details */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100 space-y-4">
-          <h2 className="text-lg font-black text-stone-900 border-b border-stone-100 pb-2 flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-primary" /> Delivery Info
-          </h2>
-          <div className="space-y-3">
-            {order.orderType === "delivery" ? (
-              <div className="space-y-3">
-                <div>
-                  <p className="text-xs font-bold text-stone-400">Address</p>
-                  <p className="font-bold text-stone-800">{order.address}</p>
-                </div>
-                <StaticMapView address={order.address || ""} />
+        {/* Right Column: Delivery Details & Navigation Map */}
+        {order.orderType === "delivery" ? (
+          <div className="lg:col-span-7 bg-white p-5 sm:p-6 rounded-2xl shadow-xs border border-stone-200/90 space-y-4 flex flex-col justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+                <h2 className="text-base sm:text-lg font-black text-stone-900 flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-primary" /> Delivery Info & Navigation
+                </h2>
+                <span className="text-[10px] font-black uppercase tracking-wider bg-orange-100 text-orange-800 px-2.5 py-0.5 rounded-full border border-orange-200">
+                  Delivery Location
+                </span>
               </div>
-            ) : (
-              <div className="bg-orange-50 text-orange-600 p-3 rounded-lg font-bold text-sm text-center">
-                Customer will pick up at store.
+
+              <div>
+                <p className="text-xs font-bold text-stone-400">Customer Delivery Address</p>
+                <p className="font-extrabold text-stone-900 text-sm mt-0.5 leading-snug">
+                  {cleanAddressText(order.address)}
+                </p>
               </div>
-            )}
+
+              <StaticMapView address={order.address || ""} />
+            </div>
 
             {order.notes && (
-              <div>
-                <p className="text-xs font-bold text-stone-400 mt-4">Order Notes</p>
-                <p className="text-sm text-stone-600 bg-stone-50 p-3 rounded-lg mt-1 italic">{order.notes}</p>
+              <div className="pt-3 border-t border-stone-100">
+                <p className="text-xs font-bold text-stone-400">Order & Delivery Notes</p>
+                <p className="text-xs sm:text-sm text-stone-700 bg-stone-50 p-3 rounded-xl mt-1 border border-stone-200/80 italic">
+                  "{order.notes}"
+                </p>
               </div>
             )}
           </div>
-        </div>
+        ) : (
+          <div className="col-span-1 bg-white p-5 sm:p-6 rounded-2xl shadow-xs border border-stone-200/90 flex flex-col justify-between space-y-4">
+            <div>
+              <h2 className="text-base sm:text-lg font-black text-stone-900 border-b border-stone-100 pb-3 flex items-center gap-2">
+                <Store className="w-5 h-5 text-primary" /> Store Fulfillment
+              </h2>
+              <div className="bg-orange-50 text-orange-700 p-4 rounded-xl font-bold text-sm text-center mt-4 border border-orange-200">
+                Dine-in / Pickup Order. Customer will pick up at store or dine at assigned table.
+              </div>
+            </div>
+
+            {order.notes && (
+              <div className="pt-3 border-t border-stone-100">
+                <p className="text-xs font-bold text-stone-400">Order Notes</p>
+                <p className="text-xs sm:text-sm text-stone-700 bg-stone-50 p-3 rounded-xl mt-1 border border-stone-200/80 italic">
+                  "{order.notes}"
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Items */}

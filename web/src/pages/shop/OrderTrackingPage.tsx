@@ -1,6 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { CheckCircle2, Truck, Store, MapPin, User, Phone, MessageCircle, ShoppingBag, Loader2 } from "lucide-react";
+import {
+  CheckCircle2,
+  Truck,
+  Store,
+  MapPin,
+  User,
+  Phone,
+  MessageCircle,
+  ShoppingBag,
+  Loader2,
+} from "lucide-react";
 import CopyOrderButton from "@/components/CopyOrderButton";
 import LiveOrderSection from "@/components/LiveOrderSection";
 import PushNotificationSetup from "@/components/PushNotificationSetup";
@@ -51,8 +61,12 @@ export default function OrderTrackingPage() {
   if (error || !order) {
     return (
       <div className="min-h-screen bg-[#fafafa] flex flex-col items-center justify-center p-4">
-        <h1 className="text-2xl font-black text-stone-900 mb-2">Order Not Found</h1>
-        <p className="text-stone-500 mb-6">{error || "We couldn't locate this order."}</p>
+        <h1 className="text-2xl font-black text-stone-900 mb-2">
+          Order Not Found
+        </h1>
+        <p className="text-stone-500 mb-6">
+          {error || "We couldn't locate this order."}
+        </p>
         <Link
           to="/shop"
           className="px-6 py-3 bg-primary text-white font-bold rounded-xl shadow hover:opacity-90"
@@ -88,7 +102,7 @@ ${(order.items || [])
             ? item.selectedWeightInGrams / 1000 + "kg"
             : item.selectedWeightInGrams + "g"
           : item.selectedVariantName || ""
-      }) x ${item.qty} - Rs. ${Number(item.calculatedPrice).toFixed(2)}`
+      }) x ${item.qty} - Rs. ${Number(item.calculatedPrice).toFixed(2)}`,
   )
   .join("\n")}
 
@@ -110,11 +124,19 @@ ${order.orderType === "delivery" ? "Delivery" : "Pickup"}${
           <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle2 className="w-10 h-10 text-green-500" />
           </div>
-          <h1 className="text-3xl font-black text-black mb-2">Order Confirmed!</h1>
-          <p className="text-stone-500 font-medium">Thank you for your order, {order.customerInfo?.name}.</p>
+          <h1 className="text-3xl font-black text-black mb-2">
+            Order Confirmed!
+          </h1>
+          <p className="text-stone-500 font-medium">
+            Thank you for your order, {order.customerInfo?.name}.
+          </p>
           <div className="mt-6 inline-flex items-center gap-2 bg-stone-100 px-4 py-2 rounded-lg">
-            <span className="text-stone-500 font-semibold text-sm">Order Number:</span>
-            <span className="font-black text-black tracking-wider">{order.orderNumber}</span>
+            <span className="text-stone-500 font-semibold text-sm">
+              Order Number:
+            </span>
+            <span className="font-black text-black tracking-wider">
+              {order.orderNumber}
+            </span>
           </div>
         </div>
 
@@ -123,11 +145,17 @@ ${order.orderType === "delivery" ? "Delivery" : "Pickup"}${
           {/* Header Bar */}
           <div className="bg-stone-50 border-b border-stone-100 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className="font-black text-stone-900 text-lg">Order Details</h2>
-              <p className="text-xs font-semibold text-stone-400 mt-0.5">Please review your order information</p>
+              <h2 className="font-black text-stone-900 text-lg">
+                Order Details
+              </h2>
+              <p className="text-xs font-semibold text-stone-400 mt-0.5">
+                Please review your order information
+              </p>
             </div>
             <div className="sm:text-right">
-              <p className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">Date</p>
+              <p className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">
+                Date
+              </p>
               <p className="font-bold text-black text-sm">{orderDate}</p>
             </div>
           </div>
@@ -144,19 +172,25 @@ ${order.orderType === "delivery" ? "Delivery" : "Pickup"}${
             {/* Customer & Delivery Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4 border-t border-stone-100">
               <div>
-                <h3 className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-4">Customer Details</h3>
+                <h3 className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-4">
+                  Customer Details
+                </h3>
                 <div className="space-y-3 text-sm font-semibold text-stone-800">
                   <div className="flex items-center gap-3">
-                    <User className="w-4 h-4 text-stone-400" /> {order.customerInfo?.name}
+                    <User className="w-4 h-4 text-stone-400" />{" "}
+                    {order.customerInfo?.name}
                   </div>
                   <div className="flex items-center gap-3">
-                    <Phone className="w-4 h-4 text-stone-400" /> {order.customerInfo?.phone}
+                    <Phone className="w-4 h-4 text-stone-400" />{" "}
+                    {order.customerInfo?.phone}
                   </div>
                 </div>
               </div>
 
               <div>
-                <h3 className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-4">Order Type</h3>
+                <h3 className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-4">
+                  Order Type
+                </h3>
                 <div className="space-y-3 text-sm font-semibold text-stone-800">
                   {order.orderType === "delivery" ? (
                     <>
@@ -165,7 +199,9 @@ ${order.orderType === "delivery" ? "Delivery" : "Pickup"}${
                       </div>
                       <div className="flex items-start gap-3 mb-3 text-stone-600">
                         <MapPin className="w-4 h-4 text-stone-400 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm leading-snug">{order.address}</span>
+                        <span className="text-sm leading-snug">
+                          {order.address}
+                        </span>
                       </div>
                     </>
                   ) : (
@@ -179,7 +215,9 @@ ${order.orderType === "delivery" ? "Delivery" : "Pickup"}${
 
             {/* Order Items */}
             <div className="pt-8 border-t border-stone-100">
-              <h3 className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-4">Order Items</h3>
+              <h3 className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-4">
+                Order Items
+              </h3>
               <div className="space-y-4">
                 {(order.items || []).map((item: any, index: number) => {
                   const unitText = item.selectedWeightInGrams
@@ -190,12 +228,17 @@ ${order.orderType === "delivery" ? "Delivery" : "Pickup"}${
                   const priceDetail = item.pricePerKgAtTimeOfOrder
                     ? `Rs. ${item.pricePerKgAtTimeOfOrder}/kg`
                     : item.unitPriceAtTimeOfOrder
-                    ? `Rs. ${item.unitPriceAtTimeOfOrder} each`
-                    : "";
+                      ? `Rs. ${item.unitPriceAtTimeOfOrder} each`
+                      : "";
                   return (
-                    <div key={index} className="flex justify-between items-center bg-stone-50 p-4 rounded-xl">
+                    <div
+                      key={index}
+                      className="flex justify-between items-center bg-stone-50 p-4 rounded-xl"
+                    >
                       <div>
-                        <h4 className="font-bold text-[15px] text-black">{item.productName}</h4>
+                        <h4 className="font-bold text-[15px] text-black">
+                          {item.productName}
+                        </h4>
                         <div className="text-[12px] font-bold text-stone-500 mt-1">
                           {unitText} × {item.qty}
                         </div>
@@ -205,7 +248,9 @@ ${order.orderType === "delivery" ? "Delivery" : "Pickup"}${
                           Rs. {Number(item.calculatedPrice).toFixed(2)}
                         </div>
                         {priceDetail && (
-                          <div className="text-[11px] font-medium text-stone-400 mt-0.5">{priceDetail}</div>
+                          <div className="text-[11px] font-medium text-stone-400 mt-0.5">
+                            {priceDetail}
+                          </div>
                         )}
                       </div>
                     </div>
@@ -218,7 +263,14 @@ ${order.orderType === "delivery" ? "Delivery" : "Pickup"}${
             <div className="pt-6 border-t border-stone-100 space-y-2">
               <div className="flex justify-between text-stone-600 font-medium text-sm">
                 <span>Subtotal</span>
-                <span>Rs. {(order.subtotalAmount !== undefined ? Number(order.subtotalAmount) : (Number(order.totalAmount) - Number(order.deliveryCharge || 0))).toFixed(2)}</span>
+                <span>
+                  Rs.{" "}
+                  {(order.subtotalAmount !== undefined
+                    ? Number(order.subtotalAmount)
+                    : Number(order.totalAmount) -
+                      Number(order.deliveryCharge || 0)
+                  ).toFixed(2)}
+                </span>
               </div>
               {order.orderType === "delivery" && (
                 <div className="flex justify-between text-stone-600 font-medium text-sm">
@@ -226,21 +278,33 @@ ${order.orderType === "delivery" ? "Delivery" : "Pickup"}${
                     Delivery Charge{" "}
                     {Number(order.deliveryCharge || 0) === 0 && (
                       <span className="text-xs text-stone-400 font-normal">
-                        {(order.subtotalAmount !== undefined ? Number(order.subtotalAmount) : Number(order.totalAmount)) >= 500
+                        {(order.subtotalAmount !== undefined
+                          ? Number(order.subtotalAmount)
+                          : Number(order.totalAmount)) >= 500
                           ? "(Free ≥ Rs. 500)"
                           : "(Free)"}
                       </span>
                     )}
                   </span>
-                  <span className={Number(order.deliveryCharge || 0) > 0 ? "font-bold text-stone-800" : "font-black text-emerald-600"}>
-                    {Number(order.deliveryCharge || 0) > 0 ? `+ Rs. ${Number(order.deliveryCharge).toFixed(2)}` : "Free"}
+                  <span
+                    className={
+                      Number(order.deliveryCharge || 0) > 0
+                        ? "font-bold text-stone-800"
+                        : "font-black text-emerald-600"
+                    }
+                  >
+                    {Number(order.deliveryCharge || 0) > 0
+                      ? `+ Rs. ${Number(order.deliveryCharge).toFixed(2)}`
+                      : "Free"}
                   </span>
                 </div>
               )}
               {order.orderType === "pickup" && (
                 <div className="flex justify-between text-stone-600 font-medium text-sm">
                   <span>Order Type</span>
-                  <span className="font-bold text-stone-700">Self Pickup (No Delivery Fee)</span>
+                  <span className="font-bold text-stone-700">
+                    Self Pickup (No Delivery Fee)
+                  </span>
                 </div>
               )}
               {Number(order.discountAmount || 0) > 0 && (
@@ -251,7 +315,9 @@ ${order.orderType === "delivery" ? "Delivery" : "Pickup"}${
               )}
               <div className="pt-3 border-t border-stone-200 flex justify-between items-end">
                 <div>
-                  <p className="text-stone-900 font-black text-base">Grand Total</p>
+                  <p className="text-stone-900 font-black text-base">
+                    Grand Total
+                  </p>
                 </div>
                 <div className="text-2xl sm:text-3xl font-black text-black">
                   Rs. {Number(order.totalAmount).toFixed(2)}
@@ -296,7 +362,9 @@ ${order.orderType === "delivery" ? "Delivery" : "Pickup"}${
       </div>
 
       {/* Push notification opt-in for customers */}
-      <PushNotificationSetup userId={order.userId ? order.userId.toString() : undefined} />
+      <PushNotificationSetup
+        userId={order.userId ? order.userId.toString() : undefined}
+      />
     </div>
   );
 }

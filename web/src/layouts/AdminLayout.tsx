@@ -16,6 +16,8 @@ import {
   Receipt,
   Grid,
   TrendingUp,
+  Sparkles,
+  Radio,
 } from "lucide-react";
 import { AdminLiveProvider, useAdminLive } from "@/context/AdminLiveContext";
 import AdminPushSetup from "@/components/AdminPushSetup";
@@ -92,6 +94,7 @@ function AdminProtectedLayoutContent() {
     { name: "Billing", href: "/admin/billing", icon: Receipt },
     { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
     { name: "Products", href: "/admin/products", icon: Package },
+    { name: "Marketing", href: "/admin/marketing", icon: Sparkles },
     { name: "Staff", href: "/admin/waiters", icon: Users },
     { name: "Reports", href: "/admin/reports", icon: TrendingUp },
     { name: "Settings", href: "/admin/settings", icon: Settings },
@@ -285,6 +288,13 @@ function AdminProtectedLayoutContent() {
                     icon: Users,
                     iconBg: "bg-purple-100 text-purple-700",
                     borderHover: "hover:border-purple-300 hover:bg-purple-50/40",
+                  },
+                  {
+                    name: "Marketing",
+                    href: "/admin/marketing",
+                    icon: Sparkles,
+                    iconBg: "bg-amber-100 text-amber-700",
+                    borderHover: "hover:border-amber-300 hover:bg-amber-50/40",
                   },
                   {
                     name: "Reports",

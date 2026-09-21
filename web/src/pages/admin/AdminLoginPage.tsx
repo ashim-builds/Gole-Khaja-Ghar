@@ -61,7 +61,9 @@ export default function AdminLoginPage() {
       <div className="min-h-screen flex items-center justify-center bg-[#111111]">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <p className="text-stone-400 text-sm font-semibold">Checking session...</p>
+          <p className="text-stone-400 text-sm font-semibold">
+            Checking session...
+          </p>
         </div>
       </div>
     );
@@ -89,8 +91,8 @@ export default function AdminLoginPage() {
               className="w-full h-full object-cover"
               onError={(e) => {
                 const target = e.currentTarget;
-                if (!target.src.includes('favicon-circle.png')) {
-                  target.src = '/favicon-circle.png';
+                if (!target.src.includes("favicon-circle.png")) {
+                  target.src = "/favicon-circle.png";
                 }
               }}
             />

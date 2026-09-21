@@ -55,7 +55,7 @@ export default function CheckoutPage() {
   });
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [, setMapCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [mapCoords, setMapCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [showManualAddress, setShowManualAddress] = useState(false);
 
   useEffect(() => {
@@ -203,7 +203,12 @@ export default function CheckoutPage() {
     },
     orderType: formData.orderType,
     paymentMethod: formData.paymentMethod,
-    address: formData.orderType === "delivery" ? formData.address : undefined,
+    address:
+      formData.orderType === "delivery"
+        ? mapCoords && !formData.address.includes("[GPS:")
+          ? `${formData.address.trim()} [GPS: ${mapCoords.lat.toFixed(6)}, ${mapCoords.lng.toFixed(6)}]`
+          : formData.address
+        : undefined,
     notes: formData.notes || undefined,
     items: items.map((item) => ({
       productId: item.product.id,

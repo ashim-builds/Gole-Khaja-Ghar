@@ -40,6 +40,7 @@ const AdminNewProductPage = lazy(() => import("@/pages/admin/AdminNewProductPage
 const AdminEditProductPage = lazy(() => import("@/pages/admin/AdminEditProductPage"));
 const AdminWaitersPage = lazy(() => import("@/pages/admin/AdminWaitersPage"));
 const AdminSettingsPage = lazy(() => import("@/pages/admin/AdminSettingsPage"));
+const AdminMarketingPage = lazy(() => import("@/pages/admin/AdminMarketingPage"));
 const AdminTablesPage = lazy(() => import("@/pages/admin/AdminTablesPage"));
 const AdminBillingPage = lazy(() => import("@/pages/admin/AdminBillingPage"));
 const AdminReportsPage = lazy(() => import("@/pages/admin/AdminReportsPage"));
@@ -105,6 +106,9 @@ export default function App() {
                 <Route path="/admin/products/:id/edit" element={<AdminEditProductPage />} />
                 <Route path="/admin/waiters" element={<AdminWaitersPage />} />
                 <Route path="/admin/settings" element={<AdminSettingsPage />} />
+                <Route path="/admin/marketing" element={<AdminMarketingPage />} />
+                <Route path="/admin/push" element={<AdminMarketingPage />} />
+                <Route path="/admin/push-broadcast" element={<AdminMarketingPage />} />
               </Route>
             </Route>
 
