@@ -18,34 +18,34 @@ import SEO from "@/components/SEO";
 const aboutSchema = {
   "@context": "https://schema.org",
   "@type": "AboutPage",
-  "name": "About Gole Khaja Ghar | Sisuwa",
-  "url": "https://golekhajaghar.com/about",
-  "description":
+  name: "About Gole Khaja Ghar | Sisuwa",
+  url: "https://golekhajaghar.com/about",
+  description:
     "About Gole Khaja Ghar, an authentic Nepali restaurant and khaja eatery in Sisuwa, Pokhara-30, serving fresh momos, khaja sets, chowmein, and traditional snacks.",
-  "mainEntity": {
+  mainEntity: {
     "@type": "Restaurant",
-    "name": "Gole Khaja Ghar",
-    "alternateName": [
+    name: "Gole Khaja Ghar",
+    alternateName: [
       "Gole Khaja",
       "Gole Ghar",
       "गोल खाजा घर",
       "Gole Khaja Ghar Sisuwa",
       "Gole Khaja Sisuwa",
       "Gole Ghar Sisuwa",
-      "Gole Khaja Ghar Restaurant"
+      "Gole Khaja Ghar Restaurant",
     ],
-    "url": "https://golekhajaghar.com",
-    "telephone": ["+977-9804146136", "+977-9846011810"],
-    "servesCuisine": ["Nepali", "Newari", "Khaja", "Fast Food"],
-    "address": {
+    url: "https://golekhajaghar.com",
+    telephone: ["+977-9804146136", "+977-9846011810"],
+    servesCuisine: ["Nepali", "Newari", "Khaja", "Fast Food"],
+    address: {
       "@type": "PostalAddress",
-      "streetAddress": "Sisuwa",
-      "addressLocality": "Pokhara-30",
-      "addressRegion": "Gandaki Province",
-      "postalCode": "33700",
-      "addressCountry": "NP"
-    }
-  }
+      streetAddress: "Sisuwa",
+      addressLocality: "Pokhara-30",
+      addressRegion: "Gandaki Province",
+      postalCode: "33700",
+      addressCountry: "NP",
+    },
+  },
 };
 
 export default function AboutPage() {
@@ -102,9 +102,9 @@ export default function AboutPage() {
                 order with genuine Himalayan hospitality.
               </p>
             </div>
-            <div className="relative rounded-2xl overflow-hidden shadow-lg border border-stone-100 aspect-video md:aspect-square">
+            <div className="relative rounded-2xl overflow-hidden shadow-lg border border-stone-100 aspect-[4/3] w-full">
               <img
-                src="/images/hero_bg.jpg"
+                src="/images/golekhajaabout.jpeg"
                 alt="Dining atmosphere and fresh Nepali food at Gole Khaja Ghar in Sisuwa"
                 className="w-full h-full object-cover"
               />
