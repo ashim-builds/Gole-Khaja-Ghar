@@ -32,7 +32,8 @@ export async function checkPushSubscription(): Promise<{
 
 export async function subscribeToPush(
   type: "customer" | "admin" = "customer",
-  userId?: string
+  userId?: string,
+  showWelcome: boolean = false
 ): Promise<boolean> {
   if (typeof window === "undefined" || !("Notification" in window) || !("serviceWorker" in navigator)) {
     throw new Error("Push notifications are not supported in this browser.");
@@ -78,26 +79,28 @@ export async function subscribeToPush(
     throw new Error("Failed to register push subscription with server.");
   }
 
-  // Send immediate visual confirmation into OS Notification Center
-  try {
-    const confirmOptions = {
-      body:
-        type === "admin"
-          ? "🔔 Admin push notifications active! You will receive live alerts for all new orders."
-          : "🍲 Live order notifications active! You will receive real-time updates for cooking and delivery.",
-      icon: "/favicon-circle.png",
-      badge: "/favicon-circle.png",
-      tag: "gkg-welcome",
-      renotify: true,
-      vibrate: [300, 100, 300],
-      data: { url: type === "admin" ? "/admin/orders" : "/shop" },
-    };
+  // Only send immediate visual confirmation if explicitly requested (e.g. manual user enable button)
+  if (showWelcome) {
+    try {
+      const confirmOptions = {
+        body:
+          type === "admin"
+            ? "🔔 Admin push notifications active! You will receive live alerts for all new orders."
+            : "🍲 Live order notifications active! You will receive real-time updates for cooking and delivery.",
+        icon: "/favicon-circle.png",
+        badge: "/favicon-circle.png",
+        tag: "gkg-welcome",
+        renotify: true,
+        vibrate: [300, 100, 300],
+        data: { url: type === "admin" ? "/admin/orders" : "/shop" },
+      };
 
-    if (activeReg && activeReg.showNotification) {
-      await activeReg.showNotification("🍲 Gole Khaja Ghar", confirmOptions);
+      if (activeReg && activeReg.showNotification) {
+        await activeReg.showNotification("🍲 Gole Khaja Ghar", confirmOptions);
+      }
+    } catch (notifyErr) {
+      console.warn("[PushManager] Welcome notification warning:", notifyErr);
     }
-  } catch (notifyErr) {
-    console.warn("[PushManager] Welcome notification warning:", notifyErr);
   }
 
   return true;

@@ -3,6 +3,9 @@ import { io, Socket } from 'socket.io-client';
 let socket: Socket | null = null;
 let audioContext: AudioContext | null = null;
 
+const joinedRoles = new Set<string>();
+const joinedUsers = new Set<string>();
+
 export function getSocket(): Socket {
   if (!socket) {
     const rawUrl = (import.meta as any).env?.VITE_API_URL || (window.location.port === '3000' ? 'http://localhost:4000' : window.location.origin);
@@ -20,6 +23,9 @@ export function getSocket(): Socket {
 
     socket.on('connect', () => {
       console.log('[Socket] Connected to live restaurant server:', socket?.id);
+      // Re-join any previously registered roles & user IDs
+      joinedRoles.forEach((role) => socket?.emit('join_role', role));
+      joinedUsers.forEach((userId) => socket?.emit('join_user', userId));
     });
 
     socket.on('disconnect', (reason) => {
@@ -28,6 +34,24 @@ export function getSocket(): Socket {
   }
 
   return socket;
+}
+
+export function joinRole(role: string): void {
+  if (!role) return;
+  joinedRoles.add(role.toLowerCase());
+  const s = getSocket();
+  if (s.connected) {
+    s.emit('join_role', role.toLowerCase());
+  }
+}
+
+export function joinUser(userId: string): void {
+  if (!userId) return;
+  joinedUsers.add(userId);
+  const s = getSocket();
+  if (s.connected) {
+    s.emit('join_user', userId);
+  }
 }
 
 export function subscribeToEvent(event: string, callback: (...args: any[]) => void): () => void {

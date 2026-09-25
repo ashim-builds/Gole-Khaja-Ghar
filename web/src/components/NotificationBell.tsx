@@ -140,35 +140,45 @@ export default function NotificationBell({ type }: NotificationBellProps) {
     const handleIncomingNotif = (payload: any) => {
       if (!payload) return;
       
-      // Determine if notification belongs to this view
-      const belongs =
-        type === "admin"
-          ? payload.targetRole === "ADMIN" || payload.recipientType === "ROLE_BROADCAST" || !payload.userId
-          : payload.userId === user?.id || payload.recipientType === "ROLE_BROADCAST";
-
-      if (belongs) {
-        setUnreadCount((c) => c + 1);
-        setNotifications((prev) => {
-          const item = {
-            id: payload.id || payload._id || `notif-${Date.now()}`,
-            _id: payload.id || payload._id || `notif-${Date.now()}`,
-            title: payload.title,
-            message: payload.message || payload.body,
-            body: payload.body || payload.message,
-            linkUrl: payload.linkUrl,
-            read: false,
-            isRead: false,
-            createdAt: payload.createdAt || new Date().toISOString(),
-          };
-          // Avoid duplicates
-          if (prev.some((n) => (n.id || n._id) === item.id)) return prev;
-          return [item, ...prev];
-        });
+      // Strict role & user isolation
+      if (type === "admin") {
+        const target = (payload.targetRole || "").toUpperCase();
+        if (target && target !== "ADMIN" && target !== "SUPER_ADMIN") {
+          return;
+        }
+      } else {
+        // Customer view: STRICTLY drop admin/staff alerts
+        const target = (payload.targetRole || "").toUpperCase();
+        if (["ADMIN", "SUPER_ADMIN", "WAITER", "KITCHEN", "CASHIER"].includes(target)) {
+          return;
+        }
+        if (payload.userId && payload.userId !== user?.id) {
+          return;
+        }
       }
+
+      setUnreadCount((c) => c + 1);
+      setNotifications((prev) => {
+        const item = {
+          id: payload.id || payload._id || `notif-${Date.now()}`,
+          _id: payload.id || payload._id || `notif-${Date.now()}`,
+          title: payload.title,
+          message: payload.message || payload.body,
+          body: payload.body || payload.message,
+          linkUrl: payload.linkUrl,
+          read: false,
+          isRead: false,
+          createdAt: payload.createdAt || new Date().toISOString(),
+        };
+        // Avoid duplicates
+        if (prev.some((n) => (n.id || n._id) === item.id)) return prev;
+        return [item, ...prev];
+      });
     };
 
     const unsubAdmin = type === "admin" ? subscribeToEvent("notification:admin", handleIncomingNotif) : null;
-    const unsubNew = subscribeToEvent("notification:new", handleIncomingNotif);
+    const unsubCustomer = type === "customer" ? subscribeToEvent("notification:customer", handleIncomingNotif) : null;
+    const unsubUser = type === "customer" && user?.id ? subscribeToEvent(`notification:user:${user.id}`, handleIncomingNotif) : null;
     const unsubOrder = type === "admin" ? subscribeToEvent("order:created", () => {
       fetchUnreadCount();
     }) : null;
@@ -197,7 +207,8 @@ export default function NotificationBell({ type }: NotificationBellProps) {
 
     return () => {
       unsubAdmin?.();
-      unsubNew();
+      unsubCustomer?.();
+      unsubUser?.();
       unsubOrder?.();
       document.removeEventListener("mousedown", handleClickOutside);
       window.removeEventListener("focus", handleVisibility);

@@ -36,6 +36,12 @@ export function initSocket(httpServer: HttpServer, clientUrl: string): Server {
       }
     });
 
+    socket.on('join_user', (userId: string) => {
+      if (userId) {
+        socket.join(`user:${userId}`);
+      }
+    });
+
     socket.on('join_order', (orderId: string) => {
       if (orderId) {
         socket.join(`order:${orderId}`);
@@ -65,7 +71,12 @@ export function emitEvent(event: string, payload: any): void {
 export function emitToRole(role: string, event: string, payload: any): void {
   if (io) {
     io.to(`role:${role.toLowerCase()}`).emit(event, payload);
-    io.emit(event, payload);
+  }
+}
+
+export function emitToUser(userId: string, event: string, payload: any): void {
+  if (io) {
+    io.to(`user:${userId}`).emit(event, payload);
   }
 }
 
@@ -166,7 +177,7 @@ export function emitNotification(payload: {
     _id: payload.id || payload._id || `notif-${Date.now()}`,
     userId: payload.userId || null,
     targetRole: payload.targetRole || null,
-    recipientType: payload.recipientType || 'USER',
+    recipientType: payload.recipientType || (payload.targetRole ? 'ROLE_BROADCAST' : 'USER'),
     type: payload.type || 'SYSTEM_ALERT',
     title: payload.title,
     body: payload.body || payload.message || '',
@@ -177,14 +188,24 @@ export function emitNotification(payload: {
     createdAt: payload.createdAt || new Date().toISOString(),
   };
 
-  emitEvent('notification:new', formatted);
-  if (payload.targetRole === 'ADMIN' || payload.recipientType === 'ROLE_BROADCAST') {
-    emitEvent('notification:admin', formatted);
-    emitToRole('admin', 'notification:admin', formatted);
-  }
-  if (payload.userId) {
+  const role = payload.targetRole ? payload.targetRole.toUpperCase() : null;
+  const isStaffTarget = ['ADMIN', 'SUPER_ADMIN', 'WAITER', 'KITCHEN', 'CASHIER'].includes(role || '');
+
+  if (isStaffTarget && role) {
+    // Isolated staff/admin notification — NEVER send to regular user channels
+    emitToRole(role.toLowerCase(), `notification:${role.toLowerCase()}`, formatted);
+    if (role === 'ADMIN' || role === 'SUPER_ADMIN') {
+      emitEvent('notification:admin', formatted);
+      emitToRole('admin', 'notification:admin', formatted);
+    }
+  } else if (payload.userId) {
+    // User-specific notification — only emit to this user's channel/room
     emitEvent(`notification:user:${payload.userId}`, formatted);
-    emitEvent('notification:user', formatted);
+    emitToUser(payload.userId, 'notification:user', formatted);
+  } else {
+    // General customer broadcast
+    emitEvent('notification:customer', formatted);
+    emitToRole('customer', 'notification:customer', formatted);
   }
 }
 

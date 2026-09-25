@@ -26,7 +26,15 @@ export async function getUserNotifications(req: AuthenticatedRequest, res: Respo
     }
 
     const notifications = await prisma.notification.findMany({
-      where: { userId: req.user.userId },
+      where: {
+        OR: [
+          { userId: req.user.userId },
+          {
+            recipientType: 'ROLE_BROADCAST',
+            targetRole: null, // Customer broadcasts only (NOT ADMIN/WAITER/KITCHEN)
+          },
+        ],
+      },
       orderBy: { createdAt: 'desc' },
       take: 50,
     });
@@ -47,8 +55,14 @@ export async function getUserUnreadCount(req: AuthenticatedRequest, res: Respons
 
     const unreadCount = await prisma.notification.count({
       where: {
-        userId: req.user.userId,
         isRead: false,
+        OR: [
+          { userId: req.user.userId },
+          {
+            recipientType: 'ROLE_BROADCAST',
+            targetRole: null,
+          },
+        ],
       },
     });
 
@@ -68,7 +82,13 @@ export async function markUserRead(req: AuthenticatedRequest, res: Response): Pr
 
     const { id } = req.params;
     await prisma.notification.updateMany({
-      where: { id, userId: req.user.userId },
+      where: {
+        id,
+        OR: [
+          { userId: req.user.userId },
+          { recipientType: 'ROLE_BROADCAST', targetRole: null },
+        ],
+      },
       data: { isRead: true },
     });
 
@@ -87,7 +107,13 @@ export async function markUserReadAll(req: AuthenticatedRequest, res: Response):
     }
 
     await prisma.notification.updateMany({
-      where: { userId: req.user.userId, isRead: false },
+      where: {
+        isRead: false,
+        OR: [
+          { userId: req.user.userId },
+          { recipientType: 'ROLE_BROADCAST', targetRole: null },
+        ],
+      },
       data: { isRead: true },
     });
 

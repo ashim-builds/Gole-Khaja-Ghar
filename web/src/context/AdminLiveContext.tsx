@@ -1,6 +1,6 @@
 import { api } from "@/lib/api";
 import React, { createContext, useContext, useState, useEffect, useRef } from "react";
-import { subscribeToEvent, playAudioAlert, showLiveNotification, unlockAudioAlerts } from "@/lib/socket";
+import { subscribeToEvent, playAudioAlert, showLiveNotification, unlockAudioAlerts, joinRole } from "@/lib/socket";
 
 interface AdminStats {
   totalProducts: number;
@@ -77,6 +77,9 @@ export function AdminLiveProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let active = true;
+
+    // Join admin socket role room
+    joinRole("admin");
 
     // Unlock browser audio context on first user click/touch/keypress in Admin
     const handleUserInteraction = () => {

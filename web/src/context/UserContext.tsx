@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, UserProfile, setAuthToken } from "@/lib/api";
+import { joinUser, joinRole } from "@/lib/socket";
 
 interface UserContextType {
   user: UserProfile | null;
@@ -22,6 +23,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       const res = await api.auth.getMe();
       if (res.success && res.user) {
         setUser(res.user);
+        if (res.user.id) {
+          joinUser(res.user.id);
+        }
+        if (res.user.role) {
+          joinRole(res.user.role);
+        }
       } else {
         setUser(null);
       }
