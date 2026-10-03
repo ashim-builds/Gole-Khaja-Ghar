@@ -237,24 +237,36 @@
       "image": "/images/food/breakfast.jpg"
     },
     {
-      "id": "bread-jam-plain-toast",
-      "name": "Bread Toast",
-      "nepaliName": "ब्रेड टोस्ट",
+      "id": "plain-bread-toast",
+      "name": "Plain Bread Toast",
+      "nepaliName": "सादा ब्रेड टोस्ट",
       "category": "Morning Breakfast",
       "priceType": "variant",
       "basePrice": 50,
       "variants": [
         {
-          "name": "Plain Toast",
+          "name": "1 Set",
           "price": 50
-        },
+        }
+      ],
+      "isAvailable": true,
+      "image": "/uploads/1789542032596-2a6ccc024b995888.jpg"
+    },
+    {
+      "id": "bread-jam-toast",
+      "name": "Bread Jam Toast",
+      "nepaliName": "ब्रेड जाम टोस्ट",
+      "category": "Morning Breakfast",
+      "priceType": "variant",
+      "basePrice": 80,
+      "variants": [
         {
-          "name": "Bread Jam Toast",
+          "name": "1 Set",
           "price": 80
         }
       ],
       "isAvailable": true,
-      "image": "/images/food/breakfast.jpg"
+      "image": "/uploads/1789542032596-2a6ccc024b995888.jpg"
     },
     {
       "id": "jhol-tarkari",
@@ -273,35 +285,19 @@
       "image": "/images/food/breakfast.jpg"
     },
     {
-      "id": "coke-fanta-sprite",
-      "name": "Coca-Cola / Fanta / Sprite",
-      "nepaliName": "कोका-कोला / फ्यान्टा / स्प्राइट",
+      "id": "coca-cola",
+      "name": "Coca-Cola",
+      "nepaliName": "कोका-कोला",
       "category": "Soft Drinks",
       "priceType": "variant",
       "basePrice": 70,
       "variants": [
         {
-          "name": "Coca-Cola (Regular)",
+          "name": "Regular (250ml)",
           "price": 70
         },
         {
-          "name": "Fanta (Regular)",
-          "price": 70
-        },
-        {
-          "name": "Sprite (Regular)",
-          "price": 70
-        },
-        {
-          "name": "Coca-Cola (2 Litre)",
-          "price": 230
-        },
-        {
-          "name": "Fanta (2 Litre)",
-          "price": 230
-        },
-        {
-          "name": "Sprite (2 Litre)",
+          "name": "2 Litre",
           "price": 230
         }
       ],
@@ -309,23 +305,87 @@
       "image": "/images/food/drinks.jpg"
     },
     {
-      "id": "mountain-dew-pepsi-slice",
-      "name": "Mountain Dew / Pepsi / Slice",
-      "nepaliName": "माउन्टेन ड्यू / पेप्सी / स्लाइस",
+      "id": "fanta",
+      "name": "Fanta",
+      "nepaliName": "फ्यान्टा",
       "category": "Soft Drinks",
       "priceType": "variant",
       "basePrice": 70,
       "variants": [
         {
-          "name": "Mountain Dew",
+          "name": "Regular (250ml)",
           "price": 70
         },
         {
-          "name": "Pepsi",
+          "name": "2 Litre",
+          "price": 230
+        }
+      ],
+      "isAvailable": true,
+      "image": "/images/food/drinks.jpg"
+    },
+    {
+      "id": "sprite",
+      "name": "Sprite",
+      "nepaliName": "स्प्राइट",
+      "category": "Soft Drinks",
+      "priceType": "variant",
+      "basePrice": 70,
+      "variants": [
+        {
+          "name": "Regular (250ml)",
           "price": 70
         },
         {
-          "name": "Slice",
+          "name": "2 Litre",
+          "price": 230
+        }
+      ],
+      "isAvailable": true,
+      "image": "/images/food/drinks.jpg"
+    },
+    {
+      "id": "mountain-dew",
+      "name": "Mountain Dew",
+      "nepaliName": "माउन्टेन ड्यू",
+      "category": "Soft Drinks",
+      "priceType": "variant",
+      "basePrice": 70,
+      "variants": [
+        {
+          "name": "Regular (250ml / Can)",
+          "price": 70
+        }
+      ],
+      "isAvailable": true,
+      "image": "/images/food/drinks.jpg"
+    },
+    {
+      "id": "pepsi",
+      "name": "Pepsi",
+      "nepaliName": "पेप्सी",
+      "category": "Soft Drinks",
+      "priceType": "variant",
+      "basePrice": 70,
+      "variants": [
+        {
+          "name": "Regular (250ml)",
+          "price": 70
+        }
+      ],
+      "isAvailable": true,
+      "image": "/images/food/drinks.jpg"
+    },
+    {
+      "id": "slice",
+      "name": "Slice",
+      "nepaliName": "स्लाइस",
+      "category": "Soft Drinks",
+      "priceType": "variant",
+      "basePrice": 70,
+      "variants": [
+        {
+          "name": "Regular (250ml)",
           "price": 70
         }
       ],
@@ -353,9 +413,29 @@
       "image": "/images/food/drinks.jpg"
     },
     {
-      "id": "real-juice-cranberry",
-      "name": "Real Juice / Cranberry",
-      "nepaliName": "रियल जुस / क्रेनबेरी",
+      "id": "real-juice",
+      "name": "Real Juice",
+      "nepaliName": "रियल जुस",
+      "category": "Soft Drinks",
+      "priceType": "variant",
+      "basePrice": 30,
+      "variants": [
+        {
+          "name": "Per Glass",
+          "price": 30
+        },
+        {
+          "name": "1 Litre Pack",
+          "price": 320
+        }
+      ],
+      "isAvailable": true,
+      "image": "/images/food/drinks.jpg"
+    },
+    {
+      "id": "cranberry-juice",
+      "name": "Cranberry Juice",
+      "nepaliName": "क्रेनबेरी जुस",
       "category": "Soft Drinks",
       "priceType": "variant",
       "basePrice": 30,
@@ -589,32 +669,44 @@
       "image": "/images/food/sadeko.jpg"
     },
     {
-      "id": "chowmein-buff-chicken",
-      "name": "Chowmein (Buff / Chicken)",
-      "nepaliName": "चाउमिन (बफ / चिकन)",
+      "id": "buff-chowmein",
+      "name": "Buff Chowmein",
+      "nepaliName": "बफ चाउमिन",
       "category": "Khaja Non-Veg",
       "priceType": "variant",
-      "basePrice": 70,
+      "basePrice": 130,
       "variants": [
         {
-          "name": "Buff Chowmein (Half Plate)",
-          "price": 70
-        },
-        {
-          "name": "Buff Chowmein (1 Plate)",
+          "name": "1 Plate",
           "price": 130
         },
         {
-          "name": "Chicken Chowmein (Half Plate)",
+          "name": "Half Plate",
           "price": 70
-        },
-        {
-          "name": "Chicken Chowmein (1 Plate)",
-          "price": 130
         }
       ],
       "isAvailable": true,
-      "image": "/images/food/chowmein.jpg"
+      "image": "/uploads/1789542202668-aa7e0386da8d0b1d.jpg"
+    },
+    {
+      "id": "chicken-chowmein",
+      "name": "Chicken Chowmein",
+      "nepaliName": "चिकन चाउमिन",
+      "category": "Khaja Non-Veg",
+      "priceType": "variant",
+      "basePrice": 130,
+      "variants": [
+        {
+          "name": "1 Plate",
+          "price": 130
+        },
+        {
+          "name": "Half Plate",
+          "price": 70
+        }
+      ],
+      "isAvailable": true,
+      "image": "/uploads/1789542202668-aa7e0386da8d0b1d.jpg"
     },
     {
       "id": "egg-chowmein",
@@ -633,52 +725,84 @@
       "image": "/images/food/chowmein.jpg"
     },
     {
-      "id": "momo-buff-chicken",
-      "name": "Steamed Momo (Buff / Chicken)",
-      "nepaliName": "स्टिम मःम (बफ / चिकन)",
+      "id": "buff-momo",
+      "name": "Buff Steamed Momo",
+      "nepaliName": "बफ स्टिम मःम",
       "category": "Khaja Non-Veg",
       "priceType": "variant",
-      "basePrice": 70,
+      "basePrice": 130,
       "variants": [
         {
-          "name": "Buff Momo (Half Plate - 5 pcs)",
-          "price": 70
-        },
-        {
-          "name": "Buff Momo (1 Plate - 10 pcs)",
+          "name": "1 Plate (10 pcs)",
           "price": 130
         },
         {
-          "name": "Chicken Momo (Half Plate - 5 pcs)",
+          "name": "Half Plate (5 pcs)",
           "price": 70
-        },
-        {
-          "name": "Chicken Momo (1 Plate - 10 pcs)",
-          "price": 130
         }
       ],
       "isAvailable": true,
-      "image": "/images/food/momo.jpg"
+      "image": "/uploads/1789542213860-9f3829693122fa20.jpg"
     },
     {
-      "id": "fry-momo-buff-chicken",
-      "name": "Fry Momo (Buff / Chicken)",
-      "nepaliName": "फ्राइ मःम (बफ / चिकन)",
+      "id": "chicken-momo",
+      "name": "Chicken Steamed Momo",
+      "nepaliName": "चिकन स्टिम मःम",
+      "category": "Khaja Non-Veg",
+      "priceType": "variant",
+      "basePrice": 130,
+      "variants": [
+        {
+          "name": "1 Plate (10 pcs)",
+          "price": 130
+        },
+        {
+          "name": "Half Plate (5 pcs)",
+          "price": 70
+        }
+      ],
+      "isAvailable": true,
+      "image": "/uploads/1789542213860-9f3829693122fa20.jpg"
+    },
+    {
+      "id": "buff-fry-momo",
+      "name": "Buff Fry Momo",
+      "nepaliName": "बफ फ्राइ मःम",
       "category": "Khaja Non-Veg",
       "priceType": "variant",
       "basePrice": 140,
       "variants": [
         {
-          "name": "Buff Fry Momo (1 Plate)",
+          "name": "1 Plate (10 pcs)",
           "price": 140
         },
         {
-          "name": "Chicken Fry Momo (1 Plate)",
-          "price": 140
+          "name": "Half Plate (5 pcs)",
+          "price": 75
         }
       ],
       "isAvailable": true,
-      "image": "/images/food/fry-momo.jpg"
+      "image": "/uploads/1789542236754-d3fb1e819504e6d0.jpg"
+    },
+    {
+      "id": "chicken-fry-momo",
+      "name": "Chicken Fry Momo",
+      "nepaliName": "चिकन फ्राइ मःम",
+      "category": "Khaja Non-Veg",
+      "priceType": "variant",
+      "basePrice": 140,
+      "variants": [
+        {
+          "name": "1 Plate (10 pcs)",
+          "price": 140
+        },
+        {
+          "name": "Half Plate (5 pcs)",
+          "price": 75
+        }
+      ],
+      "isAvailable": true,
+      "image": "/uploads/1789542236754-d3fb1e819504e6d0.jpg"
     },
     {
       "id": "special-chowmein-sekuwa",
@@ -697,52 +821,76 @@
       "image": "/images/food/chowmein.jpg"
     },
     {
-      "id": "chilly-momo",
-      "name": "Chilly C-Momo (Chicken / Buff)",
-      "nepaliName": "चिल्ली मःम (चिकन / बफ)",
+      "id": "buff-chilly-momo",
+      "name": "Buff Chilly C-Momo",
+      "nepaliName": "बफ चिल्ली मःम",
       "category": "Khaja Non-Veg",
       "priceType": "variant",
       "basePrice": 180,
       "variants": [
         {
-          "name": "Buff Chilly Momo (1 Plate)",
-          "price": 180
-        },
-        {
-          "name": "Chicken Chilly Momo (1 Plate)",
+          "name": "1 Plate",
           "price": 180
         }
       ],
       "isAvailable": true,
-      "image": "/images/food/chilly.jpg"
+      "image": "/uploads/1789542262562-60d27aaeb092d3eb.png"
     },
     {
-      "id": "khaja-set-buff-chicken",
-      "name": "Khaja Set (Buff / Chicken)",
-      "nepaliName": "खाजा सेट (बफ / चिकन)",
+      "id": "chicken-chilly-momo",
+      "name": "Chicken Chilly C-Momo",
+      "nepaliName": "चिकन चिल्ली मःम",
       "category": "Khaja Non-Veg",
       "priceType": "variant",
-      "basePrice": 140,
+      "basePrice": 180,
       "variants": [
         {
-          "name": "Buff Khaja Set (Half Plate)",
-          "price": 140
-        },
-        {
-          "name": "Buff Khaja Set (1 Plate)",
-          "price": 220
-        },
-        {
-          "name": "Chicken Khaja Set (Half Plate)",
-          "price": 140
-        },
-        {
-          "name": "Chicken Khaja Set (1 Plate)",
-          "price": 220
+          "name": "1 Plate",
+          "price": 180
         }
       ],
       "isAvailable": true,
-      "image": "/images/food/khaja-set.jpg"
+      "image": "/uploads/1789542262562-60d27aaeb092d3eb.png"
+    },
+    {
+      "id": "buff-khaja-set",
+      "name": "Buff Khaja Set",
+      "nepaliName": "बफ खाजा सेट",
+      "category": "Khaja Non-Veg",
+      "priceType": "variant",
+      "basePrice": 220,
+      "variants": [
+        {
+          "name": "1 Plate",
+          "price": 220
+        },
+        {
+          "name": "Half Plate",
+          "price": 140
+        }
+      ],
+      "isAvailable": true,
+      "image": "/uploads/1789542103087-1ecf3632a967540a.jpg"
+    },
+    {
+      "id": "chicken-khaja-set",
+      "name": "Chicken Khaja Set",
+      "nepaliName": "चिकन खाजा सेट",
+      "category": "Khaja Non-Veg",
+      "priceType": "variant",
+      "basePrice": 220,
+      "variants": [
+        {
+          "name": "1 Plate",
+          "price": 220
+        },
+        {
+          "name": "Half Plate",
+          "price": 140
+        }
+      ],
+      "isAvailable": true,
+      "image": "/uploads/1789542103087-1ecf3632a967540a.jpg"
     },
     {
       "id": "taas-set-mutton",
@@ -985,28 +1133,52 @@
       "image": "/images/food/chilly.jpg"
     },
     {
-      "id": "chicken-sadheko-boil-fry",
-      "name": "Chicken Sadheko / Boil / Fry",
-      "nepaliName": "चिकन साँधेको / उसिनेको / फ्राइ",
+      "id": "chicken-sadheko",
+      "name": "Chicken Sadheko",
+      "nepaliName": "चिकन साँधेको",
       "category": "Snacks",
       "priceType": "variant",
       "basePrice": 250,
       "variants": [
         {
-          "name": "Chicken Sadeko (1 Plate)",
-          "price": 250
-        },
-        {
-          "name": "Boiled Chicken (1 Plate)",
-          "price": 250
-        },
-        {
-          "name": "Chicken Fry (1 Plate)",
+          "name": "1 Plate",
           "price": 250
         }
       ],
       "isAvailable": true,
-      "image": "/images/food/sekuwa.jpg"
+      "image": "/uploads/1789542000310-ce73592af10c8ada.jpg"
+    },
+    {
+      "id": "boiled-chicken",
+      "name": "Boiled Chicken",
+      "nepaliName": "उसिनेको चिकन",
+      "category": "Snacks",
+      "priceType": "variant",
+      "basePrice": 250,
+      "variants": [
+        {
+          "name": "1 Plate",
+          "price": 250
+        }
+      ],
+      "isAvailable": true,
+      "image": "/uploads/1789542000310-ce73592af10c8ada.jpg"
+    },
+    {
+      "id": "chicken-fry",
+      "name": "Chicken Fry",
+      "nepaliName": "चिकन फ्राइ",
+      "category": "Snacks",
+      "priceType": "variant",
+      "basePrice": 250,
+      "variants": [
+        {
+          "name": "1 Plate",
+          "price": 250
+        }
+      ],
+      "isAvailable": true,
+      "image": "/uploads/1789542000310-ce73592af10c8ada.jpg"
     },
     {
       "id": "chicken-wings",
@@ -1113,24 +1285,36 @@
       "image": "/images/food/sekuwa.jpg"
     },
     {
-      "id": "boiled-sausage-chicken-buff",
-      "name": "Boiled Sausage (Chicken / Buff)",
-      "nepaliName": "उसिनेको ससेज",
+      "id": "boiled-buff-sausage",
+      "name": "Boiled Buff Sausage",
+      "nepaliName": "उसिनेको बफ ससेज",
       "category": "Snacks",
       "priceType": "variant",
       "basePrice": 100,
       "variants": [
         {
-          "name": "Boiled Buff Sausage (1 Plate)",
+          "name": "1 Plate",
           "price": 100
-        },
+        }
+      ],
+      "isAvailable": true,
+      "image": "/uploads/1789541903315-08b0558bfede130c.jpg"
+    },
+    {
+      "id": "boiled-chicken-sausage",
+      "name": "Boiled Chicken Sausage",
+      "nepaliName": "उसिनेको चिकन ससेज",
+      "category": "Snacks",
+      "priceType": "variant",
+      "basePrice": 130,
+      "variants": [
         {
-          "name": "Boiled Chicken Sausage (1 Plate)",
+          "name": "1 Plate",
           "price": 130
         }
       ],
       "isAvailable": true,
-      "image": "/images/food/sekuwa.jpg"
+      "image": "/uploads/1789541903315-08b0558bfede130c.jpg"
     },
     {
       "id": "khago",
@@ -1473,24 +1657,36 @@
       "image": "/images/food/drinks.jpg"
     },
     {
-      "id": "arna-nepal-ice-beer",
-      "name": "Arna (6.4) / Nepal Ice Beer",
-      "nepaliName": "अर्ना / नेपाल आइस बियर",
+      "id": "arna-beer",
+      "name": "Arna 6.4 Beer",
+      "nepaliName": "अर्ना ६.४ बियर",
       "category": "Beer & Hard Drinks",
       "priceType": "variant",
       "basePrice": 400,
       "variants": [
         {
-          "name": "Arna 6.4 (650ml)",
-          "price": 400
-        },
-        {
-          "name": "Nepal Ice (650ml)",
+          "name": "Bottle (650ml)",
           "price": 400
         }
       ],
       "isAvailable": true,
-      "image": "/images/food/drinks.jpg"
+      "image": "/uploads/1789484532865-f8166079d197a7a4.jpg"
+    },
+    {
+      "id": "nepal-ice-beer",
+      "name": "Nepal Ice Beer",
+      "nepaliName": "नेपाल आइस बियर",
+      "category": "Beer & Hard Drinks",
+      "priceType": "variant",
+      "basePrice": 400,
+      "variants": [
+        {
+          "name": "Bottle (650ml)",
+          "price": 400
+        }
+      ],
+      "isAvailable": true,
+      "image": "/uploads/1789484532865-f8166079d197a7a4.jpg"
     },
     {
       "id": "dragon-beer-5000",

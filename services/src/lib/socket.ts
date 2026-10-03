@@ -153,8 +153,6 @@ export function emitOrderCreated(payload: {
   orderType?: string;
 }): void {
   emitEvent('order:created', payload);
-  emitToRole('admin', 'order:created', payload);
-  emitToRole('kitchen', 'order:created', payload);
 }
 
 export function emitNotification(payload: {
@@ -172,9 +170,10 @@ export function emitNotification(payload: {
   isRead?: boolean;
   createdAt?: string | Date;
 }): void {
+  const notifId = payload.id || payload._id || `notif-${Date.now()}`;
   const formatted = {
-    id: payload.id || payload._id || `notif-${Date.now()}`,
-    _id: payload.id || payload._id || `notif-${Date.now()}`,
+    id: notifId,
+    _id: notifId,
     userId: payload.userId || null,
     targetRole: payload.targetRole || null,
     recipientType: payload.recipientType || (payload.targetRole ? 'ROLE_BROADCAST' : 'USER'),
@@ -192,20 +191,18 @@ export function emitNotification(payload: {
   const isStaffTarget = ['ADMIN', 'SUPER_ADMIN', 'WAITER', 'KITCHEN', 'CASHIER'].includes(role || '');
 
   if (isStaffTarget && role) {
-    // Isolated staff/admin notification — NEVER send to regular user channels
-    emitToRole(role.toLowerCase(), `notification:${role.toLowerCase()}`, formatted);
+    // Isolated staff/admin notification — emit once to designated role channel
     if (role === 'ADMIN' || role === 'SUPER_ADMIN') {
-      emitEvent('notification:admin', formatted);
       emitToRole('admin', 'notification:admin', formatted);
+    } else {
+      emitToRole(role.toLowerCase(), `notification:${role.toLowerCase()}`, formatted);
     }
   } else if (payload.userId) {
-    // User-specific notification — only emit to this user's channel/room
-    emitEvent(`notification:user:${payload.userId}`, formatted);
-    emitToUser(payload.userId, 'notification:user', formatted);
+    // User-specific notification — emit once to this specific user
+    emitToUser(payload.userId, `notification:user:${payload.userId}`, formatted);
   } else {
-    // General customer broadcast
+    // General customer broadcast — emit once
     emitEvent('notification:customer', formatted);
-    emitToRole('customer', 'notification:customer', formatted);
   }
 }
 

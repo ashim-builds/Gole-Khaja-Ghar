@@ -2,11 +2,16 @@ import { getImageUrl } from "@/lib/api";
 import { Link } from "react-router-dom";
 import { useCart, CartItem } from "@/context/CartContext";
 import { useStoreHours } from "@/lib/storeHours";
-import { X, Plus, Minus, ShoppingBag, Trash2, Clock, AlertTriangle } from "lucide-react";
+import { X, Plus, Minus, ShoppingBag, Trash2, Clock, AlertTriangle, Truck, Sparkles, CheckCircle2 } from "lucide-react";
+import { MIN_ORDER_AMOUNT } from "@/lib/validations";
 
 export default function CartDrawer() {
   const { items, isCartOpen, closeCart, cartTotal, removeFromCart, updateItemQty } = useCart();
   const storeStatus = useStoreHours();
+
+  const isMinOrderMet = cartTotal >= MIN_ORDER_AMOUNT;
+  const amountNeeded = Math.max(0, MIN_ORDER_AMOUNT - cartTotal);
+  const progressPercent = Math.min(100, (cartTotal / MIN_ORDER_AMOUNT) * 100);
 
   return (
     <>
@@ -50,6 +55,51 @@ export default function CartDrawer() {
           </div>
         )}
 
+        {/* Minimum Order & Free Delivery Progress Banner */}
+        {items.length > 0 && (
+          <div className={`p-3.5 border-b text-xs transition-all ${
+            isMinOrderMet 
+              ? "bg-emerald-50 border-emerald-200 text-emerald-950" 
+              : "bg-orange-50 border-orange-200 text-orange-950"
+          }`}>
+            <div className="flex items-center justify-between gap-2 mb-1.5 font-extrabold">
+              <div className="flex items-center gap-1.5">
+                {isMinOrderMet ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Free Delivery Unlocked!</span>
+                  </>
+                ) : (
+                  <>
+                    <Truck className="w-4 h-4 text-orange-600 shrink-0" />
+                    <span>Min. Order Rs. {MIN_ORDER_AMOUNT} for Free Delivery</span>
+                  </>
+                )}
+              </div>
+              <span className="font-mono text-[11px] font-black">
+                {isMinOrderMet ? "FREE DELIVERY" : `Rs. ${cartTotal.toFixed(0)} / ${MIN_ORDER_AMOUNT}`}
+              </span>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="w-full bg-stone-200/80 rounded-full h-2 overflow-hidden">
+              <div 
+                className={`h-full transition-all duration-300 rounded-full ${
+                  isMinOrderMet ? "bg-emerald-500" : "bg-gradient-to-r from-orange-500 to-amber-500"
+                }`}
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+
+            {!isMinOrderMet && (
+              <p className="text-[11px] text-orange-800 font-semibold mt-1.5 flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-orange-500 shrink-0" />
+                Add <strong className="text-orange-950">Rs. {amountNeeded.toFixed(2)}</strong> more to checkout with Free Delivery
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Cart Items */}
         <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
           {items.length === 0 ? (
@@ -78,21 +128,41 @@ export default function CartDrawer() {
         {/* Footer */}
         {items.length > 0 && (
           <div className="border-t border-stone-100 p-4 bg-stone-50">
-            <div className="flex justify-between items-end mb-4">
-              <span className="text-stone-500 font-bold">Estimated Total</span>
+            <div className="flex justify-between items-end mb-2">
+              <div>
+                <span className="text-stone-500 font-bold text-xs block">Estimated Total</span>
+                <span className="text-[11px] font-extrabold text-emerald-600 flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> Delivery: FREE
+                </span>
+              </div>
               <div className="text-right">
                 <span className="text-2xl font-black text-black">Rs. {cartTotal.toFixed(2)}</span>
               </div>
             </div>
 
             {storeStatus.isOpen ? (
-              <Link 
-                to="/checkout"
-                onClick={closeCart}
-                className="w-full flex items-center justify-center py-4 bg-orange-600 text-white font-black uppercase text-sm tracking-wider rounded-xl hover:bg-orange-500 transition-all shadow-lg shadow-orange-600/30 cursor-pointer"
-              >
-                Proceed to Checkout
-              </Link>
+              isMinOrderMet ? (
+                <Link 
+                  to="/checkout"
+                  onClick={closeCart}
+                  className="w-full flex items-center justify-center py-4 bg-orange-600 text-white font-black uppercase text-sm tracking-wider rounded-xl hover:bg-orange-500 transition-all shadow-lg shadow-orange-600/30 cursor-pointer"
+                >
+                  Proceed to Checkout (Free Delivery)
+                </Link>
+              ) : (
+                <div className="space-y-2">
+                  <button 
+                    disabled
+                    className="w-full flex items-center justify-center py-3.5 bg-stone-200 text-stone-600 font-black uppercase text-xs tracking-wider rounded-xl cursor-not-allowed shadow-none"
+                  >
+                    <AlertTriangle className="w-4 h-4 mr-1.5 text-orange-600" />
+                    Min. Order Rs. 500 (Add Rs. {amountNeeded.toFixed(0)} more)
+                  </button>
+                  <p className="text-[11px] text-center text-stone-500 font-medium">
+                    We accept orders from Rs. 500 with 100% Free Delivery!
+                  </p>
+                </div>
+              )
             ) : (
               <div className="space-y-2">
                 <button 

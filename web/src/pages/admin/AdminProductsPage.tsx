@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { getSocket } from "@/lib/socket";
 import {
@@ -23,9 +23,11 @@ import {
   RotateCcw,
   ChevronDown,
   Check,
+  ArrowRight,
 } from "lucide-react";
 import StockToggle from "@/components/admin/StockToggle";
 import { api, getImageUrl } from "@/lib/api";
+import { searchItems } from "@/lib/searchUtils";
 
 export default function AdminProductsPage() {
   const location = useLocation();
@@ -34,6 +36,9 @@ export default function AdminProductsPage() {
 
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState("");
+  const [showAdminSuggestions, setShowAdminSuggestions] = useState(false);
+  const [selectedSuggestionIdx, setSelectedSuggestionIdx] = useState(-1);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
   const [selectedCategory, setSelectedCategory] = useState("ALL");
   const [stockStatusFilter, setStockStatusFilter] = useState<
     "ALL" | "IN_STOCK" | "LOW_STOCK" | "OUT_OF_STOCK" | "UNTRACKED"
@@ -112,15 +117,25 @@ export default function AdminProductsPage() {
     return { total: products.length, inStock, lowStock, outOfStock, untracked };
   }, [products]);
 
-  // Filtered products list
+  // Click outside to close admin search suggestions
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setShowAdminSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Filtered products list using smart fuzzy/acronym search
   const filteredProducts = useMemo(() => {
-    return products.filter((product) => {
-      // Category filter
+    // 1. Filter by category & stock status first
+    const baseFiltered = products.filter((product) => {
       if (selectedCategory !== "ALL" && product.category !== selectedCategory) {
         return false;
       }
 
-      // Stock status filter
       if (stockStatusFilter !== "ALL") {
         const isTracked = product.trackStock === true;
         const qty = product.stockQuantity ?? 0;
@@ -132,22 +147,22 @@ export default function AdminProductsPage() {
         if (stockStatusFilter === "OUT_OF_STOCK" && (!isTracked || qty > 0)) return false;
       }
 
-      // Search Query filter
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase().trim();
-        const name = (product.name || "").toLowerCase();
-        const cat = (product.category || "").toLowerCase();
-        const desc = (product.description || "").toLowerCase();
-        const slug = (product.slug || "").toLowerCase();
-
-        if (!name.includes(q) && !cat.includes(q) && !desc.includes(q) && !slug.includes(q)) {
-          return false;
-        }
-      }
-
       return true;
     });
+
+    // 2. Apply smart search if query is entered
+    if (searchQuery.trim()) {
+      return searchItems(baseFiltered, searchQuery.trim());
+    }
+
+    return baseFiltered;
   }, [products, selectedCategory, stockStatusFilter, searchQuery]);
+
+  // Admin suggestions list
+  const adminSuggestions = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    return searchItems(products, searchQuery.trim()).slice(0, 6);
+  }, [products, searchQuery]);
 
   const openStockModal = (product: any, defaultAction: "add" | "reduce" | "set" = "add") => {
     setAdjustingProduct(product);
@@ -271,23 +286,111 @@ export default function AdminProductsPage() {
 
       {/* SEARCH BAR & 100% FIT DUAL DROPDOWNS (ZERO HORIZONTAL SCROLL) */}
       <div className="bg-white p-3 sm:p-4 rounded-2xl border border-stone-200/90 shadow-xs space-y-2.5">
-        {/* Search Input Row */}
-        <div className="relative">
+        {/* Search Input Row with Smart Suggestions */}
+        <div className="relative" ref={searchContainerRef}>
           <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search dishes by name..."
+            placeholder="Search dishes (e.g. c.momo, chick, sekuwa, pepsi)..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setShowAdminSuggestions(true);
+              setSelectedSuggestionIdx(-1);
+            }}
+            onFocus={() => {
+              if (searchQuery.trim()) setShowAdminSuggestions(true);
+            }}
+            onKeyDown={(e) => {
+              if (!showAdminSuggestions || adminSuggestions.length === 0) return;
+              if (e.key === "ArrowDown") {
+                e.preventDefault();
+                setSelectedSuggestionIdx((prev) => (prev < adminSuggestions.length - 1 ? prev + 1 : 0));
+              } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                setSelectedSuggestionIdx((prev) => (prev > 0 ? prev - 1 : adminSuggestions.length - 1));
+              } else if (e.key === "Enter" && selectedSuggestionIdx >= 0 && selectedSuggestionIdx < adminSuggestions.length) {
+                e.preventDefault();
+                const sel = adminSuggestions[selectedSuggestionIdx];
+                setSearchQuery(sel.name);
+                setShowAdminSuggestions(false);
+              } else if (e.key === "Escape") {
+                setShowAdminSuggestions(false);
+              }
+            }}
             className="w-full pl-10 pr-9 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs sm:text-sm font-semibold text-stone-900 placeholder:text-stone-400 focus:outline-none focus:bg-white focus:border-orange-500 transition-all"
           />
           {searchQuery && (
             <button
-              onClick={() => setSearchQuery("")}
+              type="button"
+              onClick={() => {
+                setSearchQuery("");
+                setShowAdminSuggestions(false);
+              }}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 p-0.5 cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
+          )}
+
+          {/* Admin Auto-Suggestions Dropdown */}
+          {showAdminSuggestions && adminSuggestions.length > 0 && (
+            <div className="absolute top-full left-0 right-0 mt-1.5 bg-white rounded-2xl shadow-2xl border border-stone-200/90 py-1 z-50 overflow-hidden divide-y divide-stone-100 animate-in fade-in-50 duration-100">
+              <div className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-stone-400 bg-stone-50 flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-stone-600">
+                  <Sparkles className="w-3 h-3 text-orange-500" />
+                  Matching Products
+                </span>
+                <span>{adminSuggestions.length} found</span>
+              </div>
+
+              <div className="max-h-60 overflow-y-auto custom-scrollbar">
+                {adminSuggestions.map((item, idx) => {
+                  const isSelected = idx === selectedSuggestionIdx;
+                  return (
+                    <div
+                      key={item.id || item.name}
+                      onClick={() => {
+                        setSearchQuery(item.name);
+                        setShowAdminSuggestions(false);
+                      }}
+                      className={`flex items-center justify-between px-3 py-2 text-xs font-bold transition-colors cursor-pointer ${
+                        isSelected ? "bg-orange-50 text-orange-950" : "text-stone-800 hover:bg-stone-50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <img
+                          src={getImageUrl(item.image)}
+                          alt={item.name}
+                          className="w-8 h-8 rounded-lg object-cover border border-stone-200 shrink-0 bg-stone-100"
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = "none";
+                          }}
+                        />
+                        <div className="min-w-0">
+                          <p className="font-bold truncate text-stone-900">{item.name}</p>
+                          <p className="text-[10px] text-stone-400 font-medium">
+                            {item.category} • Rs. {item.pricePerKg || (item.variants?.[0]?.price ?? 0)}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                        <Link
+                          to={`/admin/products/${item.id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="px-2 py-1 bg-stone-100 hover:bg-orange-600 hover:text-white rounded-lg text-[10px] font-bold text-stone-600 transition-colors flex items-center gap-1"
+                          title="Edit Product"
+                        >
+                          <Edit className="w-3 h-3" />
+                          <span>Edit</span>
+                        </Link>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           )}
         </div>
 

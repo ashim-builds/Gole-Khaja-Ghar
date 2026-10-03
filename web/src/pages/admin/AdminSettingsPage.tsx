@@ -193,12 +193,6 @@ export default function AdminSettingsPage() {
     setTestingPush(true);
     setPushFeedback(null);
     try {
-      void showLiveNotification(
-        "🔔 Admin Notification Test",
-        "Your Notification Center is connected! You will receive live order alerts here.",
-        "admin-test",
-        "/admin",
-      );
       const res = await api.admin.testPush();
       if (res.success) {
         setPushFeedback({

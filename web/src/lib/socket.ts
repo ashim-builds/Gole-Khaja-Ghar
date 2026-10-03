@@ -76,10 +76,13 @@ export function unlockAudioAlerts() {
   }
 }
 
+const recentNotifications = new Map<string, number>();
+let lastSoundPlayTime = 0;
+
 export async function showLiveNotification(
   title: string,
   body: string,
-  tag: string = `gkg-${Date.now()}`,
+  tag?: string,
   url: string = '/'
 ) {
   try {
@@ -91,11 +94,29 @@ export async function showLiveNotification(
       return;
     }
 
+    const finalTag = tag || `gkg-${title.replace(/[^\w-]/g, '').toLowerCase() || 'notif'}`;
+    const dedupeKey = `${finalTag}:${title}:${body}`;
+    const now = Date.now();
+    const lastSent = recentNotifications.get(dedupeKey);
+    if (lastSent && now - lastSent < 2500) {
+      // Debounce: ignore duplicate notification within 2.5s window
+      return;
+    }
+    recentNotifications.set(dedupeKey, now);
+
+    if (recentNotifications.size > 50) {
+      for (const [k, time] of recentNotifications.entries()) {
+        if (now - time > 15000) {
+          recentNotifications.delete(k);
+        }
+      }
+    }
+
     const options = {
       body,
       icon: '/favicon-circle.png',
       badge: '/favicon-circle.png',
-      tag,
+      tag: finalTag,
       requireInteraction: true,
       renotify: true,
       silent: false,
@@ -130,6 +151,13 @@ export async function showLiveNotification(
 
 export function playAudioAlert(soundType: 'chime' | 'ready' | 'order' = 'ready') {
   try {
+    const nowMs = Date.now();
+    if (nowMs - lastSoundPlayTime < 500) {
+      // Debounce audio playback to avoid overlapping echo
+      return;
+    }
+    lastSoundPlayTime = nowMs;
+
     // Trigger mobile hardware vibration (works on Android & mobile browsers)
     if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
       navigator.vibrate([250, 100, 250, 100, 350]);

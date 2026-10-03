@@ -39,6 +39,23 @@ export default function ProductForm({ product }: ProductFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [categoryList, setCategoryList] = useState<string[]>([
+    "Morning Breakfast",
+    "Soft Drinks",
+    "Veg Items",
+    "Khaja Non-Veg",
+    "Snacks",
+    "Beer & Hard Drinks",
+  ]);
+
+  // Load active categories from API
+  useEffect(() => {
+    api.products.getCategories().then((res) => {
+      if (res.categories && res.categories.length > 0) {
+        setCategoryList(res.categories);
+      }
+    }).catch(() => {});
+  }, []);
 
   // Auto-dismiss error after 6 seconds
   useEffect(() => {
@@ -58,7 +75,7 @@ export default function ProductForm({ product }: ProductFormProps) {
     name: product?.name || "",
     slug: product?.slug || "",
     description: product?.description || "",
-    category: product?.category || "Khaja Sets",
+    category: product?.category || "Morning Breakfast",
     priceType: product?.priceType || "variant",
     pricePerKg: product?.pricePerKg || "",
     variants:
@@ -502,13 +519,16 @@ export default function ProductForm({ product }: ProductFormProps) {
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
-                  className="w-full text-stone-900 px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:bg-white focus:outline-none font-bold"
+                  className="w-full text-stone-900 px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:bg-white focus:outline-none font-bold cursor-pointer"
                 >
-                  <option value="Khaja Sets">Khaja Sets</option>
-                  <option value="Momo">Momo</option>
-                  <option value="Chowmein">Chowmein</option>
-                  <option value="Sekuwa & Snacks">Sekuwa & Snacks</option>
-                  <option value="Beverages">Beverages</option>
+                  {categoryList.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                  {formData.category && !categoryList.includes(formData.category) && (
+                    <option value={formData.category}>{formData.category}</option>
+                  )}
                   <option value="Other">Other</option>
                 </select>
               </div>
@@ -585,7 +605,7 @@ export default function ProductForm({ product }: ProductFormProps) {
                     Restaurant Portions (Recommended)
                   </span>
                   <span className="text-xs text-stone-500 block mt-0.5">
-                    Full Plate, Half Plate, Pcs, Khaja Sets, Cup/Glass
+                    Full Plate, Half Plate, Pcs, Cup/Glass, Bottle
                   </span>
                 </div>
               </label>

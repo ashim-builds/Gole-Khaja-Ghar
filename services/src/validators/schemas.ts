@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export const nameRegex = /^[a-zA-Z\s]{2,60}$/;
 export const phoneRegex = /^9\d{9}$/;
+export const MIN_ORDER_AMOUNT = 500;
 
 export const registerSchema = z.object({
   name: z

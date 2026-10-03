@@ -157,21 +157,25 @@ export default function NotificationBell({ type }: NotificationBellProps) {
         }
       }
 
-      setUnreadCount((c) => c + 1);
+      const notifId = payload.id || payload._id || `${payload.title}:${payload.createdAt || ''}`;
+      const item = {
+        id: notifId,
+        _id: notifId,
+        title: payload.title,
+        message: payload.message || payload.body,
+        body: payload.body || payload.message,
+        linkUrl: payload.linkUrl,
+        read: false,
+        isRead: false,
+        createdAt: payload.createdAt || new Date().toISOString(),
+      };
+
       setNotifications((prev) => {
-        const item = {
-          id: payload.id || payload._id || `notif-${Date.now()}`,
-          _id: payload.id || payload._id || `notif-${Date.now()}`,
-          title: payload.title,
-          message: payload.message || payload.body,
-          body: payload.body || payload.message,
-          linkUrl: payload.linkUrl,
-          read: false,
-          isRead: false,
-          createdAt: payload.createdAt || new Date().toISOString(),
-        };
-        // Avoid duplicates
-        if (prev.some((n) => (n.id || n._id) === item.id)) return prev;
+        // Strict deduplication check
+        if (prev.some((n) => (n.id || n._id) === item.id || (n.title === item.title && n.createdAt === item.createdAt))) {
+          return prev;
+        }
+        setUnreadCount((c) => c + 1);
         return [item, ...prev];
       });
     };

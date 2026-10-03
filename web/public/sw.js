@@ -26,6 +26,8 @@ self.addEventListener('push', (event) => {
     data.url ||
     (data.orderNumber ? `/order/${data.orderNumber}` : data.linkUrl || '/');
 
+  const notifTag = data.tag || (data.orderNumber ? `gkg-${data.orderNumber}` : `gkg-${title.replace(/[^\w-]/g, '').toLowerCase() || 'update'}`);
+
   const options = {
     body,
     icon: data.icon || '/favicon-circle.png',
@@ -38,7 +40,7 @@ self.addEventListener('push', (event) => {
       timestamp: Date.now(),
     },
     vibrate: [300, 100, 300, 100, 400],
-    tag: data.tag || `gkg-${data.orderNumber || Date.now()}`,
+    tag: notifTag,
     renotify: true,
     requireInteraction: true,
     silent: false,
@@ -62,7 +64,7 @@ self.addEventListener('push', (event) => {
         icon: '/favicon-circle.png',
         badge: '/favicon-circle.png',
         vibrate: [300, 100, 300],
-        tag: `gkg-${Date.now()}`,
+        tag: notifTag,
         data: { url: targetUrl },
       });
     })

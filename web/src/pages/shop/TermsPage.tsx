@@ -11,9 +11,9 @@ const sections = [
     iconColor: "text-primary",
     items: [
       "All orders are subject to product availability. If a product is out of stock, we will notify you promptly.",
+      "A minimum order value of Rs. 500 is required for all online orders placed through our website.",
       "Prices displayed on the website are in Nepali Rupees (NPR) and are subject to change without prior notice.",
       "We reserve the right to refuse or cancel any order at our discretion, including orders containing incorrect pricing.",
-      "Minimum order amounts may apply for delivery orders.",
       "Custom weight orders are accepted within the range specified on the product page.",
     ],
   },
@@ -23,11 +23,12 @@ const sections = [
     color: "bg-blue-50",
     iconColor: "text-blue-600",
     items: [
-      "Delivery is available within our designated service area. Please confirm availability before placing your order.",
-      "Estimated delivery times are approximate and may vary depending on location, traffic, and weather conditions.",
-      "A delivery fee of Rs. 20 applies to orders below Rs. 500. Free delivery is available for orders of Rs. 500 and above.",
+      "Delivery is available within our designated service area in Pokhara-30 (Sisuwa & surrounding areas). Please confirm address details before placing your order.",
+      "A minimum order amount of Rs. 500 is required for delivery.",
+      "100% FREE Home Delivery is provided on all eligible orders of Rs. 500 and above.",
+      "Estimated delivery times are approximate and may vary depending on location, order volume, traffic, and weather conditions.",
       "We are not responsible for delays caused by circumstances beyond our control (e.g., strikes, extreme weather).",
-      "Customers must ensure someone is available at the delivery address to receive the order.",
+      "Customers must ensure someone is available at the delivery address and reachable via phone to receive the order.",
     ],
   },
   {

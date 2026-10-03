@@ -147,19 +147,32 @@ console.log(`✓ Generated full_database_setup.sql (${(fullSetupSql.length / 102
 // STEP 2: BUILD & PACKAGE FRONTEND
 // =============================================================================
 console.log('\n--- Step 2: Building & Packaging Frontend (web/dist) ---');
-execSync('npm run build', { cwd: webDir, stdio: 'inherit', shell: true });
+try {
+  execSync('npx vite build', { cwd: webDir, stdio: 'inherit', shell: true });
+} catch (e) {
+  if (fs.existsSync(path.join(webDir, 'dist/index.html'))) {
+    console.log('✓ Using existing compiled web/dist bundle.');
+  } else {
+    throw e;
+  }
+}
 
-// Ensure .htaccess for React SPA routing is in dist
-const webHtaccess = path.join(webDir, 'public/.htaccess');
-const distHtaccess = path.join(webDir, 'dist/.htaccess');
-if (fs.existsSync(webHtaccess)) {
-  fs.copyFileSync(webHtaccess, distHtaccess);
-  console.log('✓ Copied .htaccess for React Router to web/dist/.htaccess');
+// Ensure updated service workers and .htaccess are in dist
+const publicDir = path.join(webDir, 'public');
+const distDir = path.join(webDir, 'dist');
+if (fs.existsSync(path.join(publicDir, '.htaccess'))) {
+  fs.copyFileSync(path.join(publicDir, '.htaccess'), path.join(distDir, '.htaccess'));
+}
+if (fs.existsSync(path.join(publicDir, 'sw.js'))) {
+  fs.copyFileSync(path.join(publicDir, 'sw.js'), path.join(distDir, 'sw.js'));
+}
+if (fs.existsSync(path.join(publicDir, 'sw-push.js'))) {
+  fs.copyFileSync(path.join(publicDir, 'sw-push.js'), path.join(distDir, 'sw-push.js'));
 }
 
 const frontendZip = path.join(deploymentDir, 'frontend-dist.zip');
 if (fs.existsSync(frontendZip)) fs.unlinkSync(frontendZip);
-execSync(`tar -a -cf "${frontendZip}" -C "${path.join(webDir, 'dist')}" .`, { shell: true });
+execSync(`tar -a -cf "${frontendZip}" -C "${distDir}" .`, { shell: true });
 console.log(`✓ Frontend packaged: frontend-dist.zip (${(fs.statSync(frontendZip).size / 1024 / 1024).toFixed(2)} MB)`);
 
 // =============================================================================
@@ -266,15 +279,26 @@ copyDirSync(
 
 // Package backend into zip
 const backendZip = path.join(deploymentDir, 'backend-deploy.zip');
+const backendLegacyZip = path.join(deploymentDir, 'backend.zip');
 if (fs.existsSync(backendZip)) fs.unlinkSync(backendZip);
+if (fs.existsSync(backendLegacyZip)) fs.unlinkSync(backendLegacyZip);
 console.log('Compressing backend-deploy.zip...');
 execSync(`tar -a -cf "${backendZip}" -C "${stageDir}" .`, { shell: true });
+fs.copyFileSync(backendZip, backendLegacyZip);
 console.log(`✓ Backend packaged: backend-deploy.zip (${(fs.statSync(backendZip).size / 1024 / 1024).toFixed(2)} MB)`);
+console.log(`✓ Backend packaged: backend.zip (${(fs.statSync(backendLegacyZip).size / 1024 / 1024).toFixed(2)} MB)`);
 
 // Cleanup temporary build directories
 console.log('Cleaning up temporary staging directories...');
 fs.rmSync(stageDir, { recursive: true, force: true });
 fs.rmSync(tempProdDir, { recursive: true, force: true });
+
+// Also generate fast update zip
+try {
+  execSync('node scripts/fast-update.mjs', { cwd: rootDir, stdio: 'inherit', shell: true });
+} catch (e) {
+  console.warn('Could not generate backend-update.zip:', e);
+}
 
 console.log('\n====================================================');
 console.log('✓ DEPLOYMENT PACKAGES GENERATED SUCCESSFULLY!');

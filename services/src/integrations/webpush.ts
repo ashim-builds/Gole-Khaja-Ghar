@@ -43,7 +43,7 @@ async function sendToSubscription(
       url: payload.url || (payload.orderNumber ? `/order/${payload.orderNumber}` : '/'),
       orderNumber: payload.orderNumber,
       orderId: payload.orderId,
-      tag: payload.tag || (payload.orderNumber ? `gkg-${payload.orderNumber}` : `gkg-${Date.now()}`),
+      tag: payload.tag || (payload.orderNumber ? `gkg-${payload.orderNumber}` : `gkg-${payload.title.replace(/[^\w-]/g, '').toLowerCase() || 'alert'}`),
       timestamp: Date.now(),
     });
 

@@ -214,7 +214,7 @@ class NotificationSchedulerManager {
       url,
       icon,
       badge,
-      tag: `gkg-${templateId || 'alert'}-${Date.now()}`,
+      tag: `gkg-${templateId || title.replace(/[^\w-]/g, '').toLowerCase() || 'broadcast'}`,
     };
 
     let deliveredCount = 0;

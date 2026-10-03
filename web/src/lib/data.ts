@@ -48,10 +48,24 @@ export async function getCategories(): Promise<string[]> {
       lastCatFetch = now;
       return cachedCategories;
     }
-    return ["Khaja Sets", "Momo", "Chowmein", "Sekuwa & Snacks", "Beverages", "Other"];
+    return [
+      "Morning Breakfast",
+      "Soft Drinks",
+      "Veg Items",
+      "Khaja Non-Veg",
+      "Snacks",
+      "Beer & Hard Drinks",
+    ];
   } catch (error) {
     console.error('getCategories failed:', error);
-    return cachedCategories || ["Khaja Sets", "Momo", "Chowmein", "Sekuwa & Snacks", "Beverages", "Other"];
+    return cachedCategories || [
+      "Morning Breakfast",
+      "Soft Drinks",
+      "Veg Items",
+      "Khaja Non-Veg",
+      "Snacks",
+      "Beer & Hard Drinks",
+    ];
   }
 }
 

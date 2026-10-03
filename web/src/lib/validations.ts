@@ -6,6 +6,9 @@ export const nameRegex = /^[a-zA-Z\s]{2,60}$/;
 // Phone regex: Exactly 10 digits starting with 9 (Nepali standard)
 export const phoneRegex = /^9\d{9}$/;
 
+// Minimum order amount requirement in NPR
+export const MIN_ORDER_AMOUNT = 500;
+
 // Customer Registration Schema
 export const registerSchema = z.object({
   name: z

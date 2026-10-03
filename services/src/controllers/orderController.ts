@@ -262,10 +262,16 @@ export async function checkout(req: AuthenticatedRequest, res: Response): Promis
 
     subtotalAmount = Math.round(subtotalAmount * 100) / 100;
 
-    const DELIVERY_THRESHOLD = 500;
-    const DELIVERY_FEE = 20;
-    const deliveryCharge =
-      rawOrderType === 'delivery' && subtotalAmount < DELIVERY_THRESHOLD ? DELIVERY_FEE : 0;
+    const MIN_ORDER_AMOUNT = 500;
+    if (subtotalAmount < MIN_ORDER_AMOUNT) {
+      res.status(400).json({
+        error: `Minimum order amount is Rs. ${MIN_ORDER_AMOUNT}. Please add items worth at least Rs. ${(MIN_ORDER_AMOUNT - subtotalAmount).toFixed(2)} more to place your order.`
+      });
+      return;
+    }
+
+    // Free delivery on all qualifying orders (Rs. 500 and above)
+    const deliveryCharge = 0;
     const totalAmount = Math.round((subtotalAmount + deliveryCharge) * 100) / 100;
 
     // Generate Order Number: GKG-1001
@@ -802,12 +808,6 @@ export async function updateOrderStatus(req: Request, res: Response): Promise<vo
 
     // Live Socket Updates
     emitOrderStatusChanged({
-      orderId: order.id,
-      orderNumber: order.orderNumber,
-      status,
-    });
-    emitEvent('order:status_changed', {
-      id: order.id,
       orderId: order.id,
       orderNumber: order.orderNumber,
       status,

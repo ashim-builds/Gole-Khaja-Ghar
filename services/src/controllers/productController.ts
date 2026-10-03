@@ -58,7 +58,7 @@ function mapProduct(doc: any) {
     trackStock: doc.trackStock ?? false,
     stockQuantity: doc.stockQuantity ?? 0,
     lowStockAlert: doc.lowStockAlert ?? 5,
-    category: doc.category?.name || 'Khaja Sets',
+    category: doc.category?.name || 'Morning Breakfast',
     categoryId: doc.categoryId,
     image: doc.image || '/images/logo.png',
     images: (doc.galleryImages as string[]) || [],
@@ -85,10 +85,47 @@ export async function getProducts(req: Request, res: Response): Promise<void> {
     if (query && typeof query === 'string') {
       const cleanQuery = query.trim().slice(0, 100);
       if (cleanQuery) {
-        where.OR = [
+        const tokens = cleanQuery.replace(/[.\-_/]/g, ' ').split(/\s+/).filter(Boolean);
+        const orClauses: any[] = [
           { name: { contains: cleanQuery } },
           { description: { contains: cleanQuery } },
+          { slug: { contains: cleanQuery.toLowerCase().replace(/\s+/g, '-') } },
         ];
+
+        // If query has multiple tokens or abbreviation like "c momo" -> match both tokens
+        if (tokens.length > 1) {
+          orClauses.push({
+            AND: tokens.map(tok => ({
+              OR: [
+                { name: { contains: tok } },
+                { description: { contains: tok } },
+              ]
+            }))
+          });
+        }
+
+        // Abbreviation heuristics (e.g. 'c' for Chicken, 'b' for Buff, 'k' for Khaja)
+        if (tokens.length >= 2) {
+          const abbrevMap: Record<string, string> = {
+            c: 'chicken',
+            b: 'buff',
+            k: 'khaja',
+            f: 'fried',
+            s: 'sekuwa',
+            p: 'pork',
+          };
+          const expandedTokens = tokens.map(t => abbrevMap[t.toLowerCase()] || t);
+          orClauses.push({
+            AND: expandedTokens.map(tok => ({
+              OR: [
+                { name: { contains: tok } },
+                { description: { contains: tok } },
+              ]
+            }))
+          });
+        }
+
+        where.OR = orClauses;
       }
     }
 
@@ -171,7 +208,14 @@ export async function getCategories(_req: Request, res: Response): Promise<void>
     if (!categories || categories.length === 0) {
       res.json({
         success: true,
-        categories: ['Khaja Sets', 'Momo', 'Chowmein', 'Sekuwa & Snacks', 'Beverages'],
+        categories: [
+          'Morning Breakfast',
+          'Soft Drinks',
+          'Veg Items',
+          'Khaja Non-Veg',
+          'Snacks',
+          'Beer & Hard Drinks',
+        ],
       });
       return;
     }
@@ -202,7 +246,7 @@ export async function getFeaturedProducts(_req: Request, res: Response): Promise
 }
 
 async function findOrCreateCategory(categoryName: string): Promise<{ id: string; name: string }> {
-  const cleanName = (categoryName || 'Khaja Sets').trim();
+  const cleanName = (categoryName || 'Morning Breakfast').trim();
   const categorySlug = slugify(cleanName) || 'category';
 
   let category = await prisma.category.findFirst({
@@ -232,7 +276,7 @@ export async function createProduct(req: Request, res: Response): Promise<void> 
     const rawSlug = (req.body.slug as string)?.trim().slice(0, 100);
     const slug = rawSlug || slugify(name);
     const description = (req.body.description as string)?.trim().slice(0, 1000);
-    const categoryName = (req.body.category as string)?.trim().slice(0, 50) || 'Khaja Sets';
+    const categoryName = (req.body.category as string)?.trim().slice(0, 50) || 'Morning Breakfast';
     const priceType = (req.body.priceType as string) || 'weight';
 
     if (!name || !slug) {
@@ -349,7 +393,7 @@ export async function updateProduct(req: Request, res: Response): Promise<void> 
     const rawSlug = (req.body.slug as string)?.trim().slice(0, 100);
     const slug = rawSlug || slugify(name);
     const description = (req.body.description as string)?.trim().slice(0, 1000);
-    const categoryName = (req.body.category as string)?.trim().slice(0, 50) || 'Khaja Sets';
+    const categoryName = (req.body.category as string)?.trim().slice(0, 50) || 'Morning Breakfast';
     const priceType = (req.body.priceType as string) || 'weight';
 
     if (!name || !slug) {

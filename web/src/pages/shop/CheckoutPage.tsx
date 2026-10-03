@@ -4,9 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { api, getImageUrl } from "@/lib/api";
 import { useStoreHours } from "@/lib/storeHours";
 import StoreClosedNotice from "@/components/StoreClosedNotice";
-import { Truck, ArrowRight, Loader2, MapPin, Edit3, QrCode, Banknote, X, Pin, CheckCircle, Phone, User, Clock, AlertTriangle } from "lucide-react";
+import { Truck, ArrowRight, Loader2, MapPin, Edit3, QrCode, Banknote, X, Pin, CheckCircle, Phone, User, Clock, AlertTriangle, Sparkles, ShoppingBag } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 import { showLiveNotification } from "@/lib/socket";
+import { MIN_ORDER_AMOUNT } from "@/lib/validations";
 
 const MapPicker = lazy(() => import("@/components/MapPicker"));
 
@@ -37,6 +38,11 @@ export default function CheckoutPage() {
   const { user, isLoading: isUserLoading } = useUser();
   const storeStatus = useStoreHours();
   const navigate = useNavigate();
+
+  const isMinOrderMet = cartTotal >= MIN_ORDER_AMOUNT;
+  const amountNeeded = Math.max(0, MIN_ORDER_AMOUNT - cartTotal);
+  const DELIVERY_FEE = 0; // Free delivery for all orders (min. order Rs. 500)
+  const grandTotal = cartTotal;
 
   const [isMounted, setIsMounted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -95,6 +101,48 @@ export default function CheckoutPage() {
     );
   }
 
+  // Minimum order amount requirement: Rs. 500
+  if (!isMinOrderMet) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center px-4 py-12 bg-stone-50">
+        <div className="max-w-md w-full bg-white rounded-3xl shadow-xl border border-stone-200 p-8 text-center space-y-6">
+          <div className="w-16 h-16 bg-orange-100 text-orange-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
+            <ShoppingBag className="w-8 h-8" />
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="text-2xl font-black text-stone-900 tracking-tight">Minimum Order: Rs. {MIN_ORDER_AMOUNT}</h2>
+            <p className="text-sm text-stone-600 font-medium leading-relaxed">
+              We require a minimum order amount of <strong className="text-stone-900">Rs. {MIN_ORDER_AMOUNT}</strong>. 
+              Enjoy <strong className="text-emerald-700">100% Free Home Delivery</strong> on all orders!
+            </p>
+          </div>
+
+          <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 text-left space-y-2">
+            <div className="flex justify-between items-center text-sm font-bold">
+              <span className="text-stone-600">Current Cart Total</span>
+              <span className="text-stone-900 font-black">Rs. {cartTotal.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between items-center text-sm font-bold">
+              <span className="text-orange-700">Amount Needed</span>
+              <span className="text-orange-600 font-black">+ Rs. {amountNeeded.toFixed(2)}</span>
+            </div>
+          </div>
+
+          <div className="space-y-3 pt-2">
+            <button
+              onClick={() => navigate("/shop")}
+              className="w-full py-4 bg-orange-600 hover:bg-orange-500 text-white font-black uppercase text-xs tracking-wider rounded-xl shadow-lg shadow-orange-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              Add More Items from Menu
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Enforce Login Required before ordering
   if (!user) {
     return (
@@ -116,8 +164,8 @@ export default function CheckoutPage() {
               <p className="text-xs font-bold text-stone-400 uppercase tracking-wider">Your Cart Total</p>
               <p className="text-xl font-black text-stone-900">Rs. {cartTotal.toFixed(2)}</p>
             </div>
-            <span className="px-3 py-1 bg-orange-100 text-orange-800 text-xs font-black rounded-full">
-              {items.length} {items.length === 1 ? "Item" : "Items"}
+            <span className="px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-black rounded-full flex items-center gap-1">
+              <Truck className="w-3.5 h-3.5 inline" /> Free Delivery
             </span>
           </div>
 
@@ -140,10 +188,6 @@ export default function CheckoutPage() {
       </div>
     );
   }
-
-  const DELIVERY_THRESHOLD = 500;
-  const DELIVERY_FEE = cartTotal < DELIVERY_THRESHOLD ? 20 : 0;
-  const grandTotal = cartTotal + (formData.orderType === "delivery" ? DELIVERY_FEE : 0);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -175,6 +219,9 @@ export default function CheckoutPage() {
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
 
+    if (cartTotal < MIN_ORDER_AMOUNT) {
+      errors.minimum = `Minimum order amount is Rs. ${MIN_ORDER_AMOUNT}. Please add more items before placing your order.`;
+    }
     if (!NAME_REGEX.test(formData.name.trim())) {
       errors.name = "Name must contain only letters and spaces (2–60 characters), no numbers.";
     }
@@ -606,26 +653,12 @@ export default function CheckoutPage() {
                 </div>
 
                 {formData.orderType === "delivery" && (
-                  <div className="flex justify-between text-sm items-start">
+                  <div className="flex justify-between text-sm items-center">
                     <span className="text-stone-500 font-bold">Delivery</span>
-                    {DELIVERY_FEE === 0 ? (
-                      <span className="font-bold text-green-600 flex items-center gap-1">
-                        FREE <CheckCircle className="w-3.5 h-3.5 inline" />
-                      </span>
-                    ) : (
-                      <div className="text-right">
-                        <span className="font-bold text-stone-800">Rs. {DELIVERY_FEE.toFixed(2)}</span>
-                        <p className="text-[10px] text-stone-400">Min. Rs. {DELIVERY_THRESHOLD} for free delivery</p>
-                      </div>
-                    )}
+                    <span className="font-bold text-emerald-600 flex items-center gap-1">
+                      FREE <CheckCircle className="w-3.5 h-3.5 inline" />
+                    </span>
                   </div>
-                )}
-
-                {formData.orderType === "delivery" && DELIVERY_FEE > 0 && (
-                  <p className="text-[11px] text-primary font-semibold bg-orange-50 px-3 py-1.5 rounded-lg flex items-center gap-1.5 border border-orange-100">
-                    <Truck className="w-3.5 h-3.5 shrink-0" /> Add Rs. {(DELIVERY_THRESHOLD - cartTotal).toFixed(0)} more
-                    for free delivery!
-                  </p>
                 )}
 
                 <div className="flex justify-between text-sm items-center">

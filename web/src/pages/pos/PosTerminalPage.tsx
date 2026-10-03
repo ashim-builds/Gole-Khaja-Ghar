@@ -26,6 +26,7 @@ import { api, Product } from "@/lib/api";
 import { useUser } from "@/context/UserContext";
 import { subscribeToEvent, playAudioAlert, showLiveNotification, unlockAudioAlerts } from "@/lib/socket";
 import VirtualPosProductGrid from "@/components/VirtualPosProductGrid";
+import { searchItems } from "@/lib/searchUtils";
 
 interface ReadyAlert {
   id: string;
@@ -441,12 +442,15 @@ export default function PosTerminalPage() {
   };
 
   const filteredProducts = useMemo(() => {
-    const q = searchQuery.toLowerCase().trim();
-    return products.filter((p) => {
-      const matchesCategory = selectedCategory === "All" || p.category === selectedCategory;
-      const matchesSearch = !q || p.name.toLowerCase().includes(q);
-      return matchesCategory && matchesSearch;
+    const catFiltered = products.filter((p) => {
+      return selectedCategory === "All" || p.category === selectedCategory;
     });
+
+    if (searchQuery.trim()) {
+      return searchItems(catFiltered, searchQuery.trim());
+    }
+
+    return catFiltered;
   }, [products, selectedCategory, searchQuery]);
 
   const cartSubtotal = useMemo(() => {
@@ -839,11 +843,20 @@ export default function PosTerminalPage() {
                 <Search className="w-4 h-4 text-stone-500 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
-                  placeholder="Search momo, chowmein, sekuwa..."
+                  placeholder="Search momo, chowmein, c.momo, sekuwa..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-stone-900 border border-stone-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-stone-500 focus:outline-none focus:border-orange-500"
+                  className="w-full bg-stone-900 border border-stone-800 rounded-xl pl-9 pr-8 py-2 text-xs text-white placeholder-stone-500 focus:outline-none focus:border-orange-500"
                 />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-white p-1"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
 
               {/* Category Wrap Pills (No Horizontal Scroll) */}
@@ -1263,11 +1276,20 @@ export default function PosTerminalPage() {
                 <Search className="w-4 h-4 text-stone-500 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
-                  placeholder="Search momo, chowmein, sekuwa..."
+                  placeholder="Search momo, chowmein, c.momo, sekuwa, khaja..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-stone-900 border border-stone-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-stone-500 focus:outline-none focus:border-orange-500"
+                  className="w-full bg-stone-900 border border-stone-800 rounded-xl pl-9 pr-8 py-2 text-xs text-white placeholder-stone-500 focus:outline-none focus:border-orange-500"
                 />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-white p-1"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
             </div>
 
