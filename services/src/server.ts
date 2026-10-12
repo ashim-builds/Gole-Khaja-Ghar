@@ -85,9 +85,21 @@ const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
-const serveStaticUploads = (_req: any, res: any, next: any) => {
+const serveStaticUploads = (req: any, res: any, next: any) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+
+  // Auto-serve .webp if the requested .jpg/.png exists as .webp on disk
+  if (req.url) {
+    const cleanUrl = req.url.split('?')[0];
+    if (/\.(jpe?g|png)$/i.test(cleanUrl)) {
+      const webpUrl = cleanUrl.replace(/\.(jpe?g|png)$/i, '.webp');
+      const webpDiskPath = path.join(uploadsDir, webpUrl.replace(/^\//, ''));
+      if (fs.existsSync(webpDiskPath)) {
+        req.url = req.url.replace(cleanUrl, webpUrl);
+      }
+    }
+  }
   next();
 };
 app.use('/uploads', serveStaticUploads, express.static(uploadsDir, { maxAge: '7d', etag: true }));
