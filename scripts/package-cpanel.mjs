@@ -200,12 +200,32 @@ fs.copyFileSync(path.join(servicesDir, 'app.js'), path.join(stageDir, 'app.js'))
 fs.copyFileSync(path.join(servicesDir, 'package.json'), path.join(stageDir, 'package.json'));
 fs.copyFileSync(path.join(servicesDir, '.env.example'), path.join(stageDir, '.env.example'));
 
-// Clean .htaccess for cPanel Passenger
+// Tuned .htaccess for cPanel Phusion Passenger (CloudLinux LVE NPROC reduction)
 const backendHtaccessContent = `# CloudLinux Passenger Configuration for cPanel
 PassengerAppType node
 PassengerStartupFile app.js
 PassengerAppLogFile stderr.log
+PassengerMaxPoolSize 2
+PassengerMinInstances 1
+PassengerPoolIdleTime 300
+PassengerStatThrottleRate 60
 Options -Indexes
+
+# Block direct access to environment variables, configs, and sensitive files
+<FilesMatch "^(\\.env|\\.env\\..*|\\.git.*|package\\.json|package-lock\\.json|tsconfig\\.json|.*\\.sql|.*\\.log|Dockerfile)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^\\.(?!well-known/) - [F,L]
+</IfModule>
 `;
 fs.writeFileSync(path.join(stageDir, '.htaccess'), backendHtaccessContent, 'utf8');
 
@@ -216,7 +236,7 @@ const prodEnvContent = `# ======================================================
 
 # Database Configuration (cPanel MySQL)
 # Replace golekhaj_user, YOUR_DB_PASSWORD, and golekhaj_db with your cPanel values:
-DATABASE_URL="mysql://golekhaj_user:YOUR_DB_PASSWORD@localhost:3306/golekhaj_db?connection_limit=5&pool_timeout=10"
+DATABASE_URL="mysql://golekhaj_user:YOUR_DB_PASSWORD@localhost:3306/golekhaj_db?connection_limit=3&pool_timeout=10&idle_timeout=30"
 
 # Server Configuration
 PORT=4000

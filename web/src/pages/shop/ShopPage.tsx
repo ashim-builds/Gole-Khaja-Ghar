@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
-import { getProducts, getCategories, Product } from "@/lib/data";
+import { getProducts, getCachedProducts, getCategories, Product } from "@/lib/data";
 import ProductCard from "@/components/ProductCard";
 import ShopFilters from "@/components/ShopFilters";
 import ScrollAnimation from "@/components/ScrollAnimation";
@@ -29,10 +29,31 @@ export default function ShopPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
 
+  // Instant SWR Hydration: Render immediately from sessionStorage in 0ms
   useEffect(() => {
     let active = true;
-    async function loadData() {
+
+    // 1. Instant Synchronous Check from sessionStorage
+    const cached = getCachedProducts(category, query, currentPage, ITEMS_PER_PAGE);
+    if (cached?.data) {
+      let sorted = [...(cached.data.products || [])];
+      if (sort === "price-asc") {
+        sorted.sort((a, b) => (a.pricePerKg ?? 0) - (b.pricePerKg ?? 0));
+      } else if (sort === "price-desc") {
+        sorted.sort((a, b) => (b.pricePerKg ?? 0) - (a.pricePerKg ?? 0));
+      } else if (sort === "name-asc") {
+        sorted.sort((a, b) => a.name.localeCompare(b.name));
+      }
+      setProducts(sorted);
+      setTotalItems(cached.data.total);
+      setTotalPages(cached.data.totalPages || 1);
+      setLoading(false); // 0ms instantaneous render
+    } else {
       setLoading(true);
+    }
+
+    // 2. Background Revalidation to keep synchronized
+    async function loadData() {
       try {
         const [productsRes, fetchedCats] = await Promise.all([
           getProducts(category, query, currentPage, ITEMS_PER_PAGE),

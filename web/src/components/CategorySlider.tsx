@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import OptimizedImage from "@/components/OptimizedImage";
 
 const categories = [
   { name: "Khaja Sets", icon: "/images/snack_bowl.jpg" },
@@ -46,9 +47,15 @@ export default function CategorySlider() {
       >
         {categories.map((cat) => (
           <div key={cat.name} className="flex flex-col items-center gap-3 min-w-[72px] md:min-w-[80px] cursor-pointer group flex-shrink-0 snap-start">
-            <div className="w-[72px] h-[72px] md:w-[100px] md:h-[100px] rounded-full bg-[#f8f8f8] flex items-center justify-center overflow-hidden shadow-sm border border-stone-100 group-hover:border-primary transition-colors p-2 md:p-3">
-               <div className="relative w-full h-full rounded-full overflow-hidden">
-                 <img src={cat.icon} alt={cat.name} className="w-full h-full object-cover" />
+            <div className="w-[72px] h-[72px] md:w-[100px] md:h-[100px] aspect-square rounded-full bg-[#f8f8f8] flex items-center justify-center overflow-hidden shadow-sm border border-stone-100 group-hover:border-primary transition-colors p-2 md:p-3">
+               <div className="relative w-full h-full aspect-square rounded-full overflow-hidden">
+                 <OptimizedImage
+                   src={cat.icon}
+                   alt={cat.name}
+                   aspectRatio="square"
+                   containerClassName="w-full h-full rounded-full"
+                   className="w-full h-full object-cover"
+                 />
                </div>
             </div>
             <span className="text-xs md:text-[15px] font-bold text-stone-800">{cat.name}</span>

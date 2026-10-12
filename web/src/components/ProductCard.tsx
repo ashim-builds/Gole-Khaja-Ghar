@@ -40,6 +40,7 @@ export default function ProductCard({
   const navigate = useNavigate();
   const [selectedWeight] = useState<number>(250);
   const [isAdded, setIsAdded] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
   const { addWeightItem, addVariantItem } = useCart();
 
   const hasMultipleVariants = variants.length > 1;
@@ -157,23 +158,28 @@ export default function ProductCard({
 
           {!isDrink ? (
             /* 3D Ceramic / Brass Serving Plate */
-            <div className="relative w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 lg:w-40 lg:h-40 rounded-full p-2 sm:p-2.5 bg-gradient-to-br from-stone-100 via-white to-stone-300 shadow-[0_12px_24px_-6px_rgba(0,0,0,0.25),inset_0_2px_4px_rgba(255,255,255,1),inset_0_-3px_6px_rgba(0,0,0,0.18)] border border-stone-200/80 ring-2 ring-stone-100 group-hover:ring-orange-500/40 group-hover:scale-105 transition-all duration-300 flex items-center justify-center">
+            <div className="relative w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 lg:w-40 lg:h-40 aspect-square rounded-full p-2 sm:p-2.5 bg-gradient-to-br from-stone-100 via-white to-stone-300 shadow-[0_12px_24px_-6px_rgba(0,0,0,0.25),inset_0_2px_4px_rgba(255,255,255,1),inset_0_-3px_6px_rgba(0,0,0,0.18)] border border-stone-200/80 ring-2 ring-stone-100 group-hover:ring-orange-500/40 group-hover:scale-105 transition-all duration-300 flex items-center justify-center">
               {/* Inner Plate Cavity (Recessed Bowl Center) */}
-              <div className="w-full h-full rounded-full overflow-hidden relative shadow-[inset_0_4px_10px_rgba(0,0,0,0.35),0_1px_2px_rgba(255,255,255,0.9)] border border-stone-300/70 bg-stone-100">
+              <div className="w-full h-full aspect-square rounded-full overflow-hidden relative shadow-[inset_0_4px_10px_rgba(0,0,0,0.35),0_1px_2px_rgba(255,255,255,0.9)] border border-stone-300/70 bg-stone-100">
+                {!imgLoaded && (
+                  <div className="absolute inset-0 bg-stone-200 animate-pulse rounded-full pointer-events-none" />
+                )}
                 <img
                   src={getImageUrl(image)}
                   alt={`${name} at Gole Khaja Ghar in Sisuwa`}
                   loading="lazy"
                   decoding="async"
+                  onLoad={() => setImgLoaded(true)}
                   onError={(e) => {
                     const target = e.currentTarget;
                     if (!target.src.endsWith("/images/logo.png")) {
                       target.src = "/images/logo.png";
                     }
+                    setImgLoaded(true);
                   }}
-                  className={`w-full h-full object-cover transition-transform duration-500 group-hover/dish:scale-115 ${
-                    !isAvailable ? "grayscale" : ""
-                  }`}
+                  className={`w-full h-full object-cover transition-all duration-500 ease-out group-hover/dish:scale-115 ${
+                    imgLoaded ? "opacity-100 scale-100" : "opacity-0 scale-105"
+                  } ${!isAvailable ? "grayscale" : ""}`}
                 />
 
                 {/* 3D Ceramic Gloss Glaze Reflection */}
@@ -182,23 +188,28 @@ export default function ProductCard({
             </div>
           ) : (
             /* 3D Beverage / Bottle Pedestal Coaster */
-            <div className="relative w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 lg:w-40 lg:h-40 rounded-full p-2 sm:p-2.5 bg-gradient-to-br from-amber-100 via-amber-50 to-stone-300 shadow-[0_12px_24px_-6px_rgba(0,0,0,0.25),inset_0_2px_4px_rgba(255,255,255,1),inset_0_-3px_6px_rgba(0,0,0,0.22)] border border-amber-300/80 ring-2 ring-amber-200/90 group-hover:ring-amber-500 group-hover:scale-105 transition-all duration-300 flex items-center justify-center">
+            <div className="relative w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 lg:w-40 lg:h-40 aspect-square rounded-full p-2 sm:p-2.5 bg-gradient-to-br from-amber-100 via-amber-50 to-stone-300 shadow-[0_12px_24px_-6px_rgba(0,0,0,0.25),inset_0_2px_4px_rgba(255,255,255,1),inset_0_-3px_6px_rgba(0,0,0,0.22)] border border-amber-300/80 ring-2 ring-amber-200/90 group-hover:ring-amber-500 group-hover:scale-105 transition-all duration-300 flex items-center justify-center">
               {/* Inner Drink Coaster Mat */}
-              <div className="w-full h-full rounded-full overflow-hidden relative shadow-[inset_0_4px_10px_rgba(0,0,0,0.3),0_1px_2px_rgba(255,255,255,0.9)] border border-amber-200/80 bg-stone-900/5">
+              <div className="w-full h-full aspect-square rounded-full overflow-hidden relative shadow-[inset_0_4px_10px_rgba(0,0,0,0.3),0_1px_2px_rgba(255,255,255,0.9)] border border-amber-200/80 bg-stone-900/5">
+                {!imgLoaded && (
+                  <div className="absolute inset-0 bg-stone-200 animate-pulse rounded-full pointer-events-none" />
+                )}
                 <img
                   src={getImageUrl(image)}
                   alt={`${name} at Gole Khaja Ghar in Sisuwa`}
                   loading="lazy"
                   decoding="async"
+                  onLoad={() => setImgLoaded(true)}
                   onError={(e) => {
                     const target = e.currentTarget;
                     if (!target.src.endsWith("/images/logo.png")) {
                       target.src = "/images/logo.png";
                     }
+                    setImgLoaded(true);
                   }}
-                  className={`w-full h-full object-cover transition-transform duration-500 group-hover/dish:scale-115 ${
-                    !isAvailable ? "grayscale" : ""
-                  }`}
+                  className={`w-full h-full object-cover transition-all duration-500 ease-out group-hover/dish:scale-115 ${
+                    imgLoaded ? "opacity-100 scale-100" : "opacity-0 scale-105"
+                  } ${!isAvailable ? "grayscale" : ""}`}
                 />
 
                 {/* 3D Drink Glassware Light Highlight */}

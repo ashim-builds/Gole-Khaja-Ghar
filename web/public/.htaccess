@@ -1,14 +1,110 @@
+# ==============================================================================
+# Gole Khaja Ghar: Frontend Production Web Server Configuration (.htaccess)
+# Designed for Apache 2.4+ / LiteSpeed Web Server on cPanel
+# Delivers static React SPA assets directly without invoking Node.js runtime
+# ==============================================================================
+
+# Disable directory browsing
+Options -Indexes -MultiViews
+
+# ------------------------------------------------------------------------------
+# 1. SPA CLIENT-SIDE ROUTING FALLBACK
+# ------------------------------------------------------------------------------
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
 
-  RewriteRule ^index\.html$ - [L]
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteCond %{REQUEST_FILENAME} !-l
-  RewriteRule . /index.html [L]
+  # Allow existing files, directories, and symlinks to be served directly
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d [OR]
+  RewriteCond %{REQUEST_FILENAME} -l
+  RewriteRule ^ - [L]
+
+  # Do NOT rewrite missing asset requests (js, css, images, fonts) to index.html
+  RewriteCond %{REQUEST_URI} \.(?:js|css|json|webmanifest|png|jpe?g|webp|gif|svg|ico|woff2?|ttf|eot|map)$ [NC]
+  RewriteRule ^ - [R=404,L]
+
+  # Route all other URLs to index.html for client-side React Router
+  RewriteRule ^ index.html [L]
 </IfModule>
 
+# ------------------------------------------------------------------------------
+# 2. GZIP / DEFLATE COMPRESSION (Apache mod_deflate)
+# ------------------------------------------------------------------------------
 <IfModule mod_deflate.c>
-  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+  # Force compression for mangled headers
+  <IfModule mod_setenvif.c>
+    <IfModule mod_headers.c>
+      SetEnvIfNoCase ^(Accept-EncodXng|X-cept-Encoding|X{15}|~{15}|-{15})$ ^((gzip|deflate)\s*,?\s*)+$ HAVE_Accept-Encoding
+      RequestHeader append Accept-Encoding "gzip,deflate" env=HAVE_Accept-Encoding
+    </IfModule>
+  </IfModule>
+
+  # Compress all text, javascript, json, css, svg, and fonts
+  AddOutputFilterByType DEFLATE text/html
+  AddOutputFilterByType DEFLATE text/plain
+  AddOutputFilterByType DEFLATE text/xml
+  AddOutputFilterByType DEFLATE text/css
+  AddOutputFilterByType DEFLATE text/javascript
+  AddOutputFilterByType DEFLATE application/javascript
+  AddOutputFilterByType DEFLATE application/x-javascript
+  AddOutputFilterByType DEFLATE application/json
+  AddOutputFilterByType DEFLATE application/xml
+  AddOutputFilterByType DEFLATE application/xhtml+xml
+  AddOutputFilterByType DEFLATE application/rss+xml
+  AddOutputFilterByType DEFLATE application/atom+xml
+  AddOutputFilterByType DEFLATE image/svg+xml
+  AddOutputFilterByType DEFLATE font/ttf
+  AddOutputFilterByType DEFLATE font/otf
+  AddOutputFilterByType DEFLATE font/opentype
+  AddOutputFilterByType DEFLATE application/vnd.ms-fontobject
+  AddOutputFilterByType DEFLATE application/x-font-ttf
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# 3. 1-YEAR BROWSER CACHING HEADERS (mod_expires & mod_headers)
+# ------------------------------------------------------------------------------
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresDefault "access plus 1 month"
+
+  # HTML & App Manifest: Never cache / immediate validation
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType application/manifest+json "access plus 0 seconds"
+
+  # Hashed CSS, JS, Fonts & Media: 1 Year Immutable Cache
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType text/javascript "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType application/x-javascript "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 1 year"
+  ExpiresByType font/woff "access plus 1 year"
+  ExpiresByType font/ttf "access plus 1 year"
+  ExpiresByType font/otf "access plus 1 year"
+  ExpiresByType application/vnd.ms-fontobject "access plus 1 year"
+  ExpiresByType image/webp "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/jpg "access plus 1 year"
+  ExpiresByType image/gif "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 year"
+  ExpiresByType image/x-icon "access plus 1 year"
+</IfModule>
+
+<IfModule mod_headers.c>
+  # Service Worker & HTML: Never aggressively cache to ensure instant app updates
+  <FilesMatch "^(index\.html|sw\.js|sw-push\.js|registerSW\.js|manifest\.webmanifest)$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+  </FilesMatch>
+
+  # Vite Content-Hashed Production Bundles (/assets/*): 1 Year Immutable
+  <FilesMatch "\.([a-zA-Z0-9_-]{8,12})\.(js|css|woff2?|png|jpe?g|webp|svg)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+
+  # Security & Efficiency Headers
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-XSS-Protection "1; mode=block"
 </IfModule>

@@ -4,6 +4,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
 import prisma from '../lib/prisma.js';
+import { routeCache, invalidateProductsCache } from '../lib/cache.js';
 
 const ALLOWED_IMAGE_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
 
@@ -71,6 +72,16 @@ function mapProduct(doc: any) {
 export async function getProducts(req: Request, res: Response): Promise<void> {
   try {
     const { category, query, availableOnly, page, limit } = req.query;
+
+    const cacheKey = `products:list:${category || ''}:${query || ''}:${availableOnly || ''}:${page || 1}:${limit || ''}`;
+    const cached = routeCache.get(cacheKey);
+    if (cached) {
+      res.set('X-Cache', 'HIT');
+      res.set('Cache-Control', 'public, max-age=45, stale-while-revalidate=60');
+      res.json(cached);
+      return;
+    }
+
     const where: any = {};
 
     if (category && typeof category === 'string') {
@@ -151,9 +162,7 @@ export async function getProducts(req: Request, res: Response): Promise<void> {
       }),
     ]);
 
-    res.set('Cache-Control', 'public, max-age=15, stale-while-revalidate=60');
-
-    res.json({
+    const responseData = {
       success: true,
       products: products.map(mapProduct),
       pagination: {
@@ -163,7 +172,12 @@ export async function getProducts(req: Request, res: Response): Promise<void> {
         totalPages: limitNum ? Math.ceil(total / limitNum) : 1,
         hasMore: limitNum && pageNum ? pageNum * limitNum < total : false,
       },
-    });
+    };
+
+    routeCache.set(cacheKey, responseData, 60);
+    res.set('X-Cache', 'MISS');
+    res.set('Cache-Control', 'public, max-age=45, stale-while-revalidate=60');
+    res.json(responseData);
   } catch (error) {
     console.error('getProducts error:', error);
     res.status(500).json({ error: 'Failed to fetch products' });
@@ -175,6 +189,14 @@ export async function getProductBySlug(req: Request, res: Response): Promise<voi
     const slug = (req.params.slug || '').trim().slice(0, 100);
     if (!slug) {
       res.status(400).json({ error: 'Slug parameter is required' });
+      return;
+    }
+
+    const cacheKey = `products:slug:${slug}`;
+    const cached = routeCache.get(cacheKey);
+    if (cached) {
+      res.set('X-Cache', 'HIT');
+      res.json(cached);
       return;
     }
 
@@ -191,7 +213,10 @@ export async function getProductBySlug(req: Request, res: Response): Promise<voi
       return;
     }
 
-    res.json({ success: true, product: mapProduct(doc) });
+    const responseData = { success: true, product: mapProduct(doc) };
+    routeCache.set(cacheKey, responseData, 60);
+    res.set('X-Cache', 'MISS');
+    res.json(responseData);
   } catch (error) {
     console.error('getProductBySlug error:', error);
     res.status(500).json({ error: 'Failed to fetch product' });
@@ -200,13 +225,21 @@ export async function getProductBySlug(req: Request, res: Response): Promise<voi
 
 export async function getCategories(_req: Request, res: Response): Promise<void> {
   try {
+    const cacheKey = 'categories:all';
+    const cached = routeCache.get(cacheKey);
+    if (cached) {
+      res.set('X-Cache', 'HIT');
+      res.json(cached);
+      return;
+    }
+
     const categories = await prisma.category.findMany({
       where: { isActive: true },
       orderBy: { sortOrder: 'asc' },
     });
 
     if (!categories || categories.length === 0) {
-      res.json({
+      const fallback = {
         success: true,
         categories: [
           'Morning Breakfast',
@@ -216,11 +249,17 @@ export async function getCategories(_req: Request, res: Response): Promise<void>
           'Snacks',
           'Beer & Hard Drinks',
         ],
-      });
+      };
+      routeCache.set(cacheKey, fallback, 60);
+      res.set('X-Cache', 'MISS');
+      res.json(fallback);
       return;
     }
 
-    res.json({ success: true, categories: categories.map((c) => c.name) });
+    const responseData = { success: true, categories: categories.map((c) => c.name) };
+    routeCache.set(cacheKey, responseData, 60);
+    res.set('X-Cache', 'MISS');
+    res.json(responseData);
   } catch (error) {
     console.error('getCategories error:', error);
     res.status(500).json({ error: 'Failed to fetch categories' });
@@ -229,6 +268,14 @@ export async function getCategories(_req: Request, res: Response): Promise<void>
 
 export async function getFeaturedProducts(_req: Request, res: Response): Promise<void> {
   try {
+    const cacheKey = 'products:featured';
+    const cached = routeCache.get(cacheKey);
+    if (cached) {
+      res.set('X-Cache', 'HIT');
+      res.json(cached);
+      return;
+    }
+
     const products = await prisma.product.findMany({
       where: { isFeatured: true, isAvailable: true },
       include: {
@@ -238,7 +285,10 @@ export async function getFeaturedProducts(_req: Request, res: Response): Promise
       orderBy: [ { category: { sortOrder: 'asc' } }, { createdAt: 'asc' } ],
     });
 
-    res.json({ success: true, products: products.map(mapProduct) });
+    const responseData = { success: true, products: products.map(mapProduct) };
+    routeCache.set(cacheKey, responseData, 60);
+    res.set('X-Cache', 'MISS');
+    res.json(responseData);
   } catch (error) {
     console.error('getFeaturedProducts error:', error);
     res.status(500).json({ error: 'Failed to fetch featured products' });
@@ -379,6 +429,7 @@ export async function createProduct(req: Request, res: Response): Promise<void> 
       },
     });
 
+    invalidateProductsCache();
     const mapped = mapProduct(product); emitProductUpdated(mapped); res.status(201).json({ success: true, product: mapped });
   } catch (error: any) {
     console.error('createProduct error:', error);
@@ -500,6 +551,7 @@ export async function updateProduct(req: Request, res: Response): Promise<void> 
       },
     });
 
+    invalidateProductsCache();
     const mapped = mapProduct(updated); emitProductUpdated(mapped); res.json({ success: true, product: mapped });
   } catch (error: any) {
     console.error('updateProduct error:', error);
@@ -511,6 +563,7 @@ export async function deleteProduct(req: Request, res: Response): Promise<void> 
   try {
     const { id } = req.params;
     await prisma.product.delete({ where: { id } });
+    invalidateProductsCache();
     emitProductUpdated({ id, deleted: true });
     res.json({ success: true });
   } catch (error) {
@@ -533,6 +586,7 @@ export async function toggleProductStock(req: Request, res: Response): Promise<v
       },
     });
 
+    invalidateProductsCache();
     res.json({ success: true, product: mapProduct(updated) });
   } catch (error) {
     console.error('toggleProductStock error:', error);
@@ -588,6 +642,7 @@ export async function adjustProductStock(req: Request, res: Response): Promise<v
       },
     });
 
+    invalidateProductsCache();
     const mapped = mapProduct(updated); emitProductUpdated(mapped); res.json({ success: true, product: mapped, newStock });
   } catch (error: any) {
     console.error('adjustProductStock error:', error);

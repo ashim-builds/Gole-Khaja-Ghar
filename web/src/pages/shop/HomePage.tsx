@@ -24,6 +24,7 @@ import ScrollAnimation from "@/components/ScrollAnimation";
 import InstallAppSection from "@/components/InstallAppSection";
 import SEO from "@/components/SEO";
 import { getFeaturedProducts, Product } from "@/lib/data";
+import { getSessionCache } from "@/lib/clientCache";
 
 const homeFAQSchema = {
   "@context": "https://schema.org",
@@ -122,6 +123,14 @@ export default function HomePage() {
 
   useEffect(() => {
     let active = true;
+
+    // Instant SWR Hydration: Render featured products immediately in 0ms
+    const cached = getSessionCache<Product[]>('golu_featured_products', 5 * 60 * 1000);
+    if (cached?.data && cached.data.length > 0) {
+      setFeaturedProducts(cached.data);
+      setLoading(false);
+    }
+
     async function loadData() {
       try {
         const products = await getFeaturedProducts();

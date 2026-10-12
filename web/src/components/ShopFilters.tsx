@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams, useLocation, Link } from "react-router-do
 import { Search, X, ChevronDown, Sparkles, ArrowRight, CornerDownLeft } from "lucide-react";
 import { api, getImageUrl } from "@/lib/api";
 import { searchItems } from "@/lib/searchUtils";
+import { getSessionCache, setSessionCache } from "@/lib/clientCache";
 
 interface SuggestionProduct {
   id?: string;
@@ -46,15 +47,21 @@ export default function ShopFilters({ categories, allProducts }: ShopFiltersProp
 
   const currentSortLabel = sortOptions.find(o => o.value === currentSort)?.label || "Popular";
 
-  // Pre-load all available products for instant client-side fuzzy searching
+  // Pre-load all available products for instant client-side fuzzy searching (0ms SWR)
   useEffect(() => {
     if (allProducts && allProducts.length > 0) {
       setProductList(allProducts);
     } else {
       let active = true;
+      const cached = getSessionCache<SuggestionProduct[]>('golu_search_catalog', 5 * 60 * 1000);
+      if (cached?.data && cached.data.length > 0) {
+        setProductList(cached.data);
+      }
+
       api.products.getAll(undefined, undefined, true, 1, 150).then((res) => {
         if (active && res.products) {
           setProductList(res.products);
+          setSessionCache('golu_search_catalog', res.products);
         }
       }).catch(() => {});
       return () => { active = false; };

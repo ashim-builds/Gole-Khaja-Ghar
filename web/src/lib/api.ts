@@ -351,7 +351,6 @@ export const api = {
       if (availableOnly) params.set('availableOnly', 'true');
       if (page) params.set('page', String(page));
       if (limit) params.set('limit', String(limit));
-      params.set('_t', String(Date.now()));
       const qs = params.toString() ? '?' + params.toString() : '';
       return request<{
         success: boolean;
@@ -360,14 +359,10 @@ export const api = {
       }>(`/products${qs}`);
     },
     async getBySlug(slug: string) {
-      return request<{ success: boolean; product: Product }>(`/products/${slug}`, {
-        cache: 'no-store',
-      });
+      return request<{ success: boolean; product: Product }>(`/products/${slug}`);
     },
     async getFeatured() {
-      return request<{ success: boolean; products: Product[] }>('/products/featured', {
-        cache: 'no-store',
-      });
+      return request<{ success: boolean; products: Product[] }>('/products/featured');
     },
     async getCategories() {
       return request<{ success: boolean; categories: string[] }>('/products/categories');
@@ -756,7 +751,7 @@ export const api = {
         nextOpening: string;
         nepalTimeFormatted: string;
         updatedAt?: string;
-      }>('/store-status', { cache: 'no-store' });
+      }>('/store-status');
     },
     async getAdminStatus() {
       return request<{

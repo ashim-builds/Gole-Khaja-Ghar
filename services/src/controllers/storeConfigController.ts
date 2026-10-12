@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import fs from 'fs';
 import path from 'path';
 import { getNepaliDate } from '../lib/nepaliDate.js';
+import { routeCache, invalidateStoreCache } from '../lib/cache.js';
 
 export type StoreOperationalMode = 'AUTO' | 'MANUAL_OPEN' | 'MANUAL_CLOSED';
 
@@ -183,8 +184,19 @@ export function evaluateStoreStatus() {
  */
 export async function getStoreStatusHandler(_req: Request, res: Response): Promise<void> {
   try {
+    const cacheKey = 'store:status';
+    const cached = routeCache.get(cacheKey);
+    if (cached) {
+      res.set('X-Cache', 'HIT');
+      res.json(cached);
+      return;
+    }
+
     const status = evaluateStoreStatus();
-    res.json({ success: true, ...status });
+    const responseData = { success: true, ...status };
+    routeCache.set(cacheKey, responseData, 45); // 45s TTL
+    res.set('X-Cache', 'MISS');
+    res.json(responseData);
   } catch (error: any) {
     res.status(500).json({ success: false, message: error?.message || 'Failed to get store status' });
   }
@@ -210,6 +222,7 @@ export async function updateStoreStatusHandler(req: Request, res: Response): Pro
     };
 
     saveStoredConfig(newConfig);
+    invalidateStoreCache();
 
     const updatedStatus = evaluateStoreStatus();
     res.json({

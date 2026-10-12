@@ -6,7 +6,7 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
-import connectToDatabase from './config/db.js';
+import connectToDatabase, { closePool } from './config/db.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 import authRoutes from './routes/authRoutes.js';
@@ -147,21 +147,25 @@ httpServer.requestTimeout = 15000;
 
 // Graceful process shutdown handling
 const gracefulShutdown = (signal: string) => {
-  console.log("[Server] Received " + signal + ". Gracefully stopping HTTP & sockets...");
+  console.log(`[Server] Received ${signal}. Gracefully stopping HTTP & database pool...`);
   if (typeof (httpServer as any).closeIdleConnections === 'function') {
     (httpServer as any).closeIdleConnections();
   }
   httpServer.close(async () => {
     try {
-      await prisma["$disconnect"]();
-      console.log("[Database] Prisma disconnected cleanly.");
-    } catch (e) {}
+      await closePool();
+    } catch (e) {
+      console.error('[Shutdown] Error closing database pool:', e);
+    }
     process.exit(0);
   });
-  setTimeout(() => {
+  setTimeout(async () => {
     if (typeof (httpServer as any).closeAllConnections === 'function') {
       (httpServer as any).closeAllConnections();
     }
+    try {
+      await closePool();
+    } catch (_e) {}
     process.exit(0);
   }, 3000).unref();
 };
